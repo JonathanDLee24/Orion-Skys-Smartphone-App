@@ -1,0 +1,28 @@
+import React from 'react';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import FeeReviewScreen from './src/screens/FeeReviewScreen';
+import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
+import { colors } from './src/theme';
+
+const Stack = createNativeStackNavigator();
+const navigationTheme = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, primary: colors.cyan, background: colors.background, card: colors.card, text: colors.text, border: colors.border },
+};
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+      <NavigationContainer theme={navigationTheme}>
+        <Stack.Navigator initialRouteName="FeeReview" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+          <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
+}
