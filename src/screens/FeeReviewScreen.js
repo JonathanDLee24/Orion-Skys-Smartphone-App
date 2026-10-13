@@ -56,6 +56,7 @@ export default function FeeReviewScreen({ navigation }) {
       phase={3}
       backLabel="Back to Previous Step"
       onBack={previousPage}
+      onAccount={() => navigation.navigate('AccountSettings')}
       title="Commercial Airspace Coverage"
       footer={<PrimaryButton title="Proceed to Checkout" loading={loading} disabled={!!error || !booking} onPress={continueToCheckout} />}
     >

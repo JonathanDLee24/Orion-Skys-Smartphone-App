@@ -18,8 +18,10 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, phase, secure = false, onBack, backLabel = 'Back to Airspace Coverage', children, footer }) {
+export default function ScreenLayout({ label, title, phase, secure = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const layout = useResponsiveLayout();
+  const badgeText = badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
+  const showProgress = phase != null;
   return (
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
@@ -28,27 +30,39 @@ export default function ScreenLayout({ label, title, phase, secure = false, onBa
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
             <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text>
-            <Text style={[styles.badge, layout.wide && styles.wideLabel, secure && styles.secure]}>{secure ? '● SECURE' : `PHASE 0${phase}/04`}</Text>
+            <View style={styles.headerActions}>
+              {!!onAccount && (
+                <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>
+                  <Text style={styles.accountText}>◈ ACCOUNT</Text>
+                </Pressable>
+              )}
+              {!!badgeText && <Text style={[styles.badge, layout.wide && styles.wideLabel, secure && styles.secure]}>{badgeText}</Text>}
+            </View>
           </View>
           <Text accessibilityRole="header" style={[styles.title, layout.wide && styles.wideTitle]}>{title}</Text>
         </View>
-        <View accessibilityRole="progressbar" accessibilityLabel="Booking progress" accessibilityValue={{ min: 1, max: 4, now: phase, text: `Phase ${phase} of 4` }} style={styles.progress}>
+        {showProgress && (
+          <View accessibilityRole="progressbar" accessibilityLabel="Booking progress" accessibilityValue={{ min: 1, max: 4, now: phase, text: `Phase ${phase} of 4` }} style={styles.progress}>
             {[1, 2, 3, 4].map((segment) => (
               <View key={segment} testID={`phase-segment-${segment}`} style={[styles.segment, segment <= phase && styles.filledSegment]} />
             ))}
-        </View>
+          </View>
+        )}
         <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { padding: layout.padding }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {onBack && (
             <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
-              <Text style={[styles.backText, layout.wide && styles.wideBackText]}>← {backLabel}</Text>
+              <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
             </Pressable>
           )}
           {children}
         </ScrollView>
-        <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }]}>
-          <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
-        </View>
+        {!!footer && (
+          <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }]}>
+            <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
+          </View>
+        )}
       </View>
+      {overlay}
     </SafeAreaView>
   );
 }
@@ -99,6 +113,9 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 7 },
   label: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  account: { minHeight: 44, justifyContent: 'center' },
+  accountText: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
   badge: { color: colors.cyan, borderColor: colors.cyan, borderWidth: 1, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1, fontFamily: monoFont, fontSize: 8 },
   secure: { borderWidth: 0, paddingHorizontal: 0 },
   title: { color: colors.text, fontSize: 18, fontWeight: '700', lineHeight: 24 },

@@ -38,6 +38,7 @@ export default function PaymentCheckoutScreen({ route, navigation }) {
       title="Operations Summary"
       phase={4}
       onBack={() => navigation.navigate('FeeReview')}
+      onAccount={() => navigation.navigate('AccountSettings')}
       footer={<PrimaryButton title="Continue to Payment Portal" disabled={!!error || !booking?.fees?.length} onPress={proceed} />}
     >
       {error ? (
