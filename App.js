@@ -12,7 +12,7 @@ import { colors } from './src/theme';
 const Stack = createNativeStackNavigator();
 const navigationTheme = {
   ...DarkTheme,
-  colors: { ...DarkTheme.colors, primary: colors.cyan, background: colors.background, card: colors.card, text: colors.text, border: colors.border },
+  colors: { ...DarkTheme.colors, primary: colors.accent, background: colors.background, card: colors.card, text: colors.text, border: colors.border },
 };
 
 export default function App() {

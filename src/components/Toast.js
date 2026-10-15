@@ -32,6 +32,6 @@ export default function Toast({ message, onHide, duration = 2600 }) {
 
 const styles = StyleSheet.create({
   layer: { position: 'absolute', left: 0, right: 0, bottom: 104, alignItems: 'center', paddingHorizontal: 16, zIndex: 10 },
-  toast: { width: '100%', maxWidth: 420, backgroundColor: colors.cyanTint, borderWidth: 1, borderColor: colors.cyan, borderRadius: 6, paddingVertical: 12, paddingHorizontal: 16 },
-  text: { color: colors.cyan, fontFamily: monoFont, fontSize: 12, fontWeight: '700', textAlign: 'center' },
+  toast: { width: '100%', maxWidth: 420, backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accent, borderRadius: 6, paddingVertical: 12, paddingHorizontal: 16 },
+  text: { color: colors.accent, fontFamily: monoFont, fontSize: 12, fontWeight: '700', textAlign: 'center' },
 });

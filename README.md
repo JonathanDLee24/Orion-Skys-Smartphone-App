@@ -44,7 +44,7 @@ Jest uses jest-expo. Tests cover one/two/zero/large fee totals; USD formatting; 
 
 The app opens on **Client Dashboard** (`Dashboard`). It shows the active booking and two quick links: **Review booking fees** routes to `FeeReview` and **Account settings** routes to `AccountSettings`. The `◈ ACCOUNT` header shortcut opens `AccountSettings` from any of those screens.
 
-**Account Settings** renders the four notification toggles from `defaultNotificationSettings` — email (on), push (off), show updates (on), billing (on) — plus the static disclaimer, an English-default language picker, and a Singapore · SGT (UTC+8) default time-zone picker. `Save preferences` calls the mock `saveNotificationSettings` and, on success, shows a `Preferences saved` toast; Cancel and the `< ACCOUNT` breadcrumb both return to `Dashboard` without calling the service. Toggles animate between cyan (on) and border-grey (off), and each picker expands into a scrollable overlay list. The settings screen has no phase, so its progress divider is hidden.
+**Account Settings** renders the four notification toggles from `defaultNotificationSettings` — email (on), push (off), show updates (on), billing (on) — plus the static disclaimer, an English-default language picker, and a Singapore · SGT (UTC+8) default time-zone picker. `Save preferences` calls the mock `saveNotificationSettings` and, on success, shows a `Preferences saved` toast; Cancel and the `< ACCOUNT` breadcrumb both return to `Dashboard` without calling the service. Toggles animate between lime (on) and border-grey (off), and each picker expands into a scrollable overlay list. The settings screen has no phase, so its progress divider is hidden.
 
 The fee-review header divider is a four-segment progress indicator: coverage is phase 3 of 4 and checkout is phase 4 of 4. Arrow back links sit below the divider. Checkout returns to coverage; coverage's Back to Previous Step currently shows “Previous page coming soon” until the earlier page is developed.
 
@@ -109,9 +109,9 @@ src/
   services/settingsService.js        Delayed mock settings save with failure flag
   components/
     FeeRow.js                       Label/amount line item
-    PrimaryButton.js                Disabled/loading cyan button
+    PrimaryButton.js                Disabled/loading lime button
     ScreenLayout.js                 Shared safe-area frame, header shortcut, styles
-    ToggleSwitch.js                 Animated cyan/grey notification switch
+    ToggleSwitch.js                 Animated lime/grey notification switch
     DropdownSelect.js               Expanding scrollable picker
     Toast.js                        Auto-dismissing success toast
   screens/

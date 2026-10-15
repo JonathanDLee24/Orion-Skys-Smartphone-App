@@ -1,16 +1,17 @@
 import { Platform, useWindowDimensions } from 'react-native';
 
 export const colors = {
-  background: '#0B0F18',
-  card: '#111620',
-  cyan: '#00E5FF',
+  background: '#000000',
+  card: '#121212',
+  field: '#0A0A0A',
+  accent: '#D4FF00',
+  accentTint: '#1A2200',
   gold: '#FFC107',
   text: '#FFFFFF',
-  muted: '#73839B',
+  muted: '#8C8C8C',
   error: '#FF3B30',
-  border: '#202B3D',
+  border: '#262626',
   green: '#00C795',
-  cyanTint: '#0B222D',
 };
 
 export function getResponsiveLayout(width) {

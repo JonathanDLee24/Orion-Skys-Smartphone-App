@@ -48,13 +48,13 @@ export default function DashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   hero: { alignItems: 'flex-start' },
-  booking: { color: colors.cyan, fontFamily: monoFont, fontSize: 22, fontWeight: '700', marginVertical: 8 },
+  booking: { color: colors.accent, fontFamily: monoFont, fontSize: 22, fontWeight: '700', marginVertical: 8 },
   wideBooking: { fontSize: 28 },
   wideLinks: { flexDirection: 'row', gap: 24 },
   link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   wideLink: { flex: 1 },
   linkCopy: { flex: 1 },
   linkTitle: { color: colors.text, fontSize: 13, fontWeight: '700', marginBottom: 2 },
-  chevron: { color: colors.cyan, fontSize: 16 },
+  chevron: { color: colors.accent, fontSize: 16 },
   pressed: { opacity: 0.7 },
 });

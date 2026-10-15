@@ -52,16 +52,16 @@ export default function DropdownSelect({ label, value, options, onChange, testID
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
-  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 44, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: '#0B151E' },
-  fieldOpen: { borderColor: colors.cyan },
+  field: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 44, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.field },
+  fieldOpen: { borderColor: colors.accent },
   value: { color: colors.text, fontSize: 13, flexShrink: 1 },
-  chevron: { color: colors.cyan, fontSize: 12 },
-  panel: { marginTop: 6, borderWidth: 1, borderColor: colors.cyan, borderRadius: 6, backgroundColor: '#0B151E', overflow: 'hidden' },
+  chevron: { color: colors.accent, fontSize: 12 },
+  panel: { marginTop: 6, borderWidth: 1, borderColor: colors.accent, borderRadius: 6, backgroundColor: colors.field, overflow: 'hidden' },
   list: { maxHeight: 180 },
   option: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 44, paddingHorizontal: 12, paddingVertical: 8 },
-  optionActive: { backgroundColor: colors.cyanTint },
+  optionActive: { backgroundColor: colors.accentTint },
   optionText: { color: colors.text, fontSize: 13, flexShrink: 1 },
-  optionTextActive: { color: colors.cyan, fontWeight: '700' },
-  check: { color: colors.cyan, fontSize: 13 },
+  optionTextActive: { color: colors.accent, fontWeight: '700' },
+  check: { color: colors.accent, fontSize: 13 },
   pressed: { opacity: 0.7 },
 });

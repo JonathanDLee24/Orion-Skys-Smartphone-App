@@ -18,7 +18,7 @@ export default function ToggleSwitch({ value, onValueChange, label, testID }) {
     }).start();
   }, [value, progress]);
 
-  const trackColor = progress.interpolate({ inputRange: [0, 1], outputRange: [colors.border, colors.cyan] });
+  const trackColor = progress.interpolate({ inputRange: [0, 1], outputRange: [colors.border, colors.accent] });
   const thumbOffset = progress.interpolate({ inputRange: [0, 1], outputRange: [0, TRAVEL] });
 
   return (

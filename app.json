@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0A0E17",
+    "backgroundColor": "#000000",
     "ios": {
       "supportsTablet": true
     },

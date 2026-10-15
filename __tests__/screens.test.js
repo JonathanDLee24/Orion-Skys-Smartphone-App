@@ -107,7 +107,7 @@ test('coverage divider has four segments with three filled and a previous-step p
   expect(progress.props.accessibilityValue.now).toBe(3);
   for (let index = 1; index <= 4; index++) {
     const segment = tree.root.findAll((node) => node.props.testID === `phase-segment-${index}`)[0];
-    expect(StyleSheet.flatten(segment.props.style).backgroundColor).toBe(index <= 3 ? colors.cyan : colors.border);
+    expect(StyleSheet.flatten(segment.props.style).backgroundColor).toBe(index <= 3 ? colors.accent : colors.border);
   }
   const back = tree.root.findAll((node) => node.props.accessibilityLabel === 'Back to Previous Step' && node.props.onPress)[0];
   await act(async () => back.props.onPress());
@@ -120,7 +120,7 @@ test('checkout fills all four divider segments and its back link returns to cove
   expect(tree.root.findAll((node) => node.props.accessibilityRole === 'progressbar')[0].props.accessibilityValue.now).toBe(4);
   for (let index = 1; index <= 4; index++) {
     const segment = tree.root.findAll((node) => node.props.testID === `phase-segment-${index}`)[0];
-    expect(StyleSheet.flatten(segment.props.style).backgroundColor).toBe(colors.cyan);
+    expect(StyleSheet.flatten(segment.props.style).backgroundColor).toBe(colors.accent);
   }
   const back = tree.root.findAll((node) => node.props.accessibilityLabel === 'Back to Airspace Coverage' && node.props.onPress)[0];
   await act(async () => back.props.onPress());
