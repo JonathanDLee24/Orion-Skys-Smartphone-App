@@ -7,6 +7,8 @@ import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
+import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
+import WelcomeScreen from './src/screens/WelcomeScreen';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
