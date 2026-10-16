@@ -23,7 +23,7 @@ test('employee sign in accepts the demo credentials and opens the dashboard', as
 
   const inputs = tree.root.findAllByType(TextInput);
   await act(async () => inputs[0].props.onChangeText('test'));
-  await act(async () => inputs[1].props.onChangeText('1234'));
+  await act(async () => inputs[1].props.onChangeText('password1234'));
   const submit = tree.root.find(
     (node) => node.props.accessibilityLabel === 'Sign in',
   );

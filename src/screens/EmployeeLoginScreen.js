@@ -4,7 +4,7 @@ import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors } from '../theme';
 
 const DEMO_USERNAME = 'test';
-const DEMO_PASSWORD = '1234';
+const DEMO_PASSWORD = 'password1234';
 
 export default function EmployeeLoginScreen({ navigation }) {
   const s = useScreenStyles();
@@ -95,7 +95,7 @@ export default function EmployeeLoginScreen({ navigation }) {
           <Text style={styles.buttonText}>Sign in</Text>
         </Pressable>
         <Text style={styles.demoNote}>
-          Demo login: username test · password 1234
+          Demo login: username test · password password1234
         </Text>
       </View>
     </ScreenLayout>
