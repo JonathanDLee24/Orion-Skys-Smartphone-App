@@ -8,6 +8,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
+import WelcomeScreen from './src/screens/WelcomeScreen';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
@@ -21,7 +22,8 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <NavigationContainer theme={navigationTheme}>
-        <Stack.Navigator initialRouteName="Dashboard" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+        <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
           <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
