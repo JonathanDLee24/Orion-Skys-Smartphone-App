@@ -7,6 +7,7 @@ import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
+import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -26,6 +27,7 @@ export default function App() {
         <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+          <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
           <Stack.Screen name="FeeReview" component={FeeReviewScreen} />

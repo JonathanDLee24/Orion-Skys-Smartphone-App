@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
@@ -18,7 +19,8 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+  const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
   const shouldShowProgress = showProgress && phase != null;
@@ -27,7 +29,12 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
         {!layout.wide && <WebStatusBar />}
-        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>{onLogoPress ? <Pressable accessibilityRole="button" accessibilityLabel="Back to welcome" onPress={onLogoPress} style={({ pressed }) => pressed && styles.backPressed}>{logo}</Pressable> : logo}<Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text></View>
+        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Return to home" onPress={() => navigation.popToTop()}>
+            <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />
+          </Pressable>
+          <Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>CLIENT OPERATIONS / PAYMENTS</Text>
+        </View>
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
             {label ? <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text> : <View />}
