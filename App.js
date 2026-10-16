@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
@@ -24,6 +25,7 @@ export default function App() {
       <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
           <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
