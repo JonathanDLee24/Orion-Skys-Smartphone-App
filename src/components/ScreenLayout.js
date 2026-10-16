@@ -18,10 +18,10 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, phase, secure = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const layout = useResponsiveLayout();
-  const badgeText = badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
-  const showProgress = phase != null;
+  const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
+  const shouldShowProgress = showProgress && phase != null;
   return (
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
@@ -41,7 +41,7 @@ export default function ScreenLayout({ label, title, phase, secure = false, badg
           </View>
           <Text accessibilityRole="header" style={[styles.title, layout.wide && styles.wideTitle]}>{title}</Text>
         </View>
-        {showProgress && (
+        {shouldShowProgress && (
           <View accessibilityRole="progressbar" accessibilityLabel="Booking progress" accessibilityValue={{ min: 1, max: 4, now: phase, text: `Phase ${phase} of 4` }} style={styles.progress}>
             {[1, 2, 3, 4].map((segment) => (
               <View key={segment} testID={`phase-segment-${segment}`} style={[styles.segment, segment <= phase && styles.filledSegment]} />
@@ -56,11 +56,9 @@ export default function ScreenLayout({ label, title, phase, secure = false, badg
           )}
           {children}
         </ScrollView>
-        {!!footer && (
-          <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }]}>
-            <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
-          </View>
-        )}
+        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter]}>
+          <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
+        </View>}
       </View>
       {overlay}
     </SafeAreaView>
@@ -120,7 +118,8 @@ const styles = StyleSheet.create({
   accountText: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
   badge: { color: colors.accent, borderColor: colors.accent, borderWidth: 1, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1, fontFamily: monoFont, fontSize: 8 },
   secure: { borderWidth: 0, paddingHorizontal: 0 },
-  title: { color: colors.text, fontSize: 18, fontWeight: '700', lineHeight: 24 },
+  onlineBadge: { color: colors.cyan, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0 },
+  title: { color: colors.text, fontFamily: monoFont, fontSize: 17, fontWeight: '700', letterSpacing: 0.2, lineHeight: 24 },
   back: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center', marginTop: -10, marginBottom: 8 },
   backText: { color: colors.accent, fontSize: 12 },
   backPressed: { opacity: 0.7 },
@@ -130,4 +129,5 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { padding: 18, flexGrow: 1 },
   footer: { backgroundColor: colors.card, borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 26 },
+  flushFooter: { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
 });
