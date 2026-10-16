@@ -98,6 +98,7 @@ export default function EmployeeDashboard({ navigation }) {
     <ScreenLayout
       label="EMPLOYEE PORTAL"
       caption="EMPLOYEE OPERATIONS / PAYMENTS"
+      onLogoPress={() => navigation.navigate('Welcome')}
       title="Welcome back, Kenneth"
       secure
       showProgress={false}
