@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, Image} from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, useResponsiveLayout } from '../theme';
 
-// Sign-in buttons lead to the dashboard for now; they can route to sign-in screens later.
+// Sign-in buttons lead to the dashboard and Drone Manifest for now; they can route to sign-in screens later.
 
 export default function WelcomeScreen({ navigation }) {
   const layout = useResponsiveLayout();
@@ -30,7 +30,7 @@ export default function WelcomeScreen({ navigation }) {
       </Pressable>
       <Pressable
         accessibilityRole="button"
-        onPress={() => navigation.navigate('Dashboard')}
+        onPress={() => navigation.navigate('DroneManifest')}
         style={styles.button}
       >
         <Text style={styles.buttonText}>Admin Sign In</Text>
