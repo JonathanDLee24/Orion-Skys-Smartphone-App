@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
@@ -26,7 +26,7 @@ export default function ScreenLayout({ label, title, phase, secure = false, badg
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
         {!layout.wide && <WebStatusBar />}
-        {layout.wide && <View style={[styles.brand, { paddingHorizontal: layout.padding }]}><Text style={styles.brandText}>ORION <Text style={styles.brandAccent}>SKYS</Text></Text><Text style={styles.brandCaption}>CLIENT OPERATIONS / PAYMENTS</Text></View>}
+        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}><Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} /><Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>CLIENT OPERATIONS / PAYMENTS</Text></View>
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
             <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text>
@@ -89,9 +89,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   frame: { flex: 1, width: '100%', alignSelf: 'center', backgroundColor: colors.background },
   brand: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 24, borderBottomWidth: 1, borderColor: colors.border },
-  brandText: { color: colors.text, fontSize: 18, fontWeight: '700', letterSpacing: 3 },
-  brandAccent: { color: colors.accent },
+  phoneBrand: { paddingVertical: 14 },
+  brandLogo: { width: 230, height: 46 },
+  phoneBrandLogo: { width: 170, height: 34 },
   brandCaption: { color: colors.muted, fontFamily: monoFont, fontSize: 11, letterSpacing: 1 },
+  phoneBrandCaption: { fontSize: 9, letterSpacing: 0.5 },
   wideHeader: { paddingTop: 28, paddingBottom: 24 },
   wideTitle: { fontSize: 32, lineHeight: 42 },
   wideLabel: { fontSize: 12 },

@@ -27,7 +27,7 @@ The layout uses SafeAreaView from react-native-safe-area-context, a scrollable c
 - **Tablet / iPad (768–1199px):** two-column policy and checkout layouts, larger text/cards, 32px gutters, and a right-aligned action. Content fills the available width up to 1100px.
 - **Desktop (1200px+):** two-column workspace up to 1280px wide, 48px gutters, larger headings and 56px primary buttons.
 
-Long values wrap without horizontal overflow, and content scrolls when height is limited. Portrait and landscape orientation are enabled. The reference-style status bar appears only on phone-sized web views; larger views show the Orion Skys brand header, and native devices use their real system status bar.
+Long values wrap without horizontal overflow, and content scrolls when height is limited. Portrait and landscape orientation are enabled. The reference-style status bar appears only on phone-sized web views; every screen size shows the Orion Skys logo header (smaller on phones), and native devices use their real system status bar.
 
 ## Tests and checks
 
@@ -46,7 +46,7 @@ The app opens on **Client Dashboard** (`Dashboard`). It shows the active booking
 
 **Account Settings** renders the four notification toggles from `defaultNotificationSettings` — email (on), push (off), show updates (on), billing (on) — plus the static disclaimer, an English-default language picker, and a Singapore · SGT (UTC+8) default time-zone picker. `Save preferences` calls the mock `saveNotificationSettings` and, on success, shows a `Preferences saved` toast; Cancel and the `< ACCOUNT` breadcrumb both return to `Dashboard` without calling the service. Toggles animate between lime (on) and border-grey (off), and each picker expands into a scrollable overlay list. The settings screen has no phase, so its progress divider is hidden.
 
-The fee-review header divider is a four-segment progress indicator: coverage is phase 3 of 4 and checkout is phase 4 of 4. Arrow back links sit below the divider. Checkout returns to coverage; coverage's Back to Previous Step currently shows “Previous page coming soon” until the earlier page is developed.
+The fee-review header divider is a four-segment progress indicator: coverage is phase 3 of 4 and checkout is phase 4 of 4. Arrow back links sit below the divider. Checkout returns to coverage; coverage's Back to Dashboard returns to the dashboard.
 
 `FeeReview` calls `getBookingFees(1)` on mount. It displays loading, a retryable error, or **Commercial Airspace Coverage** with a **$450.00** policy premium, coverage switch, carrier and period details. **Proceed to Checkout** passes the booking to `Checkout`, showing **Operations Summary**. The five reference line items sum to **Grand Total $4,674.00** (125000 + 250000 + 30000 + 45000 + 17400 cents). Switching coverage off removes the $450 liability item, making the checkout total $4,224.00. Empty fees produce a $0.00 total and disable checkout; missing or invalid booking data shows a recovery action.
 

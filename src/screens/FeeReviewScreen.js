@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { getBookingFees } from '../services/feeService';
@@ -36,12 +36,6 @@ export default function FeeReviewScreen({ navigation }) {
     return () => { mounted.current = false; };
   }, []);
 
-  function previousPage() {
-    const message = 'Previous page coming soon';
-    if (Platform.OS === 'web') window.alert(message);
-    else Alert.alert(message);
-  }
-
   function continueToCheckout() {
     const selectedBooking = {
       ...booking,
@@ -54,8 +48,8 @@ export default function FeeReviewScreen({ navigation }) {
     <ScreenLayout
       label="RISK: LIABILITY_INS"
       phase={3}
-      backLabel="Back to Previous Step"
-      onBack={previousPage}
+      backLabel="Back to Dashboard"
+      onBack={() => navigation.navigate('Dashboard')}
       onAccount={() => navigation.navigate('AccountSettings')}
       title="Commercial Airspace Coverage"
       footer={<PrimaryButton title="Proceed to Checkout" loading={loading} disabled={!!error || !booking} onPress={continueToCheckout} />}

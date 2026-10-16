@@ -99,19 +99,19 @@ test('empty fee list shows zero total and disables checkout', async () => {
   expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
 });
 
-test('coverage divider has four segments with three filled and a previous-step placeholder', async () => {
+test('coverage divider has four segments with three filled and a back link to the dashboard', async () => {
   getBookingFees.mockResolvedValue(mockBooking);
-  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-  await render(<FeeReviewScreen navigation={{ navigate: jest.fn() }} />);
+  const navigation = { navigate: jest.fn() };
+  await render(<FeeReviewScreen navigation={navigation} />);
   const progress = tree.root.findAll((node) => node.props.accessibilityRole === 'progressbar')[0];
   expect(progress.props.accessibilityValue.now).toBe(3);
   for (let index = 1; index <= 4; index++) {
     const segment = tree.root.findAll((node) => node.props.testID === `phase-segment-${index}`)[0];
     expect(StyleSheet.flatten(segment.props.style).backgroundColor).toBe(index <= 3 ? colors.accent : colors.border);
   }
-  const back = tree.root.findAll((node) => node.props.accessibilityLabel === 'Back to Previous Step' && node.props.onPress)[0];
+  const back = tree.root.findAll((node) => node.props.accessibilityLabel === 'Back to Dashboard' && node.props.onPress)[0];
   await act(async () => back.props.onPress());
-  expect(alert).toHaveBeenCalledWith('Previous page coming soon');
+  expect(navigation.navigate).toHaveBeenCalledWith('Dashboard');
 });
 
 test('checkout fills all four divider segments and its back link returns to coverage', async () => {
