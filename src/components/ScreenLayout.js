@@ -18,7 +18,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
   const shouldShowProgress = showProgress && phase != null;
@@ -57,8 +57,8 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
           )}
           {children}
         </ScrollView>
-        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter]}>
-          <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
+        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
+          <View style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
         </View>}
       </View>
       {overlay}
@@ -131,4 +131,5 @@ const styles = StyleSheet.create({
   content: { padding: 18, flexGrow: 1 },
   footer: { backgroundColor: colors.card, borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 26 },
   flushFooter: { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
+  plainFooter: { backgroundColor: 'transparent', borderTopWidth: 0, paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
 });

@@ -65,6 +65,7 @@ function Icon({ type, color, size = 22 }) {
 }
 
 function EmployeeBottomNav({ onAccount }) {
+  const layout = useResponsiveLayout();
   const items = [
     { label: 'HOME', icon: 'home' },
     { label: 'SCHEDULE', icon: 'schedule' },
@@ -85,7 +86,7 @@ function EmployeeBottomNav({ onAccount }) {
           );
         })}
       </View>
-      <View style={styles.homeIndicator} />
+      {Platform.OS === 'web' && !layout.wide && <View style={styles.homeIndicator} />}
     </View>
   );
 }
@@ -102,7 +103,7 @@ export default function EmployeeDashboard({ navigation }) {
       title="Welcome back, Kenneth"
       secure
       showProgress={false}
-      flushFooter
+      plainFooter
       footer={<EmployeeBottomNav onAccount={() => navigation.navigate('Dashboard')} />}
     >
       <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
@@ -197,8 +198,8 @@ const styles = StyleSheet.create({
   help: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
   helpText: { fontSize: 13 },
   pressed: { opacity: 0.72 },
-  bottomNav: { alignItems: 'center', borderTopWidth: 1, borderColor: colors.border, backgroundColor: colors.background, minHeight: 84, paddingTop: 6, paddingBottom: 8 },
-  navItems: { width: '100%', flexDirection: 'row', justifyContent: 'space-around', flex: 1 },
+  bottomNav: { width: '100%', alignItems: 'center', borderTopWidth: 1, borderColor: colors.border, backgroundColor: colors.background, paddingTop: 6, paddingBottom: 8 },
+  navItems: { width: '100%', maxWidth: 560, flexDirection: 'row', justifyContent: 'space-around' },
   navItem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 56 },
   navLabel: { fontFamily: monoFont, fontSize: 9, letterSpacing: 0.4 },
   homeIndicator: { width: 150, height: 6, borderRadius: 4, backgroundColor: colors.muted, opacity: 0.9, marginTop: 4 },
