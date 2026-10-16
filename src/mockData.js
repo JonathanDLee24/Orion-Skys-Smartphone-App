@@ -1,3 +1,34 @@
+export const defaultNotificationSettings = {
+  notifications: {
+    email: true,
+    push: false,
+    shows: true,
+    billing: true,
+  },
+  language: 'en',
+  timeZone: 'Asia/Singapore',
+};
+
+export const languageOptions = [
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Espanol (Spanish)' },
+  { value: 'fr', label: 'Francais (French)' },
+  { value: 'de', label: 'Deutsch (German)' },
+  { value: 'zh', label: 'Zhongwen (Simplified Chinese)' },
+  { value: 'ja', label: 'Japanese' },
+  { value: 'id', label: 'Bahasa Indonesia' },
+];
+
+export const timeZoneOptions = [
+  { value: 'Asia/Singapore', label: 'Singapore · SGT (UTC+8)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo · JST (UTC+9)' },
+  { value: 'Australia/Sydney', label: 'Sydney · AEDT (UTC+11)' },
+  { value: 'Asia/Dubai', label: 'Dubai · GST (UTC+4)' },
+  { value: 'Europe/London', label: 'London · GMT (UTC+0)' },
+  { value: 'America/New_York', label: 'New York · EDT (UTC-4)' },
+  { value: 'America/Los_Angeles', label: 'Los Angeles · PDT (UTC-7)' },
+];
+
 export const mockBooking = {
   id: 1,
   name: 'Neon Lights Festival',

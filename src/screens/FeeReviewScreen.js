@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { getBookingFees } from '../services/feeService';
@@ -36,12 +36,6 @@ export default function FeeReviewScreen({ navigation }) {
     return () => { mounted.current = false; };
   }, []);
 
-  function previousPage() {
-    const message = 'Previous page coming soon';
-    if (Platform.OS === 'web') window.alert(message);
-    else Alert.alert(message);
-  }
-
   function continueToCheckout() {
     const selectedBooking = {
       ...booking,
@@ -54,14 +48,15 @@ export default function FeeReviewScreen({ navigation }) {
     <ScreenLayout
       label="RISK: LIABILITY_INS"
       phase={3}
-      backLabel="Back to Previous Step"
-      onBack={previousPage}
+      backLabel="Back to Dashboard"
+      onBack={() => navigation.navigate('Dashboard')}
+      onAccount={() => navigation.navigate('AccountSettings')}
       title="Commercial Airspace Coverage"
       footer={<PrimaryButton title="Proceed to Checkout" loading={loading} disabled={!!error || !booking} onPress={continueToCheckout} />}
     >
       {loading ? (
         <View style={[s.card, styles.loading]} accessibilityLiveRegion="polite">
-          <ActivityIndicator color={colors.cyan} size="large" />
+          <ActivityIndicator color={colors.accent} size="large" />
           <Text style={s.body}>Loading your booking fees…</Text>
         </View>
       ) : error ? (
@@ -119,12 +114,12 @@ const styles = StyleSheet.create({
   loading: { alignItems: 'center', paddingVertical: 48, gap: 16 },
   errorMessage: { marginBottom: 20 },
   premiumCard: { alignItems: 'center', paddingVertical: 18 },
-  premium: { color: colors.cyan, fontFamily: monoFont, fontSize: 36, fontWeight: '700', marginTop: 8, marginBottom: 9 },
-  coverageCard: { borderColor: colors.cyan, backgroundColor: '#0B151E', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 8 },
+  premium: { color: colors.accent, fontFamily: monoFont, fontSize: 36, fontWeight: '700', marginTop: 8, marginBottom: 9 },
+  coverageCard: { borderColor: colors.accent, backgroundColor: colors.field, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 8 },
   coverageOff: { borderColor: colors.border },
   coverageCopy: { flex: 1 },
   toggleTouch: { minHeight: 44, minWidth: 48, alignItems: 'center', justifyContent: 'center' },
-  toggleTrack: { width: 46, height: 28, borderRadius: 16, backgroundColor: colors.cyan, padding: 2 },
+  toggleTrack: { width: 46, height: 28, borderRadius: 16, backgroundColor: colors.accent, padding: 2 },
   toggleOff: { backgroundColor: colors.border },
   toggleThumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.background },
   toggleChecked: { alignSelf: 'flex-end' },

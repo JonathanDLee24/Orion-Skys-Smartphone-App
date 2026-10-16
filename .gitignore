@@ -12,3 +12,12 @@ Desktop.ini
 *.log
 npm-debug.log*
 .freebuff/
+# Freebuff local installations
+freebuff-win32-x64.tar.gz
+freebuff.exe
+
+# Node dependencies (to prevent nesting issues)
+node_modules/
+package-lock.json
+tree-sitter.wasm
+rg.exe

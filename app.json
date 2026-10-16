@@ -5,9 +5,19 @@
     "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0A0E17",
-    "ios": { "supportsTablet": true },
-    "web": { "bundler": "metro", "name": "Orion Skys | Client payments" },
-    "plugins": ["expo-status-bar"]
+    "backgroundColor": "#000000",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro",
+      "name": "Orion Skys | Client payments"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ],
+    "android": {
+      "package": "com.anonymous.orionskys"
+    }
   }
 }

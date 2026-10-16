@@ -38,6 +38,7 @@ export default function PaymentCheckoutScreen({ route, navigation }) {
       title="Operations Summary"
       phase={4}
       onBack={() => navigation.navigate('FeeReview')}
+      onAccount={() => navigation.navigate('AccountSettings')}
       footer={<PrimaryButton title="Continue to Payment Portal" disabled={!!error || !booking?.fees?.length} onPress={proceed} />}
     >
       {error ? (
@@ -107,20 +108,20 @@ const styles = StyleSheet.create({
   summaryLabel: { marginBottom: 5 },
   controlRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, paddingHorizontal: 10 },
   input: { flex: 1, minWidth: 0, fontFamily: monoFont, color: colors.text, fontSize: 12, paddingVertical: 5 },
-  apply: { backgroundColor: '#202B3D', borderRadius: 3, paddingHorizontal: 11, minHeight: 44, justifyContent: 'center' },
-  applyText: { color: colors.cyan, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
+  apply: { backgroundColor: colors.border, borderRadius: 3, paddingHorizontal: 11, minHeight: 44, justifyContent: 'center' },
+  applyText: { color: colors.accent, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   pressed: { opacity: 0.7 },
   feedback: { color: colors.muted, fontSize: 11, lineHeight: 16, marginBottom: 14, marginTop: -6 },
-  splitRow: { borderColor: colors.gold, backgroundColor: '#171719', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 },
+  splitRow: { borderColor: colors.gold, backgroundColor: colors.card, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10 },
   splitLabel: { color: colors.gold, fontFamily: monoFont, fontSize: 12, fontWeight: '700' },
   select: { backgroundColor: colors.gold, borderRadius: 3, paddingHorizontal: 11, minHeight: 44, justifyContent: 'center' },
   selectText: { color: colors.background, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
-  totalCard: { borderColor: colors.cyan, backgroundColor: '#0A1B24', paddingVertical: 12 },
+  totalCard: { borderColor: colors.accent, backgroundColor: colors.accentTint, paddingVertical: 12 },
   escrowRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 6, marginBottom: 10 },
   escrow: { color: colors.green, fontFamily: monoFont, fontSize: 10, lineHeight: 16, fontWeight: '700' },
   totalRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   totalLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
   totalValue: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  total: { color: colors.cyan, fontFamily: monoFont, fontSize: 28, fontWeight: '700' },
+  total: { color: colors.accent, fontFamily: monoFont, fontSize: 28, fontWeight: '700' },
   usd: { color: colors.text, fontFamily: monoFont, fontSize: 12 },
 });

@@ -1,0 +1,5 @@
+<resources>
+  <color name="splashscreen_background">#FFFFFF</color>
+  <color name="colorPrimary">#DAFF02</color>
+  <color name="activityBackground">#000000</color>
+</resources>

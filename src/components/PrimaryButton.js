@@ -22,7 +22,7 @@ export default function PrimaryButton({ title, onPress, disabled = false, loadin
 }
 
 const styles = StyleSheet.create({
-  button: { backgroundColor: colors.cyan, borderRadius: 4, minHeight: 44, padding: 10, alignItems: 'center', justifyContent: 'center' },
+  button: { backgroundColor: colors.accent, borderRadius: 4, minHeight: 44, padding: 10, alignItems: 'center', justifyContent: 'center' },
   text: { color: colors.background, fontFamily: monoFont, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0 },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.8 },
