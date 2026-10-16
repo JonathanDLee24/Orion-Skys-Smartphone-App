@@ -52,6 +52,7 @@ export default function AccountSettingsScreen({ navigation }) {
     <ScreenLayout
       label="CLIENT ACCOUNT // SETTINGS"
       title="Notification Preferences"
+      onLogoPress={() => navigation.navigate('EmployeeDashboard')}
       backLabel="ACCOUNT"
       backGlyph="<"
       onBack={backToDashboard}

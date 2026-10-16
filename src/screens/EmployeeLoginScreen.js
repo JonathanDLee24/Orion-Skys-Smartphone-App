@@ -19,7 +19,7 @@ export default function EmployeeLoginScreen({ navigation }) {
       return;
     }
     setError('');
-    navigation.navigate('Dashboard');
+    navigation.navigate('EmployeeDashboard');
   };
 
   return (
