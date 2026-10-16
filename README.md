@@ -44,6 +44,8 @@ Jest uses jest-expo. Tests cover one/two/zero/large fee totals; USD formatting; 
 
 The app opens on **Client Dashboard** (`Dashboard`). It shows the active booking and two quick links: **Review booking fees** routes to `FeeReview` and **Account settings** routes to `AccountSettings`. The `◈ ACCOUNT` header shortcut opens `AccountSettings` from any of those screens.
 
+The welcome screen's **Employee Sign In** button opens `EmployeeLogin`. For this front-end demo only, enter username `test` and password `1234`; successful sign-in opens the dashboard, and the logo on the login screen returns to Welcome. These credentials are checked locally and are not suitable for production authentication.
+
 **Account Settings** renders the four notification toggles from `defaultNotificationSettings` — email (on), push (off), show updates (on), billing (on) — plus the static disclaimer, an English-default language picker, and a Singapore · SGT (UTC+8) default time-zone picker. `Save preferences` calls the mock `saveNotificationSettings` and, on success, shows a `Preferences saved` toast; Cancel and the `< ACCOUNT` breadcrumb both return to `Dashboard` without calling the service. Toggles animate between lime (on) and border-grey (off), and each picker expands into a scrollable overlay list. The settings screen has no phase, so its progress divider is hidden.
 
 The fee-review header divider is a four-segment progress indicator: coverage is phase 3 of 4 and checkout is phase 4 of 4. Arrow back links sit below the divider. Checkout returns to coverage; coverage's Back to Dashboard returns to the dashboard.
