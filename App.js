@@ -7,6 +7,7 @@ import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
+import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import { colors } from './src/theme';
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +23,7 @@ export default function App() {
       <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator initialRouteName="Dashboard" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
           <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
           <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
           <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />

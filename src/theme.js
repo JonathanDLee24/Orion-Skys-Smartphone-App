@@ -1,8 +1,9 @@
 import { Platform, useWindowDimensions } from 'react-native';
 
 export const colors = {
-  background: '#000000',
-  card: '#121212',
+  background: '#0B0F19',
+  card: '#111620',
+  cyan: '#00E5FF',
   field: '#0A0A0A',
   accent: '#DAFF02',
   accentTint: '#1A2200',
