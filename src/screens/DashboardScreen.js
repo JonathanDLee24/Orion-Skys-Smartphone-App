@@ -1,8 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { mockBooking } from '../mockData';
-import { colors, monoFont, useResponsiveLayout } from '../theme';
+import { colors, useResponsiveLayout } from '../theme';
 
 const QUICK_LINKS = [
   { key: 'fees', label: 'Review booking fees', description: 'Coverage, policy and checkout', route: 'FeeReview' },
@@ -16,15 +15,10 @@ export default function DashboardScreen({ navigation }) {
   return (
     <ScreenLayout
       label="CLIENT // DASHBOARD"
-      title="Client Dashboard"
+      title="My Account"
       badge="● CLIENT"
       onAccount={() => navigation.navigate('AccountSettings')}
     >
-      <View style={[s.card, styles.hero]}>
-        <Text style={s.label}>// ACTIVE BOOKING</Text>
-        <Text style={[styles.booking, layout.wide && styles.wideBooking]}>{mockBooking.name}</Text>
-        <Text style={s.body}>Commercial airspace coverage and settlement for {mockBooking.policy.period}.</Text>
-      </View>
       <View testID="dashboard-links" style={[styles.links, layout.wide && styles.wideLinks]}>
         {QUICK_LINKS.map((link) => (
           <Pressable
@@ -47,9 +41,6 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'flex-start' },
-  booking: { color: colors.accent, fontFamily: monoFont, fontSize: 22, fontWeight: '700', marginVertical: 8 },
-  wideBooking: { fontSize: 28 },
   wideLinks: { flexDirection: 'row', gap: 24 },
   link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   wideLink: { flex: 1 },
