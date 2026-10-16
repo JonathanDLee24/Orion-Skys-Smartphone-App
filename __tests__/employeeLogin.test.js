@@ -28,7 +28,7 @@ test('employee sign in accepts the demo credentials and opens the dashboard', as
     (node) => node.props.accessibilityLabel === 'Sign in',
   );
   await act(async () => submit.props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('Dashboard');
+  expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
   await act(async () => tree.unmount());
 });
 

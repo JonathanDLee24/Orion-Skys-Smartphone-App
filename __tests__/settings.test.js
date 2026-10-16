@@ -106,6 +106,13 @@ test('cancel and the account breadcrumb return to the dashboard without saving',
   expect(saveNotificationSettings).not.toHaveBeenCalled();
 });
 
+test('the logo from account settings returns to the employee dashboard', async () => {
+  const navigation = { navigate: jest.fn() };
+  await render(<AccountSettingsScreen navigation={navigation} />);
+  await press('Return to home', 'button');
+  expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
+});
+
 test('dashboard links route to fees and to account settings', async () => {
   const navigation = { navigate: jest.fn() };
   await render(<DashboardScreen navigation={navigation} />);

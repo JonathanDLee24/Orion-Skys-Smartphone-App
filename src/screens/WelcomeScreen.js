@@ -21,15 +21,6 @@ export default function WelcomeScreen({ navigation }) {
       </Text>
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Employee Dashboard"
-      onPress={() => navigation.navigate('EmployeeDashboard')}
-      style={styles.button}
-    >
-      <Text style={styles.buttonText}>Employee Dashboard</Text>
-    </Pressable>
-
-    <Pressable
-      accessibilityRole="button"
       accessibilityLabel="Employee Sign In"
       onPress={() => navigation.navigate('EmployeeLogin')}
       style={styles.button}

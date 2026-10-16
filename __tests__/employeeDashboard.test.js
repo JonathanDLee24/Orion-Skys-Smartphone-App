@@ -14,14 +14,10 @@ global.IS_REACT_ACT_ENVIRONMENT = true;
 
 const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
 
-test('welcome dashboard option opens the employee dashboard', async () => {
-  const navigation = { navigate: jest.fn() };
+test('welcome screen does not expose the employee dashboard directly', async () => {
   let tree;
-  await act(async () => { tree = create(<WelcomeScreen navigation={navigation} />); });
-
-  const button = tree.root.find((node) => node.props.accessibilityLabel === 'Employee Dashboard');
-  await act(async () => button.props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
+  await act(async () => { tree = create(<WelcomeScreen navigation={{ navigate: jest.fn() }} />); });
+  expect(tree.root.findAll((node) => node.props.accessibilityLabel === 'Employee Dashboard')).toHaveLength(0);
   await act(async () => tree.unmount());
 });
 
