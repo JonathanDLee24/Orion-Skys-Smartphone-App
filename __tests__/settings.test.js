@@ -7,6 +7,10 @@ import { saveNotificationSettings } from '../src/services/settingsService';
 
 jest.mock('../src/services/settingsService', () => ({ saveNotificationSettings: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ popToTop: jest.fn(), navigate: jest.fn() }),
+}));
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
 let tree;
@@ -105,7 +109,7 @@ test('cancel and the account breadcrumb return to the dashboard without saving',
 test('dashboard links route to fees and to account settings', async () => {
   const navigation = { navigate: jest.fn() };
   await render(<DashboardScreen navigation={navigation} />);
-  expect(text()).toContain('Client Dashboard');
+  expect(text()).toContain('My Account');
   await press('Review booking fees', 'button');
   await press('Account settings', 'button');
   expect(navigation.navigate).toHaveBeenNthCalledWith(1, 'FeeReview');
