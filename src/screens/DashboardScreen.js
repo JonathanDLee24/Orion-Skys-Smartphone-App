@@ -14,10 +14,12 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      label="CLIENT // DASHBOARD"
+      caption="EMPLOYEE OPERATIONS / PAYMENTS"
       title="My Account"
       badge="● CLIENT"
       onAccount={() => navigation.navigate('AccountSettings')}
+      onBack={() => navigation.navigate('EmployeeDashboard')}
+      backLabel="Back to dashboard"
     >
       <View testID="dashboard-links" style={[styles.links, layout.wide && styles.wideLinks]}>
         {QUICK_LINKS.map((link) => (

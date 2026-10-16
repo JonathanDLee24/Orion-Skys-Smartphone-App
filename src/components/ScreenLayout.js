@@ -18,7 +18,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
   const shouldShowProgress = showProgress && phase != null;
@@ -26,10 +26,10 @@ export default function ScreenLayout({ label, title, phase, secure = false, head
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
         {!layout.wide && <WebStatusBar />}
-        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}><Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} /><Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>CLIENT OPERATIONS / PAYMENTS</Text></View>
+        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}><Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} /><Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text></View>
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
-            <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text>
+            {label ? <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text> : <View />}
             <View style={styles.headerActions}>
               {!!onAccount && (
                 <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>

@@ -97,6 +97,7 @@ export default function EmployeeDashboard({ navigation }) {
   return (
     <ScreenLayout
       label="EMPLOYEE PORTAL"
+      caption="EMPLOYEE OPERATIONS / PAYMENTS"
       title="Welcome back, Kenneth"
       secure
       showProgress={false}
