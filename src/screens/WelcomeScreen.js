@@ -30,7 +30,7 @@ export default function WelcomeScreen({ navigation }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Admin Sign In"
-        onPress={() => navigation.navigate('DroneManifest')}
+        onPress={() => navigation.navigate('AdminLogin')}
         style={styles.button}
       >
         <Text style={styles.buttonText}>Admin Sign In</Text>

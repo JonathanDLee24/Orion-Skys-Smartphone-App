@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
+import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
@@ -28,6 +29,7 @@ export default function App() {
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
           <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+          <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
           <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
