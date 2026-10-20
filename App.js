@@ -6,6 +6,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
+import BookingDateVenueScreen from './src/screens/BookingDateVenueScreen';
+import BookingReviewScreen from './src/screens/BookingReviewScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
@@ -67,6 +69,8 @@ export default function App() {
             <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
             <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
+            <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
+            <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
             <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
             <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />

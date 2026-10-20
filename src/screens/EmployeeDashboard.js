@@ -64,11 +64,11 @@ function Icon({ type, color, size = 22 }) {
   );
 }
 
-function EmployeeBottomNav({ onAccount }) {
+function EmployeeBottomNav({ onHome, onSchedule, onAccount }) {
   const layout = useResponsiveLayout();
   const items = [
-    { label: 'HOME', icon: 'home' },
-    { label: 'SCHEDULE', icon: 'schedule' },
+    { label: 'HOME', icon: 'home', onPress: onHome },
+    { label: 'SCHEDULE', icon: 'schedule', onPress: onSchedule },
     { label: 'EVENTS', icon: 'events' },
     { label: 'ACCOUNT', icon: 'account', onPress: onAccount },
   ];
@@ -104,7 +104,13 @@ export default function EmployeeDashboard({ navigation }) {
       secure
       showProgress={false}
       plainFooter
-      footer={<EmployeeBottomNav onAccount={() => navigation.navigate('Dashboard')} />}
+      footer={(
+        <EmployeeBottomNav
+          onHome={() => navigation.navigate('EmployeeDashboard')}
+          onSchedule={() => navigation.navigate('BookingDateVenue')}
+          onAccount={() => navigation.navigate('Dashboard')}
+        />
+      )}
     >
       <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
         <Text style={[s.body, styles.intro]}>Plan your next show. Keep every detail in view.</Text>
@@ -118,7 +124,7 @@ export default function EmployeeDashboard({ navigation }) {
           ))}
         </View>
 
-        <PrimaryButton title="+ Schedule a show" />
+        <PrimaryButton title="+ Schedule a show" onPress={() => navigation.navigate('BookingDateVenue')} />
 
         <View style={styles.sectionHeading}>
           <Text style={s.label}>// NEXT SCHEDULED SHOW</Text>
