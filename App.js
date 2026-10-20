@@ -6,6 +6,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
+import BookingDateVenueScreen from './src/screens/BookingDateVenueScreen';
+import BookingReviewScreen from './src/screens/BookingReviewScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
@@ -40,6 +42,7 @@ export default function App() {
       }
     });
 
+    // Browsers emit these events as soon as the device loses or regains its link.
     if (typeof window !== 'undefined') {
       const handleOffline = () => setIsOffline(true);
       const handleOnline = () => setIsOffline(false);
@@ -61,19 +64,31 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <View style={styles.app}>
+        <View style={styles.app}>
         <NavigationContainer theme={navigationTheme}>
-          <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
-            <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
-            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+            <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+              <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
-            <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
-            <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
-            <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
-            <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+            <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
+            <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
+              <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+              <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+              <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+              <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        {isOffline && (
+          <View accessibilityRole="alert" style={styles.offlineOverlay}>
+            <View style={styles.offlineCard}>
+              <Text style={styles.offlineTitle}>Connection lost</Text>
+              <Text style={styles.offlineMessage}>Check your internet connection. This screen will close when you’re back online.</Text>
+            </View>
+          </View>
+        )}
+      </View>
         {isOffline && (
           <View accessibilityRole="alert" style={styles.offlineOverlay}>
             <View style={styles.offlineCard}>
@@ -86,6 +101,40 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  app: { flex: 1 },
+  offlineOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  offlineCard: {
+    width: '100%',
+    maxWidth: 380,
+    padding: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+  },
+  offlineTitle: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  offlineMessage: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+});
 
 const styles = StyleSheet.create({
   app: { flex: 1 },
