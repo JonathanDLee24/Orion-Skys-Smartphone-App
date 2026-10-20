@@ -1,23 +1,31 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { validateAdminCredentials } from '../services/adminAuthService';
+import { hasAdminUsername, validateAdminPassword } from '../services/adminAuthService';
 import { colors } from '../theme';
 
 export default function AdminLoginScreen({ navigation }) {
   const s = useScreenStyles();
+  const passwordInputRef = useRef(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
 
   function signIn() {
-    const result = validateAdminCredentials(username, password);
-    if (result === 'username_not_found') {
+    if (!username.trim()) {
+      setError('Username cannot be empty.');
+      return;
+    }
+    if (!hasAdminUsername(username)) {
       setError('Username not found.');
       return;
     }
-    if (result === 'incorrect_password') {
+    if (!password.trim()) {
+      setError('Password cannot be empty.');
+      return;
+    }
+    if (!validateAdminPassword(username, password)) {
       setError('Password is incorrect.');
       return;
     }
@@ -36,6 +44,7 @@ export default function AdminLoginScreen({ navigation }) {
           autoComplete="username"
           autoCorrect={false}
           onChangeText={(value) => { setUsername(value); setError(''); }}
+          onSubmitEditing={() => passwordInputRef.current?.focus()}
           placeholder="Enter your username"
           placeholderTextColor={colors.muted}
           returnKeyType="next"
@@ -45,6 +54,7 @@ export default function AdminLoginScreen({ navigation }) {
         <Text style={styles.label}>Password</Text>
         <View style={styles.passwordField}>
           <TextInput
+            ref={passwordInputRef}
             accessibilityLabel="Password"
             autoCapitalize="none"
             autoComplete="current-password"

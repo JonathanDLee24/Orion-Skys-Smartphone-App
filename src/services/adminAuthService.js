@@ -11,13 +11,12 @@ export function addAdminAccount(username, password) {
   adminAccounts[normalizedUsername] = password;
 }
 
-export function validateAdminCredentials(username, password) {
+export function hasAdminUsername(username) {
   const normalizedUsername = username.trim().toLowerCase();
-  if (!Object.prototype.hasOwnProperty.call(adminAccounts, normalizedUsername)) {
-    return 'username_not_found';
-  }
-  if (adminAccounts[normalizedUsername] !== password) {
-    return 'incorrect_password';
-  }
-  return 'authenticated';
+  return Object.prototype.hasOwnProperty.call(adminAccounts, normalizedUsername);
+}
+
+export function validateAdminPassword(username, password) {
+  const normalizedUsername = username.trim().toLowerCase();
+  return adminAccounts[normalizedUsername] === password;
 }
