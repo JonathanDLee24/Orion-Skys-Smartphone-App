@@ -88,15 +88,7 @@ export default function App() {
             </View>
           </View>
         )}
-      </View>
-        {isOffline && (
-          <View accessibilityRole="alert" style={styles.offlineOverlay}>
-            <View style={styles.offlineCard}>
-              <Text style={styles.offlineTitle}>Connection lost</Text>
-              <Text style={styles.offlineMessage}>Check your internet connection. This screen will close when you’re back online.</Text>
-            </View>
-          </View>
-        )}
+        </View>
       </View>
     </SafeAreaProvider>
   );
@@ -134,28 +126,4 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: 'center',
   },
-});
-
-const styles = StyleSheet.create({
-  app: { flex: 1 },
-  offlineOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-    backgroundColor: 'rgba(0, 0, 0, 0.72)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  offlineCard: {
-    width: '100%',
-    maxWidth: 380,
-    padding: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-  },
-  offlineTitle: { color: colors.text, fontSize: 20, fontWeight: '700', marginBottom: 8 },
-  offlineMessage: { color: colors.muted, fontSize: 14, lineHeight: 21, textAlign: 'center' },
 });
