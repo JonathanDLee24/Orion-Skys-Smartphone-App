@@ -14,8 +14,12 @@ export default function AdminLoginScreen({ navigation }) {
   const [error, setError] = useState('');
 
   function signIn() {
-    if (username.trim() !== DEMO_USERNAME || password !== DEMO_PASSWORD) {
-      setError('Username or password is incorrect.');
+    if (username.trim() !== DEMO_USERNAME) {
+      setError('Username not found.');
+      return;
+    }
+    if (password !== DEMO_PASSWORD) {
+      setError('Password is incorrect.');
       return;
     }
     setError('');
