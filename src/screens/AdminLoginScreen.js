@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { validateAdminCredentials } from '../services/adminAuthService';
 import { colors } from '../theme';
-
-const DEMO_USERNAME = 'admin';
-const DEMO_PASSWORD = 'admin1234';
 
 export default function AdminLoginScreen({ navigation }) {
   const s = useScreenStyles();
@@ -14,11 +12,12 @@ export default function AdminLoginScreen({ navigation }) {
   const [error, setError] = useState('');
 
   function signIn() {
-    if (username.trim() !== DEMO_USERNAME) {
+    const result = validateAdminCredentials(username, password);
+    if (result === 'username_not_found') {
       setError('Username not found.');
       return;
     }
-    if (password !== DEMO_PASSWORD) {
+    if (result === 'incorrect_password') {
       setError('Password is incorrect.');
       return;
     }
@@ -79,7 +78,6 @@ export default function AdminLoginScreen({ navigation }) {
         >
           <Text style={styles.buttonText}>Sign in</Text>
         </Pressable>
-        <Text style={styles.demoNote}>Demo login: username admin · password admin1234</Text>
       </View>
     </ScreenLayout>
   );
@@ -99,5 +97,4 @@ const styles = StyleSheet.create({
   button: { minHeight: 48, marginTop: 22, borderRadius: 8, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#111600', fontSize: 15, fontWeight: '700' },
   pressed: { opacity: 0.82 },
-  demoNote: { color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 18 },
 });
