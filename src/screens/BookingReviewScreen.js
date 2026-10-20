@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
@@ -9,7 +9,10 @@ import { colors, monoFont, useResponsiveLayout } from '../theme';
 export default function BookingReviewScreen({ route, navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const [noticeVisible, setNoticeVisible] = useState(false);
   const booking = route?.params?.booking || getLatestBookingDraft();
+  // The date row stays a single line; the zone is already shown on its own row.
+  const dateOnly = booking?.dateLabel ? String(booking.dateLabel).split(' // ')[0] : booking?.date;
 
   return (
     <ScreenLayout
@@ -21,7 +24,19 @@ export default function BookingReviewScreen({ route, navigation }) {
       backLabel="Back to date & venue"
       onBack={() => navigation.navigate('BookingDateVenue')}
       onAccount={() => navigation.navigate('AccountSettings')}
-      footer={<PrimaryButton title="Edit date & venue" onPress={() => navigation.navigate('BookingDateVenue')} />}
+      footer={
+        <View style={styles.footerActions}>
+          <PrimaryButton title="Edit date & venue" onPress={() => navigation.navigate('BookingDateVenue')} />
+          {booking ? (
+            <PrimaryButton
+              testID="submit-request"
+              title="Submit request"
+              showArrow
+              onPress={() => setNoticeVisible(true)}
+            />
+          ) : null}
+        </View>
+      }
     >
       <BookingWizardProgress currentStep={2} />
 
@@ -31,7 +46,7 @@ export default function BookingReviewScreen({ route, navigation }) {
             <Text style={[s.label, styles.groupLabel]}>// REQUEST PARAMETERS</Text>
             <View style={styles.parameter}>
               <Text style={s.body}>Date</Text>
-              <Text style={styles.value}>{booking.dateLabel || booking.date}</Text>
+              <Text style={styles.value}>{dateOnly}</Text>
             </View>
             <View style={styles.parameter}>
               <Text style={s.body}>Time block</Text>
@@ -61,6 +76,16 @@ export default function BookingReviewScreen({ route, navigation }) {
           <PrimaryButton title="Start a booking" onPress={() => navigation.navigate('BookingDateVenue')} />
         </View>
       )}
+
+      <Modal visible={noticeVisible} transparent animationType="fade" onRequestClose={() => setNoticeVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View testID="submit-request-notice" accessibilityRole="alert" style={[s.card, styles.modalCard]}>
+            <Text style={[s.label, styles.groupLabel]}>// SUBMIT REQUEST</Text>
+            <Text style={styles.modalTitle}>Part of task OSPSA-57</Text>
+            <PrimaryButton title="Close" onPress={() => setNoticeVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 }
@@ -70,11 +95,15 @@ const styles = StyleSheet.create({
   wideColumns: { flexDirection: 'row', gap: 24 },
   column: { flex: 1, minWidth: 0 },
   groupLabel: { marginBottom: 10 },
-  parameter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 6, marginBottom: 10 },
+  parameter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 10 },
   value: { color: colors.text, fontFamily: monoFont, fontSize: 12, lineHeight: 18, flexShrink: 1, textAlign: 'right' },
   venueName: { color: colors.accent, fontSize: 16, fontWeight: '700', marginBottom: 5 },
   wideVenueName: { fontSize: 20 },
   address: { color: colors.text, fontSize: 12, lineHeight: 19 },
   divider: { marginVertical: 12 },
   emptyMessage: { marginBottom: 20 },
+  footerActions: { width: '100%', gap: 10 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  modalCard: { width: '100%', maxWidth: 360, marginBottom: 0 },
+  modalTitle: { color: colors.text, fontFamily: monoFont, fontSize: 14, lineHeight: 21, marginBottom: 16 },
 });

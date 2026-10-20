@@ -87,7 +87,7 @@ export default function AccountSettingsScreen({ navigation }) {
           <DropdownSelect testID="language-select" label="Language" value={language} options={languageOptions} onChange={setLanguage} />
           <Text style={styles.fieldLabel}>TIME ZONE</Text>
           <DropdownSelect testID="timezone-select" label="Time zone" value={timeZone} options={timeZoneOptions} onChange={setTimeZone} />
-          <Text style={s.body}>Booking schedules use this time zone, including all date and time selections.</Text>
+          <Text style={s.body}>Used as the default for bookings. A recognized venue postal code sets the show's time zone automatically.</Text>
         </View>
       </View>
     </ScreenLayout>

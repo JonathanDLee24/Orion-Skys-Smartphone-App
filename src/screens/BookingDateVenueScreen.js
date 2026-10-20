@@ -13,6 +13,7 @@ import {
 import { useTimeZonePreference } from '../services/settingsService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { buildTimeSlots, formatSelectedDate, parseDateKey, toDateKey } from '../utils/bookingCalendar';
+import { getTimeZoneForPostalCode } from '../utils/postalCodeTimeZones';
 import { getTimeZoneLabel } from '../utils/timeZones';
 
 const TIME_SLOTS = buildTimeSlots();
@@ -20,7 +21,7 @@ const TIME_SLOTS = buildTimeSlots();
 export default function BookingDateVenueScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
-  const timeZone = useTimeZonePreference();
+  const preferredTimeZone = useTimeZonePreference();
   const [selectedDate, setSelectedDate] = useState(() => parseDateKey(DEFAULT_BOOKING_DRAFT.date));
   const [selectedTime, setSelectedTime] = useState(DEFAULT_BOOKING_DRAFT.timeSlot);
   const [form, setForm] = useState(() => ({
@@ -32,6 +33,10 @@ export default function BookingDateVenueScreen({ navigation }) {
 
   const errors = validateVenueDetails(form);
   const complete = isVenueDetailsComplete(form);
+  // The venue postal code decides how show times are interpreted; the profile
+  // preference is only a fallback for codes we cannot resolve yet.
+  const venueTimeZone = getTimeZoneForPostalCode(form.postalCode);
+  const timeZone = venueTimeZone || preferredTimeZone;
 
   function updateField(field, value) {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -58,7 +63,7 @@ export default function BookingDateVenueScreen({ navigation }) {
       badge="● CLIENT"
       showProgress={false}
       backLabel="Back to dashboard"
-      onBack={() => (navigation.canGoBack?.() ? navigation.goBack() : navigation.navigate('EmployeeDashboard'))}
+      onBack={() => navigation.navigate('EmployeeDashboard')}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={(
         <PrimaryButton
@@ -167,10 +172,14 @@ export default function BookingDateVenueScreen({ navigation }) {
                   onChangeText={(value) => updateField('postalCode', value)}
                   placeholder="018956"
                   placeholderTextColor={colors.muted}
-                  keyboardType="number-pad"
                   autoCorrect={false}
                   style={[styles.input, layout.wide && styles.wideInput, errors.postalCode && styles.invalidInput]}
                 />
+                <Text testID="venue-time-zone" style={styles.timeZoneHint}>
+                  {venueTimeZone
+                    ? `TIME ZONE · ${getTimeZoneLabel(venueTimeZone)}`
+                    : `TIME ZONE · ${getTimeZoneLabel(timeZone)} · from profile`}
+                </Text>
               </View>
             </View>
 
@@ -237,6 +246,7 @@ const styles = StyleSheet.create({
   splitRow: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },
   validationHint: { color: colors.error, fontSize: 11, lineHeight: 16, marginTop: -2 },
+  timeZoneHint: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.3, lineHeight: 14, marginTop: -8, marginBottom: 12 },
   disclaimerDivider: { marginTop: 14, marginBottom: 10 },
   wideDisclaimer: { fontSize: 13, lineHeight: 20 },
   pressed: { opacity: 0.7 },

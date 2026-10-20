@@ -2,22 +2,48 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import {
+  MONTH_NAMES,
+  MONTH_SHORT,
   WEEKDAY_LABELS,
   buildMonthGrid,
   chunkIntoWeeks,
   formatAccessibleDate,
   formatMonthYear,
+  getEarliestBookableDate,
   isSameDay,
   toDateKey,
 } from '../utils/bookingCalendar';
 
+const FUTURE_YEAR_SPAN = 10;
+
+function buildYearOptions(currentYear, visibleYear) {
+  const years = Array.from({ length: FUTURE_YEAR_SPAN + 1 }, (_, index) => currentYear + index);
+  if (!years.includes(visibleYear)) years.unshift(visibleYear);
+  return years.sort((first, second) => first - second);
+}
+
 export default function CalendarPicker({ value, onChange, today = new Date() }) {
   const layout = useResponsiveLayout();
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(value.getFullYear(), value.getMonth(), 1));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(() => value.getFullYear());
   const weeks = chunkIntoWeeks(buildMonthGrid(visibleMonth.getFullYear(), visibleMonth.getMonth(), today));
+  const earliestBookable = getEarliestBookableDate(today);
+  const currentYear = today.getFullYear();
+  const yearOptions = buildYearOptions(currentYear, visibleMonth.getFullYear());
 
   function shiftMonth(offset) {
     setVisibleMonth((previous) => new Date(previous.getFullYear(), previous.getMonth() + offset, 1));
+  }
+
+  function togglePicker() {
+    setPickerYear(visibleMonth.getFullYear());
+    setPickerOpen((previous) => !previous);
+  }
+
+  function chooseMonth(monthIndex) {
+    setVisibleMonth(new Date(pickerYear, monthIndex, 1));
+    setPickerOpen(false);
   }
 
   return (
@@ -32,9 +58,19 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
         >
           <Text style={styles.caretText}>‹</Text>
         </Pressable>
-        <Text testID="calendar-month-label" accessibilityRole="header" style={[styles.month, layout.wide && styles.wideMonth]}>
-          {formatMonthYear(visibleMonth)}
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Select month and year"
+          testID="calendar-month-trigger"
+          accessibilityState={{ expanded: pickerOpen }}
+          onPress={togglePicker}
+          style={({ pressed }) => [styles.monthTrigger, pressed && styles.pressed]}
+        >
+          <Text testID="calendar-month-label" accessibilityRole="header" style={[styles.month, layout.wide && styles.wideMonth]}>
+            {formatMonthYear(visibleMonth)}
+          </Text>
+          <Text style={styles.triggerChevron}>{pickerOpen ? '▴' : '▾'}</Text>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Next month"
@@ -45,6 +81,63 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
           <Text style={styles.caretText}>›</Text>
         </Pressable>
       </View>
+
+      {pickerOpen && (
+        <View testID="calendar-month-year-panel" style={styles.pickerPanel}>
+          <Text style={styles.pickerLabel}>// JUMP TO MONTH & YEAR</Text>
+          <View style={styles.yearRow}>
+            {yearOptions.map((year) => {
+              const active = year === pickerYear;
+              const disabled = year < currentYear;
+              return (
+                <Pressable
+                  key={year}
+                  testID={`calendar-year-${year}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={String(year)}
+                  accessibilityState={{ selected: active, disabled }}
+                  disabled={disabled}
+                  onPress={() => setPickerYear(year)}
+                  style={({ pressed }) => [
+                    styles.yearChip,
+                    active && styles.activeChip,
+                    disabled && styles.disabledChip,
+                    pressed && !disabled && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.yearText, active && styles.activeChipText, disabled && styles.disabledText]}>{year}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={styles.monthGrid}>
+            {MONTH_SHORT.map((label, index) => {
+              const monthEnd = new Date(pickerYear, index + 1, 0);
+              const disabled = monthEnd.getTime() < earliestBookable.getTime();
+              const active = pickerYear === visibleMonth.getFullYear() && index === visibleMonth.getMonth();
+              return (
+                <Pressable
+                  key={label}
+                  testID={`calendar-month-${pickerYear}-${String(index + 1).padStart(2, '0')}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${MONTH_NAMES[index]} ${pickerYear}`}
+                  accessibilityState={{ selected: active, disabled }}
+                  disabled={disabled}
+                  onPress={() => chooseMonth(index)}
+                  style={({ pressed }) => [
+                    styles.monthOption,
+                    active && styles.activeChip,
+                    disabled && styles.disabledChip,
+                    pressed && !disabled && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.monthOptionText, active && styles.activeChipText, disabled && styles.disabledText]}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       <View style={styles.weekdayRow}>
         {WEEKDAY_LABELS.map((label) => (
@@ -97,7 +190,9 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
         ))}
       </View>
 
-      <Text testID="calendar-footnote" style={styles.footnote}>• Sample availability · not live inventory.</Text>
+      <Text testID="calendar-footnote" style={styles.footnote}>
+        • Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
+      </Text>
     </View>
   );
 }
@@ -107,8 +202,22 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 },
   caret: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   caretText: { color: colors.accent, fontFamily: monoFont, fontSize: 24, lineHeight: 28 },
-  month: { flex: 1, minWidth: 0, color: colors.text, fontFamily: monoFont, fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  monthTrigger: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 4, borderWidth: 1, borderColor: colors.border },
+  month: { color: colors.text, fontFamily: monoFont, fontSize: 15, fontWeight: '700', textAlign: 'center' },
   wideMonth: { fontSize: 18 },
+  triggerChevron: { color: colors.accent, fontFamily: monoFont, fontSize: 12 },
+  pickerPanel: { borderWidth: 1, borderColor: colors.accent, borderRadius: 6, backgroundColor: colors.field, padding: 10, marginBottom: 12 },
+  pickerLabel: { color: colors.accent, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.5, marginBottom: 8 },
+  yearRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  yearChip: { minWidth: 44, minHeight: 36, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
+  monthGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  monthOption: { flexBasis: '22%', flexGrow: 1, minWidth: 0, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
+  monthOptionText: { color: colors.text, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
+  activeChip: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  activeChipText: { color: colors.accent },
+  disabledChip: { opacity: 0.35 },
+  disabledText: { color: colors.muted },
+  yearText: { color: colors.text, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', marginBottom: 4 },
   weekday: { flex: 1, color: colors.muted, fontFamily: monoFont, fontSize: 8, textAlign: 'center', letterSpacing: 0.3 },
   wideWeekday: { fontSize: 10 },

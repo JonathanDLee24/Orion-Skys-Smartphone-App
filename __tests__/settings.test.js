@@ -47,7 +47,7 @@ test('renders the specified defaults and helper copy', async () => {
   expect(text()).toContain('English');
   expect(text()).toContain('California · Pacific Time (PT)');
   expect(text()).toContain('Essential security alerts and contractual notices are always sent by email, regardless of these preferences.');
-  expect(text()).toContain('Booking schedules use this time zone, including all date and time selections.');
+  expect(text()).toContain('Used as the default for bookings. A recognized venue postal code sets the show\'s time zone automatically.');
   expect(text()).toContain('Save preferences');
   expect(text()).toContain('Cancel · Back to account');
 });

@@ -27,7 +27,7 @@ afterEach(async () => {
   tree = null;
 });
 
-test('a saved time zone preference flows into the booking scheduler', async () => {
+test('the postal code picks the venue time zone and the saved preference is the fallback', async () => {
   await act(async () => {
     tree = create(<AccountSettingsScreen navigation={{ navigate: jest.fn() }} />);
   });
@@ -48,5 +48,13 @@ test('a saved time zone preference flows into the booking scheduler', async () =
     tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
   });
 
+  // The default Singapore venue postal code overrides the Tokyo preference.
+  expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
+
+  const postalInput = tree.root.findAll((node) => node.props.accessibilityLabel === 'Postal code' && typeof node.props.onChangeText === 'function')[0];
+  await act(async () => postalInput.props.onChangeText('UNKNOWN'));
   expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+9');
+
+  await act(async () => postalInput.props.onChangeText('10001'));
+  expect(textOf(tree)).toContain('SAT, 21 NOV // EST (UTC-5)');
 });

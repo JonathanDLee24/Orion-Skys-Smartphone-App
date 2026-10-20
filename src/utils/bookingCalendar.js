@@ -13,6 +13,9 @@ const WEEKS_PER_GRID = 6;
 const DAYS_PER_WEEK = 7;
 const HOURS_PER_DAY = 24;
 
+// FAA registration and airspace review require a one-week lead time.
+export const MIN_BOOKING_LEAD_DAYS = 7;
+
 
 export function startOfDay(value = new Date()) {
   const date = new Date(value);
@@ -26,11 +29,16 @@ export function isSameDay(first, second) {
     && first.getDate() === second.getDate();
 }
 
-// Operations do not schedule shows on Sundays, and past dates cannot be booked.
+// Shows run all week, including Sundays, and need at least a one-week lead.
+export function getEarliestBookableDate(today = new Date()) {
+  const earliest = startOfDay(today);
+  earliest.setDate(earliest.getDate() + MIN_BOOKING_LEAD_DAYS);
+  return earliest;
+}
+
 export function isDateBookable(date, today = new Date()) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
-  if (startOfDay(date).getTime() < startOfDay(today).getTime()) return false;
-  return date.getDay() !== 0;
+  return startOfDay(date).getTime() >= getEarliestBookableDate(today).getTime();
 }
 
 export function buildMonthGrid(year, month, today = new Date()) {
