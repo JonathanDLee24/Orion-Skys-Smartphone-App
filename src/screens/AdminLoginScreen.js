@@ -1,7 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { hasAdminUsername, validateAdminPassword } from '../services/adminAuthService';
+import {
+  hasAdminUsername,
+  isAdminAccountLocked,
+  validateAdminPassword,
+} from '../services/adminAuthService';
 import { colors } from '../theme';
 
 export default function AdminLoginScreen({ navigation }) {
@@ -21,12 +25,18 @@ export default function AdminLoginScreen({ navigation }) {
       setError('Username not found.');
       return;
     }
+    if (isAdminAccountLocked(username)) {
+      setError('Account locked after 5 incorrect password attempts. Contact an administrator to reset access.');
+      return;
+    }
     if (!password.trim()) {
       setError('Password cannot be empty.');
       return;
     }
     if (!validateAdminPassword(username, password)) {
-      setError('Password is incorrect.');
+      setError(isAdminAccountLocked(username)
+        ? 'Account locked after 5 incorrect password attempts. Contact an administrator to reset access.'
+        : 'Password is incorrect.');
       return;
     }
     setError('');
@@ -88,6 +98,14 @@ export default function AdminLoginScreen({ navigation }) {
         >
           <Text style={styles.buttonText}>Sign in</Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Enterprise SSO"
+          onPress={() => {}}
+          style={({ pressed }) => [styles.ssoButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.ssoButtonText}>Enterprise SSO</Text>
+        </Pressable>
       </View>
     </ScreenLayout>
   );
@@ -106,5 +124,7 @@ const styles = StyleSheet.create({
   error: { color: colors.error, fontSize: 13, marginTop: 12 },
   button: { minHeight: 48, marginTop: 22, borderRadius: 8, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#111600', fontSize: 15, fontWeight: '700' },
+  ssoButton: { minHeight: 48, marginTop: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
+  ssoButtonText: { color: colors.text, fontSize: 15, fontWeight: '600' },
   pressed: { opacity: 0.82 },
 });

@@ -3,12 +3,18 @@ const adminAccounts = {
   admin: 'admin1234',
 };
 
+export const MAX_ADMIN_LOGIN_ATTEMPTS = 5;
+
+const failedLoginAttempts = new Map();
+const lockedAdminAccounts = new Set();
+
 export function addAdminAccount(username, password) {
   const normalizedUsername = username.trim().toLowerCase();
   if (!normalizedUsername || !password) {
     throw new Error('A username and password are required.');
   }
   adminAccounts[normalizedUsername] = password;
+  resetAdminLoginAttempts(normalizedUsername);
 }
 
 export function hasAdminUsername(username) {
@@ -18,5 +24,30 @@ export function hasAdminUsername(username) {
 
 export function validateAdminPassword(username, password) {
   const normalizedUsername = username.trim().toLowerCase();
-  return adminAccounts[normalizedUsername] === password;
+  if (!hasAdminUsername(normalizedUsername) || lockedAdminAccounts.has(normalizedUsername)) {
+    return false;
+  }
+
+  if (adminAccounts[normalizedUsername] === password) {
+    failedLoginAttempts.delete(normalizedUsername);
+    return true;
+  }
+
+  const attempts = (failedLoginAttempts.get(normalizedUsername) || 0) + 1;
+  failedLoginAttempts.set(normalizedUsername, attempts);
+  if (attempts >= MAX_ADMIN_LOGIN_ATTEMPTS) {
+    lockedAdminAccounts.add(normalizedUsername);
+  }
+  return false;
+}
+
+export function isAdminAccountLocked(username) {
+  const normalizedUsername = username.trim().toLowerCase();
+  return lockedAdminAccounts.has(normalizedUsername);
+}
+
+export function resetAdminLoginAttempts(username) {
+  const normalizedUsername = username.trim().toLowerCase();
+  failedLoginAttempts.delete(normalizedUsername);
+  lockedAdminAccounts.delete(normalizedUsername);
 }
