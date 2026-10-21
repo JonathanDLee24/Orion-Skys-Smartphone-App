@@ -8,6 +8,7 @@ import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import BookingDateVenueScreen from './src/screens/BookingDateVenueScreen';
 import BookingReviewScreen from './src/screens/BookingReviewScreen';
+import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
@@ -63,20 +64,22 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <View style={styles.app}>
+        <View style={styles.app}>
         <NavigationContainer theme={navigationTheme}>
-          <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
-            <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+            <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+              <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
             <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
-            <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
-            <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
-            <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
-            <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+              <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+              <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+              <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+              <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
         {isOffline && (
           <View accessibilityRole="alert" style={styles.offlineOverlay}>
             <View style={styles.offlineCard}>
@@ -85,6 +88,7 @@ export default function App() {
             </View>
           </View>
         )}
+        </View>
       </View>
     </SafeAreaProvider>
   );

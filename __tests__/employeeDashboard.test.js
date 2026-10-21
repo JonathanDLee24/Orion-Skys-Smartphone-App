@@ -21,14 +21,14 @@ test('welcome screen does not expose the employee dashboard directly', async () 
   await act(async () => tree.unmount());
 });
 
-test('welcome admin option opens the fleet manifest', async () => {
+test('welcome admin option opens the admin sign in screen', async () => {
   const navigation = { navigate: jest.fn() };
   let tree;
   await act(async () => { tree = create(<WelcomeScreen navigation={navigation} />); });
 
   const button = tree.root.find((node) => node.props.accessibilityLabel === 'Admin Sign In');
   await act(async () => button.props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('DroneManifest');
+  expect(navigation.navigate).toHaveBeenCalledWith('AdminLogin');
   await act(async () => tree.unmount());
 });
 

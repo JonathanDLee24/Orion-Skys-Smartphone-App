@@ -84,7 +84,7 @@ export default function SerializedDroneManifestScreen() {
   }, [query]);
 
   return (
-    <ScreenLayout label="FLEET REGISTRY" title="DRONE FLEET MANIFEST" headerBadge="● ONLINE" showProgress={false} flushFooter footer={<FleetBottomNav />}>
+    <ScreenLayout label="FLEET REGISTRY" title="DRONE FLEET MANIFEST" headerBadge="● ONLINE" showProgress={false} flushFooter plainFooter footer={<FleetBottomNav />}>
       <View style={[styles.manifest, layout.wide && styles.wideManifest]}>
         <View style={styles.manifestHeading}>
           <Text style={s.label}>// SYSTEM HARDWARE MANIFEST</Text>
