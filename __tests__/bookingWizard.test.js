@@ -11,6 +11,7 @@ import {
   saveBookingDraft,
   validateVenueDetails,
 } from '../src/services/bookingDraftService';
+import { clearBookingSubmissions } from '../src/services/bookingConflictService';
 import {
   buildMonthGrid,
   formatSelectedDate,
@@ -30,6 +31,7 @@ const findInput = (tree, label) => tree.root.findAll((node) => node.props.access
 
 beforeEach(() => {
   clearBookingSession();
+  clearBookingSubmissions();
 });
 
 test('the grid allows Sundays and opens dates seven days out', () => {
@@ -255,8 +257,9 @@ test('review step renders the saved session draft and lights stage two', async (
   await act(async () => tree.unmount());
 });
 
-test('submitting the review shows the OSPSA-57 placeholder window', async () => {
-  saveBookingDraft({
+test('submitting the review claims the slot and routes to the confirmation screen', async () => {
+  const saved = saveBookingDraft({
+    eventName: 'Apex Year-end Celebration',
     date: '2026-11-21',
     dateLabel: 'SAT, 21 NOV // PST (UTC-8)',
     timeSlot: '8:00 PM',
@@ -266,21 +269,114 @@ test('submitting the review shows the OSPSA-57 placeholder window', async () => 
     city: 'Singapore',
     postalCode: '018956',
   });
+  const navigation = { navigate: jest.fn() };
 
   let tree;
   await act(async () => {
-    tree = create(<BookingReviewScreen navigation={{ navigate: jest.fn() }} />);
+    tree = create(<BookingReviewScreen navigation={navigation} />);
   });
 
-  expect(textOf(tree)).not.toContain('Part of task OSPSA-57');
-  expect(tree.root.findAll((node) => node.props.testID === 'submit-request-notice')).toHaveLength(0);
-
   await act(async () => findButton(tree, 'Submit request').props.onPress());
-  expect(tree.root.findAll((node) => node.props.testID === 'submit-request-notice').length).toBeGreaterThan(0);
-  expect(textOf(tree)).toContain('Part of task OSPSA-57');
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingSubmitted', {
+    booking: expect.objectContaining({ id: saved.id, eventName: 'Apex Year-end Celebration', status: 'submitted' }),
+    submission: expect.objectContaining({
+      reference: 'REQ-20261121-2000',
+      bookingId: saved.id,
+      date: '2026-11-21',
+      timeSlot: '8:00 PM',
+      status: 'pending',
+    }),
+  });
 
-  await act(async () => findButton(tree, 'Close').props.onPress());
-  expect(tree.root.findAll((node) => node.props.testID === 'submit-request-notice')).toHaveLength(0);
+  await act(async () => tree.unmount());
+});
+
+test('the same slot taken by another booking is routed to the conflict screen', async () => {
+  const first = saveBookingDraft({
+    eventName: 'Apex Year-end Celebration',
+    date: '2026-11-21',
+    timeSlot: '8:00 PM',
+    venueName: 'Marina Bay Event Deck',
+    streetAddress: '10 Bayfront Avenue',
+    city: 'Singapore',
+    postalCode: '018956',
+  });
+  const second = saveBookingDraft({
+    eventName: 'Harbour Night Market',
+    date: '2026-11-21',
+    timeSlot: '8:00 PM',
+    venueName: 'Marina Bay Event Deck',
+    streetAddress: '10 Bayfront Avenue',
+    city: 'Singapore',
+    postalCode: '018956',
+  });
+  const navigation = { navigate: jest.fn() };
+
+  let firstTree;
+  await act(async () => {
+    firstTree = create(<BookingReviewScreen route={{ params: { booking: first } }} navigation={navigation} />);
+  });
+  await act(async () => findButton(firstTree, 'Submit request').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingSubmitted', expect.anything());
+  await act(async () => firstTree.unmount());
+
+  let secondTree;
+  await act(async () => {
+    secondTree = create(<BookingReviewScreen route={{ params: { booking: second } }} navigation={navigation} />);
+  });
+  await act(async () => findButton(secondTree, 'Submit request').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingConflict', {
+    booking: expect.objectContaining({ id: second.id, eventName: 'Harbour Night Market' }),
+    conflict: expect.objectContaining({
+      code: 'TIME_SLOT_CONFLICT',
+      unavailableSlot: { date: '2026-11-21', timeSlot: '8:00 PM' },
+    }),
+  });
+
+  await act(async () => secondTree.unmount());
+});
+
+test('the date and venue step restores the cached draft after a conflict', async () => {
+  const cached = {
+    eventName: 'Apex Year-end Celebration',
+    date: '2026-12-05',
+    timeSlot: '9:00 PM',
+    venueName: 'Marina Bay Event Deck',
+    streetAddress: '10 Bayfront Avenue',
+    city: 'Singapore',
+    postalCode: '018956',
+    droneCount: 200,
+    durationMinutes: 10,
+  };
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(
+      <BookingDateVenueScreen
+        navigation={navigation}
+        route={{ params: { booking: cached, focusCalendar: true } }}
+      />
+    );
+  });
+
+  const text = textOf(tree);
+  expect(text).toContain('December 2026');
+  expect(text).toContain('SAT, 5 DEC // UTC+8');
+  expect(text).toContain('TIME NO LONGER AVAILABLE');
+  expect(findInput(tree, 'Event name').props.value).toBe('Apex Year-end Celebration');
+  expect(findInput(tree, 'Venue name').props.value).toBe('Marina Bay Event Deck');
+  expect(findButton(tree, '9:00 PM').props.accessibilityState).toEqual({ checked: true });
+
+  await act(async () => findButton(tree, 'Continue to booking review').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingReview', {
+    booking: expect.objectContaining({
+      eventName: 'Apex Year-end Celebration',
+      droneCount: 200,
+      durationMinutes: 10,
+      date: '2026-12-05',
+      timeSlot: '9:00 PM',
+    }),
+  });
 
   await act(async () => tree.unmount());
 });

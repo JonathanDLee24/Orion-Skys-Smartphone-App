@@ -18,17 +18,21 @@ import { getTimeZoneLabel } from '../utils/timeZones';
 
 const TIME_SLOTS = buildTimeSlots();
 
-export default function BookingDateVenueScreen({ navigation }) {
+export default function BookingDateVenueScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const preferredTimeZone = useTimeZonePreference();
-  const [selectedDate, setSelectedDate] = useState(() => parseDateKey(DEFAULT_BOOKING_DRAFT.date));
-  const [selectedTime, setSelectedTime] = useState(DEFAULT_BOOKING_DRAFT.timeSlot);
+  // The conflict screen hands the cached draft back so nothing has to be retyped.
+  const cachedDraft = route?.params?.booking || route?.params?.draft;
+  const returningFromConflict = Boolean(route?.params?.focusCalendar);
+  const [selectedDate, setSelectedDate] = useState(() => parseDateKey(cachedDraft?.date || DEFAULT_BOOKING_DRAFT.date));
+  const [selectedTime, setSelectedTime] = useState(cachedDraft?.timeSlot || DEFAULT_BOOKING_DRAFT.timeSlot);
   const [form, setForm] = useState(() => ({
-    venueName: DEFAULT_BOOKING_DRAFT.venueName,
-    streetAddress: DEFAULT_BOOKING_DRAFT.streetAddress,
-    city: DEFAULT_BOOKING_DRAFT.city,
-    postalCode: DEFAULT_BOOKING_DRAFT.postalCode,
+    eventName: cachedDraft?.eventName ?? DEFAULT_BOOKING_DRAFT.eventName,
+    venueName: cachedDraft?.venueName ?? DEFAULT_BOOKING_DRAFT.venueName,
+    streetAddress: cachedDraft?.streetAddress ?? DEFAULT_BOOKING_DRAFT.streetAddress,
+    city: cachedDraft?.city ?? DEFAULT_BOOKING_DRAFT.city,
+    postalCode: cachedDraft?.postalCode ?? DEFAULT_BOOKING_DRAFT.postalCode,
   }));
 
   const errors = validateVenueDetails(form);
@@ -45,6 +49,9 @@ export default function BookingDateVenueScreen({ navigation }) {
   function continueToReview() {
     if (!complete) return;
     const saved = saveBookingDraft({
+      eventName: form.eventName,
+      droneCount: cachedDraft?.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount,
+      durationMinutes: cachedDraft?.durationMinutes ?? DEFAULT_BOOKING_DRAFT.durationMinutes,
       date: toDateKey(selectedDate),
       dateLabel: formatSelectedDate(selectedDate, timeZone),
       timeSlot: selectedTime,
@@ -76,6 +83,13 @@ export default function BookingDateVenueScreen({ navigation }) {
       )}
     >
       <BookingWizardProgress currentStep={1} />
+
+      {returningFromConflict && (
+        <View testID="conflict-return-notice" accessibilityRole="alert" style={[s.card, styles.conflictNotice]}>
+          <Text style={[s.label, styles.groupLabel]}>// TIME NO LONGER AVAILABLE</Text>
+          <Text style={s.body}>Your event details are saved. Pick a new date or time below to continue.</Text>
+        </View>
+      )}
 
       <View testID="booking-columns" style={[styles.columns, layout.wide && styles.wideColumns]}>
         <View style={[s.card, styles.calendarCard, layout.wide && styles.column]}>
@@ -121,6 +135,19 @@ export default function BookingDateVenueScreen({ navigation }) {
 
           <View style={s.card}>
             <Text style={[s.label, styles.groupLabel]}>// VENUE & ADDRESS</Text>
+
+            <Text style={styles.fieldLabel}>EVENT NAME</Text>
+            <TextInput
+              accessibilityLabel="Event name"
+              testID="event-name-input"
+              value={form.eventName}
+              onChangeText={(value) => updateField('eventName', value)}
+              placeholder="Apex Year-end Celebration"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+              autoCorrect={false}
+              style={[styles.input, layout.wide && styles.wideInput]}
+            />
 
             <Text style={styles.fieldLabel}>VENUE NAME</Text>
             <TextInput
@@ -205,6 +232,7 @@ const styles = StyleSheet.create({
   wideColumns: { flexDirection: 'row', gap: 24 },
   column: { flex: 1, minWidth: 0 },
   calendarCard: { paddingVertical: 14 },
+  conflictNotice: { borderColor: colors.gold },
   groupLabel: { marginBottom: 10 },
   timezone: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700', letterSpacing: 0.4, marginBottom: 10 },
   wideTimezone: { fontSize: 14 },
