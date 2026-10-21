@@ -4,7 +4,7 @@ import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { DEFAULT_BOOKING_DRAFT, getLatestBookingDraft } from '../services/bookingDraftService';
-import { formatConflictDate, formatUnavailableSlot, getUnavailableSlot } from '../services/bookingConflictService';
+import { formatConflictDate, getUnavailableSlot } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 function CalendarGlyph({ color = colors.gold, size = 22 }) {
@@ -28,7 +28,6 @@ export default function BookingConflictScreen({ route, navigation }) {
     date: booking.date,
     timeSlot: booking.timeSlot,
   });
-  const conflictSignature = formatUnavailableSlot(unavailableSlot);
   const conflictDate = formatConflictDate(unavailableSlot);
   const droneCount = booking.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount;
   const durationMinutes = booking.durationMinutes ?? DEFAULT_BOOKING_DRAFT.durationMinutes;
@@ -48,7 +47,7 @@ export default function BookingConflictScreen({ route, navigation }) {
     <ScreenLayout
       caption="CLIENT OPERATIONS / BOOKING"
       label="NEW BOOKING // SCHEDULING CONFLICT"
-      title="That time was just booked."
+      title="That date was just booked."
       badge="● CLIENT"
       showProgress={false}
       backLabel="BACK TO REVIEW"
@@ -62,14 +61,14 @@ export default function BookingConflictScreen({ route, navigation }) {
       <View testID="scheduling-conflict" accessibilityRole="alert" style={[s.card, styles.conflictCard]}>
         <View style={styles.conflictHeader}>
           <CalendarGlyph />
-          <Text style={styles.conflictFlag}>TIME NO LONGER AVAILABLE</Text>
+          <Text style={styles.conflictFlag}>DATE NO LONGER AVAILABLE</Text>
         </View>
         <Text testID="conflict-slot" style={[styles.conflictSlot, layout.wide && styles.wideConflictSlot]}>
-          {conflictSignature}
+          {conflictDate}
         </Text>
         <Text style={[s.body, styles.conflictCopy]}>
-          This time was booked by another client before your request was submitted. Choose a different date or time to
-          continue.
+          This date was booked by another client before your request was submitted. Shows run once per day, so choose a
+          different date to continue.
         </Text>
       </View>
 
@@ -88,7 +87,7 @@ export default function BookingConflictScreen({ route, navigation }) {
         </View>
         <View style={styles.summaryRow}>
           <Text style={s.body}>Time</Text>
-          <Text style={styles.summaryValue}>{unavailableSlot.timeSlot}</Text>
+          <Text style={styles.summaryValue}>{booking.timeSlot}</Text>
         </View>
         <View style={styles.summaryRow}>
           <Text style={s.body}>Time zone</Text>
@@ -121,14 +120,14 @@ export default function BookingConflictScreen({ route, navigation }) {
           <Text style={styles.infoGlyph}>i</Text>
         </View>
         <Text style={[s.body, styles.infoText]}>
-          Only the date and time need changing. Every other event detail stays cached for this request.
+          Only the date needs changing. Every other event detail stays cached for this request.
         </Text>
       </View>
 
       <View style={styles.actions}>
         <PrimaryButton
           testID="choose-another-date"
-          title="Choose another date or time"
+          title="Choose another date"
           leadingIcon={<CalendarGlyph color={colors.background} size={18} />}
           onPress={returnToSchedule}
         />

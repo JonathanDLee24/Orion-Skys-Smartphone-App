@@ -4,12 +4,13 @@ import { Text } from 'react-native';
 import BookingConflictScreen from '../src/screens/BookingConflictScreen';
 import BookingSubmittedScreen from '../src/screens/BookingSubmittedScreen';
 import {
-  TIME_SLOT_CONFLICT,
+  DATE_CONFLICT,
   clearBookingSubmissions,
   formatUnavailableSlot,
   getBookingSubmissions,
+  getSubmissionForDate,
   getUnavailableSlot,
-  isBookingSlotTaken,
+  isBookingDateTaken,
   requestBookingSlot,
 } from '../src/services/bookingConflictService';
 import { clearBookingSession, saveBookingDraft } from '../src/services/bookingDraftService';
@@ -30,7 +31,7 @@ beforeEach(() => {
   clearBookingSubmissions();
 });
 
-test('submitted slots are tracked in a temporary ledger', () => {
+test('submitted bookings claim a whole date in a temporary ledger', () => {
   const booking = {
     id: 'booking-1',
     eventName: 'Apex Year-end Celebration',
@@ -50,23 +51,24 @@ test('submitted slots are tracked in a temporary ledger', () => {
     status: 'pending',
   });
   expect(getBookingSubmissions()).toHaveLength(1);
-  expect(isBookingSlotTaken('2026-11-21', '8:00 PM')).toBe(true);
-  expect(isBookingSlotTaken('2026-11-21', '9:00 PM')).toBe(false);
+  expect(getSubmissionForDate('2026-11-21')).toMatchObject({ bookingId: 'booking-1' });
+  expect(isBookingDateTaken('2026-11-21')).toBe(true);
+  expect(isBookingDateTaken('2026-11-22')).toBe(false);
 
   // Re-sending the same booking is idempotent instead of a self-inflicted conflict.
   expect(requestBookingSlot(booking)).toMatchObject({ ok: true, repeated: true });
   expect(getBookingSubmissions()).toHaveLength(1);
 
-  // Another booking for the claimed slot is a real conflict.
-  const conflict = requestBookingSlot({ id: 'booking-2', date: '2026-11-21', timeSlot: '8:00 PM' });
+  // One show per day: a different time on the claimed date is still a conflict.
+  const conflict = requestBookingSlot({ id: 'booking-2', date: '2026-11-21', timeSlot: '9:00 PM' });
   expect(conflict.ok).toBe(false);
   expect(conflict.error).toMatchObject({
-    code: TIME_SLOT_CONFLICT,
-    unavailableSlot: { date: '2026-11-21', timeSlot: '8:00 PM' },
+    code: DATE_CONFLICT,
+    unavailableSlot: { date: '2026-11-21', timeSlot: '9:00 PM' },
   });
 
-  // A free slot still submits.
-  expect(requestBookingSlot({ id: 'booking-3', date: '2026-11-21', timeSlot: '9:00 PM' }).ok).toBe(true);
+  // A free date still submits.
+  expect(requestBookingSlot({ id: 'booking-3', date: '2026-11-22', timeSlot: '9:00 PM' }).ok).toBe(true);
   expect(getBookingSubmissions()).toHaveLength(2);
 
   expect(requestBookingSlot({ id: 'booking-4' }).ok).toBe(false);
@@ -159,10 +161,11 @@ test('the conflict screen restores cached details and routes back to scheduling 
 
   const text = textOf(tree);
   expect(text).toContain('NEW BOOKING // SCHEDULING CONFLICT');
-  expect(text).toContain('That time was just booked.');
+  expect(text).toContain('That date was just booked.');
   expect(text).toContain('No worries—your event details are still saved.');
-  expect(text).toContain('TIME NO LONGER AVAILABLE');
-  expect(text).toContain('Sat, 21 Nov 2026 · 8:00 PM');
+  expect(text).toContain('DATE NO LONGER AVAILABLE');
+  expect(text).toContain('Shows run once per day');
+  expect(text).toContain('Sat, 21 Nov 2026');
   expect(text).toContain('YOUR EVENT DETAILS');
   expect(text).toContain('● SAVED');
   expect(text).toContain('Apex Year-end Celebration');
@@ -171,7 +174,7 @@ test('the conflict screen restores cached details and routes back to scheduling 
   expect(text).toContain('10 Bayfront Avenue, Singapore 018956');
   expect(text).toContain('200 drones');
   expect(text).toContain('10 minutes');
-  expect(text).toContain('Choose another date or time');
+  expect(text).toContain('Choose another date');
   expect(text).toContain('← Return to schedule');
 
   const progress = tree.root.findAll((node) => node.props.accessibilityRole === 'progressbar')[0];
@@ -180,7 +183,7 @@ test('the conflict screen restores cached details and routes back to scheduling 
   await act(async () => findButton(tree, 'BACK TO REVIEW').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingReview', { booking: saved });
 
-  await act(async () => findButton(tree, 'Choose another date or time').props.onPress());
+  await act(async () => findButton(tree, 'Choose another date').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingDateVenue', { booking: saved, focusCalendar: true });
 
   await act(async () => findButton(tree, 'Return to schedule').props.onPress());
@@ -209,7 +212,7 @@ test('the conflict screen falls back to the latest cached draft when no params a
 
   const text = textOf(tree);
   expect(text).toContain('Apex Year-end Celebration');
-  expect(text).toContain('Sat, 21 Nov 2026 · 8:00 PM');
+  expect(text).toContain('Sat, 21 Nov 2026');
 
   await act(async () => tree.unmount());
 });

@@ -22,12 +22,13 @@ function buildYearOptions(currentYear, visibleYear) {
   return years.sort((first, second) => first - second);
 }
 
-export default function CalendarPicker({ value, onChange, today = new Date() }) {
+export default function CalendarPicker({ value, onChange, today = new Date(), unavailableDates = [] }) {
   const layout = useResponsiveLayout();
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(value.getFullYear(), value.getMonth(), 1));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(() => value.getFullYear());
   const weeks = chunkIntoWeeks(buildMonthGrid(visibleMonth.getFullYear(), visibleMonth.getMonth(), today));
+  const bookedDates = new Set(unavailableDates);
   const earliestBookable = getEarliestBookableDate(today);
   const currentYear = today.getFullYear();
   const yearOptions = buildYearOptions(currentYear, visibleMonth.getFullYear());
@@ -152,8 +153,9 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
           <View key={toDateKey(week[0].date)} style={styles.week}>
             {week.map((cell) => {
               const selected = cell.inMonth && isSameDay(cell.date, value);
-              const disabled = !cell.available;
-              const stateText = selected ? ', selected' : cell.available ? ', available' : ', unavailable';
+              const booked = cell.inMonth && bookedDates.has(toDateKey(cell.date));
+              const disabled = !cell.available || booked;
+              const stateText = booked ? ', booked' : selected ? ', selected' : cell.available ? ', available' : ', unavailable';
               return (
                 <View key={toDateKey(cell.date)} style={styles.cellWrap}>
                   <Pressable
@@ -167,6 +169,7 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
                     style={({ pressed }) => [
                       styles.cell,
                       cell.inMonth && !disabled && styles.availableCell,
+                      booked && !selected && styles.bookedCell,
                       selected && styles.selectedCell,
                       pressed && !disabled && styles.pressed,
                     ]}
@@ -177,6 +180,7 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
                         layout.wide && styles.wideDay,
                         !cell.inMonth && styles.outsideDay,
                         disabled && cell.inMonth && styles.disabledDay,
+                        booked && !selected && styles.bookedDay,
                         selected && styles.selectedDay,
                       ]}
                     >
@@ -191,7 +195,7 @@ export default function CalendarPicker({ value, onChange, today = new Date() }) 
       </View>
 
       <Text testID="calendar-footnote" style={styles.footnote}>
-        • Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
+        • One show per day. Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
       </Text>
     </View>
   );
@@ -231,6 +235,8 @@ const styles = StyleSheet.create({
   wideDay: { fontSize: 13 },
   outsideDay: { color: colors.border },
   disabledDay: { color: colors.border },
+  bookedCell: { backgroundColor: '#171200', borderColor: colors.gold },
+  bookedDay: { color: colors.gold },
   selectedDay: { color: colors.background },
   footnote: { color: colors.muted, fontSize: 10, lineHeight: 15, marginTop: 12 },
   pressed: { opacity: 0.7 },

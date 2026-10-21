@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import CalendarPicker from '../components/CalendarPicker';
@@ -10,6 +10,7 @@ import {
   saveBookingDraft,
   validateVenueDetails,
 } from '../services/bookingDraftService';
+import { getBookedDateKeys } from '../services/bookingConflictService';
 import { useTimeZonePreference } from '../services/settingsService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { buildTimeSlots, formatSelectedDate, parseDateKey, toDateKey } from '../utils/bookingCalendar';
@@ -27,6 +28,8 @@ export default function BookingDateVenueScreen({ navigation, route }) {
   const returningFromConflict = Boolean(route?.params?.focusCalendar);
   const [selectedDate, setSelectedDate] = useState(() => parseDateKey(cachedDraft?.date || DEFAULT_BOOKING_DRAFT.date));
   const [selectedTime, setSelectedTime] = useState(cachedDraft?.timeSlot || DEFAULT_BOOKING_DRAFT.timeSlot);
+  // One show per day: dates already claimed by a submission cannot be picked again.
+  const [bookedDates, setBookedDates] = useState(getBookedDateKeys);
   const [form, setForm] = useState(() => ({
     eventName: cachedDraft?.eventName ?? DEFAULT_BOOKING_DRAFT.eventName,
     venueName: cachedDraft?.venueName ?? DEFAULT_BOOKING_DRAFT.venueName,
@@ -35,8 +38,18 @@ export default function BookingDateVenueScreen({ navigation, route }) {
     postalCode: cachedDraft?.postalCode ?? DEFAULT_BOOKING_DRAFT.postalCode,
   }));
 
+  useEffect(() => {
+    const refreshBookedDates = () => setBookedDates(getBookedDateKeys());
+    refreshBookedDates();
+    const unsubscribe = navigation?.addListener?.('focus', refreshBookedDates);
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
+    // Refreshing only needs to subscribe once; navigation identity is stable in the app.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const errors = validateVenueDetails(form);
   const complete = isVenueDetailsComplete(form);
+  const selectedDateBooked = bookedDates.includes(toDateKey(selectedDate));
   // The venue postal code decides how show times are interpreted; the profile
   // preference is only a fallback for codes we cannot resolve yet.
   const venueTimeZone = getTimeZoneForPostalCode(form.postalCode);
@@ -77,7 +90,7 @@ export default function BookingDateVenueScreen({ navigation, route }) {
           testID="continue-to-review"
           title="Continue to booking review"
           showArrow
-          disabled={!complete}
+          disabled={!complete || selectedDateBooked}
           onPress={continueToReview}
         />
       )}
@@ -86,14 +99,14 @@ export default function BookingDateVenueScreen({ navigation, route }) {
 
       {returningFromConflict && (
         <View testID="conflict-return-notice" accessibilityRole="alert" style={[s.card, styles.conflictNotice]}>
-          <Text style={[s.label, styles.groupLabel]}>// TIME NO LONGER AVAILABLE</Text>
-          <Text style={s.body}>Your event details are saved. Pick a new date or time below to continue.</Text>
+          <Text style={[s.label, styles.groupLabel]}>// DATE NO LONGER AVAILABLE</Text>
+          <Text style={s.body}>Your event details are saved. Pick another date below to continue.</Text>
         </View>
       )}
 
       <View testID="booking-columns" style={[styles.columns, layout.wide && styles.wideColumns]}>
         <View style={[s.card, styles.calendarCard, layout.wide && styles.column]}>
-          <CalendarPicker value={selectedDate} onChange={setSelectedDate} />
+          <CalendarPicker value={selectedDate} onChange={setSelectedDate} unavailableDates={bookedDates} />
         </View>
 
         <View style={[layout.wide && styles.column]}>
@@ -102,6 +115,11 @@ export default function BookingDateVenueScreen({ navigation, route }) {
             <Text testID="selected-date-label" style={[styles.timezone, layout.wide && styles.wideTimezone]}>
               {formatSelectedDate(selectedDate, timeZone)}
             </Text>
+            {selectedDateBooked && (
+              <Text accessibilityLiveRegion="polite" style={styles.unavailableHint}>
+                This date already has a show. Pick another date to continue.
+              </Text>
+            )}
             <View accessibilityRole="radiogroup" style={styles.timeRow}>
               {TIME_SLOTS.map((slot) => {
                 const active = slot.value === selectedTime;
@@ -274,6 +292,7 @@ const styles = StyleSheet.create({
   splitRow: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },
   validationHint: { color: colors.error, fontSize: 11, lineHeight: 16, marginTop: -2 },
+  unavailableHint: { color: colors.gold, fontSize: 11, lineHeight: 16, marginBottom: 10 },
   timeZoneHint: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.3, lineHeight: 14, marginTop: -8, marginBottom: 12 },
   disclaimerDivider: { marginTop: 14, marginBottom: 10 },
   wideDisclaimer: { fontSize: 13, lineHeight: 20 },

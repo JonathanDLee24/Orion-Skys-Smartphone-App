@@ -4,7 +4,7 @@ import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { DEFAULT_BOOKING_DRAFT, getLatestBookingDraft } from '../services/bookingDraftService';
-import { getSubmissionForSlot } from '../services/bookingConflictService';
+import { getSubmissionForDate } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 export default function BookingSubmittedScreen({ route, navigation }) {
@@ -12,7 +12,7 @@ export default function BookingSubmittedScreen({ route, navigation }) {
   const s = useScreenStyles();
   const booking = route?.params?.booking || getLatestBookingDraft();
   const submission =
-    route?.params?.submission || (booking ? getSubmissionForSlot(booking.date, booking.timeSlot) : null);
+    route?.params?.submission || (booking ? getSubmissionForDate(booking.date) : null);
   const dateLabel = booking?.dateLabel ? String(booking.dateLabel).split(' // ')[0] : booking?.date;
 
   return (
@@ -28,7 +28,7 @@ export default function BookingSubmittedScreen({ route, navigation }) {
       onAccount={() => navigation.navigate('AccountSettings')}
     >
       <Text style={[s.body, styles.reassurance]}>
-        Your slot is held while operations reviews the venue and airspace.
+        Your date is held while operations reviews the venue and airspace.
       </Text>
       <BookingWizardProgress currentStep={3} />
 
@@ -83,7 +83,7 @@ export default function BookingSubmittedScreen({ route, navigation }) {
           <Text style={styles.infoGlyph}>i</Text>
         </View>
         <Text style={[s.body, styles.infoText]}>
-          This request is temporarily saved on this device. Once the operations API is connected the slot lock and
+          This request is temporarily saved on this device. Once the operations API is connected the date lock and
           confirmation will sync automatically.
         </Text>
       </View>

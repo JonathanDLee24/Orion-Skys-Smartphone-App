@@ -11,7 +11,7 @@ import {
   saveBookingDraft,
   validateVenueDetails,
 } from '../src/services/bookingDraftService';
-import { clearBookingSubmissions } from '../src/services/bookingConflictService';
+import { clearBookingSubmissions, requestBookingSlot } from '../src/services/bookingConflictService';
 import {
   buildMonthGrid,
   formatSelectedDate,
@@ -291,7 +291,7 @@ test('submitting the review claims the slot and routes to the confirmation scree
   await act(async () => tree.unmount());
 });
 
-test('the same slot taken by another booking is routed to the conflict screen', async () => {
+test('another booking on the same date is routed to the conflict screen', async () => {
   const first = saveBookingDraft({
     eventName: 'Apex Year-end Celebration',
     date: '2026-11-21',
@@ -304,7 +304,7 @@ test('the same slot taken by another booking is routed to the conflict screen', 
   const second = saveBookingDraft({
     eventName: 'Harbour Night Market',
     date: '2026-11-21',
-    timeSlot: '8:00 PM',
+    timeSlot: '9:00 PM',
     venueName: 'Marina Bay Event Deck',
     streetAddress: '10 Bayfront Avenue',
     city: 'Singapore',
@@ -328,8 +328,8 @@ test('the same slot taken by another booking is routed to the conflict screen', 
   expect(navigation.navigate).toHaveBeenCalledWith('BookingConflict', {
     booking: expect.objectContaining({ id: second.id, eventName: 'Harbour Night Market' }),
     conflict: expect.objectContaining({
-      code: 'TIME_SLOT_CONFLICT',
-      unavailableSlot: { date: '2026-11-21', timeSlot: '8:00 PM' },
+      code: 'DATE_CONFLICT',
+      unavailableSlot: { date: '2026-11-21', timeSlot: '9:00 PM' },
     }),
   });
 
@@ -362,7 +362,7 @@ test('the date and venue step restores the cached draft after a conflict', async
   const text = textOf(tree);
   expect(text).toContain('December 2026');
   expect(text).toContain('SAT, 5 DEC // UTC+8');
-  expect(text).toContain('TIME NO LONGER AVAILABLE');
+  expect(text).toContain('DATE NO LONGER AVAILABLE');
   expect(findInput(tree, 'Event name').props.value).toBe('Apex Year-end Celebration');
   expect(findInput(tree, 'Venue name').props.value).toBe('Marina Bay Event Deck');
   expect(findButton(tree, '9:00 PM').props.accessibilityState).toEqual({ checked: true });
@@ -377,6 +377,32 @@ test('the date and venue step restores the cached draft after a conflict', async
       timeSlot: '9:00 PM',
     }),
   });
+
+  await act(async () => tree.unmount());
+});
+
+test('a booked date is disabled in the calendar and cannot continue', async () => {
+  requestBookingSlot({
+    id: 'booking-held',
+    eventName: 'Apex Year-end Celebration',
+    date: '2026-11-21',
+    timeSlot: '8:00 PM',
+    venueName: 'Marina Bay Event Deck',
+    streetAddress: '10 Bayfront Avenue',
+    city: 'Singapore',
+    postalCode: '018956',
+  });
+
+  let tree;
+  await act(async () => {
+    tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
+  });
+
+  const bookedDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-21')[0];
+  expect(bookedDay.props.accessibilityState).toMatchObject({ disabled: true });
+  expect(bookedDay.props.accessibilityLabel).toContain('booked');
+  expect(textOf(tree)).toContain('This date already has a show. Pick another date to continue.');
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(true);
 
   await act(async () => tree.unmount());
 });

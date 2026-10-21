@@ -1,18 +1,16 @@
-import { MONTH_SHORT, WEEKDAY_NAMES, formatTimeSlot, parseDateKey } from '../utils/bookingCalendar';
+import { MONTH_SHORT, WEEKDAY_NAMES, formatTimeSlot, parseDateKey, toDateKey } from '../utils/bookingCalendar';
 
-export const TIME_SLOT_CONFLICT = 'TIME_SLOT_CONFLICT';
+export const DATE_CONFLICT = 'DATE_CONFLICT';
+export const CANCELLED_STATUS = 'cancelled';
 
 const ISO_START = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{1,2}):(\d{2}))?/;
 
 // Temporary local ledger of submitted requests. It stands in for
-// POST /api/bookings: the server will own slot locking once the backend exists.
+// POST /api/bookings: the server will own date locking once the backend exists.
 export const bookingSubmissions = [];
 
-function slotKey(date, timeSlot) {
-  return `${date} ${timeSlot}`;
-}
-
-// 24-hour reference suffix so 8:00 AM and 8:00 PM never share a reference.
+// Shows run once per day, so the request reference stays date + time to keep
+// every queued request distinct even though the date itself is exclusive.
 function submissionReference(date, timeSlot) {
   const datePart = String(date).replace(/-/g, '');
   const match = String(timeSlot).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -21,7 +19,24 @@ function submissionReference(date, timeSlot) {
   return `REQ-${datePart}-${String(hour).padStart(2, '0')}${match[2]}`;
 }
 
-// A slot can only be claimed once. Re-sending the same booking is idempotent so
+// Minutes after midnight, so a same-date list sorts 12:00 AM before 1:00 AM.
+function slotMinutes(timeSlot) {
+  const match = String(timeSlot).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return 0;
+  const hour = Number(match[1]) % 12 + (match[3].toUpperCase() === 'PM' ? 12 : 0);
+  return hour * 60 + Number(match[2]);
+}
+
+function compareSubmissions(first, second) {
+  if (first.date !== second.date) return first.date < second.date ? -1 : 1;
+  return slotMinutes(first.timeSlot) - slotMinutes(second.timeSlot);
+}
+
+function isActive(submission) {
+  return submission.status !== CANCELLED_STATUS;
+}
+
+// A date can only be claimed once. Re-sending the same booking is idempotent so
 // a double tap cannot lock the client out of their own request.
 export function requestBookingSlot(booking = {}) {
   const date = booking.date;
@@ -34,7 +49,7 @@ export function requestBookingSlot(booking = {}) {
     };
   }
 
-  const existing = getSubmissionForSlot(date, timeSlot);
+  const existing = getSubmissionForDate(date);
   if (existing) {
     if (booking.id != null && existing.bookingId === booking.id) {
       return { ok: true, submission: existing, repeated: true };
@@ -42,8 +57,8 @@ export function requestBookingSlot(booking = {}) {
     return {
       ok: false,
       error: {
-        code: TIME_SLOT_CONFLICT,
-        message: 'TIME NO LONGER AVAILABLE',
+        code: DATE_CONFLICT,
+        message: 'DATE NO LONGER AVAILABLE',
         unavailableSlot: { date, timeSlot },
       },
     };
@@ -55,9 +70,15 @@ export function requestBookingSlot(booking = {}) {
     bookingId: booking.id ?? null,
     eventName: booking.eventName ?? null,
     venueName: booking.venueName ?? null,
+    streetAddress: booking.streetAddress ?? null,
+    city: booking.city ?? null,
+    postalCode: booking.postalCode ?? null,
     date,
     timeSlot,
     timeZone: booking.timeZone ?? null,
+    timeZoneLabel: booking.timeZoneLabel ?? null,
+    droneCount: booking.droneCount ?? null,
+    durationMinutes: booking.durationMinutes ?? null,
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };
@@ -65,18 +86,49 @@ export function requestBookingSlot(booking = {}) {
   return { ok: true, submission };
 }
 
+// Active bookings only; cancelled records stay in the session ledger but no
+// longer hold their date or appear on the dashboard.
 export function getBookingSubmissions() {
-  return bookingSubmissions.slice();
+  return bookingSubmissions.filter(isActive);
 }
 
-export function getSubmissionForSlot(date, timeSlot) {
-  if (!date || !timeSlot) return null;
-  const key = slotKey(date, timeSlot);
-  return bookingSubmissions.find((submission) => slotKey(submission.date, submission.timeSlot) === key) || null;
+// Chronological list for the employee dashboard and other read-only views.
+export function getScheduledSubmissions() {
+  return getBookingSubmissions().sort(compareSubmissions);
 }
 
-export function isBookingSlotTaken(date, timeSlot) {
-  return Boolean(getSubmissionForSlot(date, timeSlot));
+export function getNextScheduledSubmission(today = new Date()) {
+  const todayKey = toDateKey(today);
+  return getScheduledSubmissions().find((submission) => submission.date >= todayKey) || null;
+}
+
+// Calendar keys for dates that already have a show, so the picker can block them.
+export function getBookedDateKeys() {
+  return [...new Set(getBookingSubmissions().map((submission) => submission.date))];
+}
+
+export function getSubmissionForDate(date) {
+  if (!date) return null;
+  return getBookingSubmissions().find((submission) => submission.date === date) || null;
+}
+
+export function getSubmissionById(id) {
+  if (!id) return null;
+  return bookingSubmissions.find((submission) => submission.id === id) || null;
+}
+
+export function isBookingDateTaken(date) {
+  return Boolean(getSubmissionForDate(date));
+}
+
+// Cancelling releases the date for a new request while keeping the record for
+// the rest of the session so the UI can show what was cancelled.
+export function cancelBookingSubmission(id) {
+  const submission = getSubmissionById(id);
+  if (!submission || !isActive(submission)) return null;
+  submission.status = CANCELLED_STATUS;
+  submission.cancelledAt = new Date().toISOString();
+  return submission;
 }
 
 export function clearBookingSubmissions() {
