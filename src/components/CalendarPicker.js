@@ -22,14 +22,19 @@ function buildYearOptions(currentYear, visibleYear) {
   return years.sort((first, second) => first - second);
 }
 
-export default function CalendarPicker({ value, onChange, today = new Date(), unavailableDates = [] }) {
+export default function CalendarPicker({ value = null, onChange, today = new Date(), unavailableDates = [] }) {
   const layout = useResponsiveLayout();
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date(value.getFullYear(), value.getMonth(), 1));
+  const earliestBookable = getEarliestBookableDate(today);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    // Until a day is tapped nothing is highlighted, so open on the first month
+    // that can actually be booked instead of an arbitrary date.
+    const anchor = value || earliestBookable;
+    return new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  });
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerYear, setPickerYear] = useState(() => value.getFullYear());
+  const [pickerYear, setPickerYear] = useState(() => (value || earliestBookable).getFullYear());
   const weeks = chunkIntoWeeks(buildMonthGrid(visibleMonth.getFullYear(), visibleMonth.getMonth(), today));
   const bookedDates = new Set(unavailableDates);
-  const earliestBookable = getEarliestBookableDate(today);
   const currentYear = today.getFullYear();
   const yearOptions = buildYearOptions(currentYear, visibleMonth.getFullYear());
 
@@ -140,6 +145,21 @@ export default function CalendarPicker({ value, onChange, today = new Date(), un
         </View>
       )}
 
+      <View testID="calendar-legend" style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, styles.legendAvailable]} />
+          <Text style={styles.legendText}>AVAILABLE</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, styles.legendSelected]} />
+          <Text style={styles.legendText}>SELECTED</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, styles.legendBooked]} />
+          <Text style={[styles.legendText, styles.legendBookedText]}>BOOKED</Text>
+        </View>
+      </View>
+
       <View style={styles.weekdayRow}>
         {WEEKDAY_LABELS.map((label) => (
           <Text key={label} numberOfLines={1} style={[styles.weekday, layout.wide && styles.wideWeekday]}>
@@ -152,7 +172,7 @@ export default function CalendarPicker({ value, onChange, today = new Date(), un
         {weeks.map((week) => (
           <View key={toDateKey(week[0].date)} style={styles.week}>
             {week.map((cell) => {
-              const selected = cell.inMonth && isSameDay(cell.date, value);
+              const selected = cell.inMonth && Boolean(value) && isSameDay(cell.date, value);
               const booked = cell.inMonth && bookedDates.has(toDateKey(cell.date));
               const disabled = !cell.available || booked;
               const stateText = booked ? ', booked' : selected ? ', selected' : cell.available ? ', available' : ', unavailable';
@@ -195,7 +215,7 @@ export default function CalendarPicker({ value, onChange, today = new Date(), un
       </View>
 
       <Text testID="calendar-footnote" style={styles.footnote}>
-        • One show per day. Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
+        • One show per day. Red days are already booked. Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
       </Text>
     </View>
   );
@@ -235,8 +255,16 @@ const styles = StyleSheet.create({
   wideDay: { fontSize: 13 },
   outsideDay: { color: colors.border },
   disabledDay: { color: colors.border },
-  bookedCell: { backgroundColor: '#171200', borderColor: colors.gold },
-  bookedDay: { color: colors.gold },
+  bookedCell: { backgroundColor: colors.error, borderColor: colors.error },
+  bookedDay: { color: colors.text },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 8 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendSwatch: { width: 10, height: 10, borderRadius: 2, borderWidth: 1 },
+  legendAvailable: { backgroundColor: colors.field, borderColor: colors.border },
+  legendSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  legendBooked: { backgroundColor: colors.error, borderColor: colors.error },
+  legendText: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.4 },
+  legendBookedText: { color: colors.error, fontWeight: '700' },
   selectedDay: { color: colors.background },
   footnote: { color: colors.muted, fontSize: 10, lineHeight: 15, marginTop: 12 },
   pressed: { opacity: 0.7 },

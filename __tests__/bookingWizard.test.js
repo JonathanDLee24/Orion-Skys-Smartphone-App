@@ -14,7 +14,9 @@ import {
 import { clearBookingSubmissions, requestBookingSlot } from '../src/services/bookingConflictService';
 import {
   buildMonthGrid,
+  formatMonthYear,
   formatSelectedDate,
+  getEarliestBookableDate,
 } from '../src/utils/bookingCalendar';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
@@ -28,6 +30,20 @@ global.IS_REACT_ACT_ENVIRONMENT = true;
 const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
 const findButton = (tree, label) => tree.root.findAll((node) => node.props.accessibilityLabel === label)[0];
 const findInput = (tree, label) => tree.root.findAll((node) => node.props.accessibilityLabel === label)[0];
+const visibleMonthLabel = (tree) => tree.root.findAll((node) => node.props.testID === 'calendar-month-label')[0].props.children;
+
+// Page forward until the month the test wants to tap in is on screen.
+async function goToMonth(tree, target) {
+  for (let attempt = 0; attempt < 24 && visibleMonthLabel(tree) !== target; attempt += 1) {
+    await act(async () => findButton(tree, 'Next month').props.onPress());
+  }
+  expect(visibleMonthLabel(tree)).toBe(target);
+}
+
+async function pressDay(tree, dateKey) {
+  const day = tree.root.findAll((node) => node.props.testID === `calendar-day-${dateKey}`)[0];
+  await act(async () => day.props.onPress());
+}
 
 beforeEach(() => {
   clearBookingSession();
@@ -80,7 +96,7 @@ test('drafts are trimmed and appended to the session cache', () => {
   expect(bookingSession.bookings[0].id).toBe(saved.id);
 });
 
-test('date and venue step renders the reference state', async () => {
+test('date and venue step opens with nothing selected until a day is tapped', async () => {
   let tree;
   await act(async () => {
     tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
@@ -92,8 +108,8 @@ test('date and venue step renders the reference state', async () => {
   expect(text).toContain('DATE & VENUE');
   expect(text).toContain('REVIEW');
   expect(text).toContain('REQUEST');
-  expect(text).toContain('November 2026');
-  expect(text).toContain('SAT, 21 NOV // UTC+8');
+  expect(text).toContain(formatMonthYear(getEarliestBookableDate()));
+  expect(text).toContain('SELECT A DATE');
   expect(text).toContain('12:00 AM');
   expect(text).toContain('8:00 PM');
   expect(text).toContain('11:00 PM');
@@ -105,6 +121,21 @@ test('date and venue step renders the reference state', async () => {
   expect(text).toContain('Continue to booking review');
   expect(text).toContain('All dates and times are illustrative.');
   expect(findButton(tree, '8:00 PM').props.accessibilityState).toEqual({ checked: true });
+
+  // No day is highlighted before the user chooses one.
+  const dayCells = tree.root.findAll((node) => typeof node.props.testID === 'string'
+    && node.props.testID.startsWith('calendar-day-')
+    && typeof node.props.onPress === 'function');
+  expect(dayCells.length).toBeGreaterThan(0);
+  expect(dayCells.every((node) => node.props.accessibilityState.selected === false)).toBe(true);
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(true);
+
+  await goToMonth(tree, 'November 2026');
+  await pressDay(tree, '2026-11-21');
+
+  expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
+  const chosenDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-21')[0];
+  expect(chosenDay.props.accessibilityState.selected).toBe(true);
   expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
 
   await act(async () => tree.unmount());
@@ -116,11 +147,8 @@ test('calendar pages across months and updates the selected time label', async (
     tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
   });
 
-  await act(async () => findButton(tree, 'Next month').props.onPress());
-  expect(textOf(tree)).toContain('December 2026');
-
-  const decemberDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-12-05')[0];
-  await act(async () => decemberDay.props.onPress());
+  await goToMonth(tree, 'December 2026');
+  await pressDay(tree, '2026-12-05');
   expect(textOf(tree)).toContain('SAT, 5 DEC // UTC+8');
   expect(textOf(tree)).toContain('December 2026');
 
@@ -154,8 +182,12 @@ test('the venue postal code selects the booking time zone', async () => {
     tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
   });
 
-  expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
+  expect(textOf(tree)).toContain('SELECT A DATE');
   expect(textOf(tree)).toContain('TIME ZONE · Singapore · SGT (UTC+8)');
+
+  await goToMonth(tree, 'November 2026');
+  await pressDay(tree, '2026-11-21');
+  expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
 
   await act(async () => findInput(tree, 'Postal code').props.onChangeText('10001'));
   expect(textOf(tree)).toContain('SAT, 21 NOV // EST (UTC-5)');
@@ -190,6 +222,11 @@ test('continue stays disabled until all venue fields are populated, then saves a
   expect(textOf(tree)).toContain('Complete venue name, street address, city and postal code to continue.');
 
   await act(async () => findInput(tree, 'Venue name').props.onChangeText('Marina Bay Event Deck'));
+  // Every field is filled in, but the date still has to be tapped.
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(true);
+
+  await goToMonth(tree, 'November 2026');
+  await pressDay(tree, '2026-11-21');
   expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
 
   await act(async () => findButton(tree, '9:00 PM').props.onPress());
@@ -395,12 +432,20 @@ test('a booked date is disabled in the calendar and cannot continue', async () =
 
   let tree;
   await act(async () => {
-    tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
+    tree = create(
+      <BookingDateVenueScreen
+        navigation={{ navigate: jest.fn() }}
+        route={{ params: { booking: { date: '2026-11-21', timeSlot: '8:00 PM' } } }}
+      />
+    );
   });
 
   const bookedDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-21')[0];
   expect(bookedDay.props.accessibilityState).toMatchObject({ disabled: true });
   expect(bookedDay.props.accessibilityLabel).toContain('booked');
+  expect(tree.root.findAll((node) => node.props.testID === 'calendar-legend').length).toBeGreaterThan(0);
+  expect(textOf(tree)).toContain('BOOKED');
+  expect(textOf(tree)).toContain('Red days are already booked.');
   expect(textOf(tree)).toContain('This date already has a show. Pick another date to continue.');
   expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(true);
 

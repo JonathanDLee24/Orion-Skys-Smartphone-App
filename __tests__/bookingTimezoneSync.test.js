@@ -17,6 +17,7 @@ const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.
 const press = (tree, label) => tree.root.findAll(
   (node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function',
 )[0].props.onPress();
+const monthLabel = (tree) => tree.root.findAll((node) => node.props.testID === 'calendar-month-label')[0].props.children;
 
 let tree;
 beforeEach(() => {
@@ -49,6 +50,14 @@ test('the postal code picks the venue time zone and the saved preference is the 
   });
 
   // The default Singapore venue postal code overrides the Tokyo preference.
+  expect(textOf(tree)).toContain('TIME ZONE · Singapore · SGT (UTC+8)');
+
+  // Pick a day so the label can show that date in the venue time zone.
+  while (monthLabel(tree) !== 'November 2026') {
+    await act(async () => press(tree, 'Next month'));
+  }
+  const novemberDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-21')[0];
+  await act(async () => novemberDay.props.onPress());
   expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
 
   const postalInput = tree.root.findAll((node) => node.props.accessibilityLabel === 'Postal code' && typeof node.props.onChangeText === 'function')[0];

@@ -26,7 +26,10 @@ export default function BookingDateVenueScreen({ navigation, route }) {
   // The conflict screen hands the cached draft back so nothing has to be retyped.
   const cachedDraft = route?.params?.booking || route?.params?.draft;
   const returningFromConflict = Boolean(route?.params?.focusCalendar);
-  const [selectedDate, setSelectedDate] = useState(() => parseDateKey(cachedDraft?.date || DEFAULT_BOOKING_DRAFT.date));
+  // A fresh booking starts with nothing highlighted: the green "selected" day
+  // only appears after the user taps it. A draft handed back after a conflict
+  // keeps its date so the choice is not lost.
+  const [selectedDate, setSelectedDate] = useState(() => (cachedDraft?.date ? parseDateKey(cachedDraft.date) : null));
   const [selectedTime, setSelectedTime] = useState(cachedDraft?.timeSlot || DEFAULT_BOOKING_DRAFT.timeSlot);
   // One show per day: dates already claimed by a submission cannot be picked again.
   const [bookedDates, setBookedDates] = useState(getBookedDateKeys);
@@ -49,18 +52,19 @@ export default function BookingDateVenueScreen({ navigation, route }) {
 
   const errors = validateVenueDetails(form);
   const complete = isVenueDetailsComplete(form);
-  const selectedDateBooked = bookedDates.includes(toDateKey(selectedDate));
+  const selectedDateBooked = Boolean(selectedDate) && bookedDates.includes(toDateKey(selectedDate));
   // The venue postal code decides how show times are interpreted; the profile
   // preference is only a fallback for codes we cannot resolve yet.
   const venueTimeZone = getTimeZoneForPostalCode(form.postalCode);
   const timeZone = venueTimeZone || preferredTimeZone;
+  const dateLabel = selectedDate ? formatSelectedDate(selectedDate, timeZone) : 'SELECT A DATE';
 
   function updateField(field, value) {
     setForm((previous) => ({ ...previous, [field]: value }));
   }
 
   function continueToReview() {
-    if (!complete) return;
+    if (!complete || !selectedDate || selectedDateBooked) return;
     const saved = saveBookingDraft({
       eventName: form.eventName,
       droneCount: cachedDraft?.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount,
@@ -90,7 +94,7 @@ export default function BookingDateVenueScreen({ navigation, route }) {
           testID="continue-to-review"
           title="Continue to booking review"
           showArrow
-          disabled={!complete || selectedDateBooked}
+          disabled={!complete || !selectedDate || selectedDateBooked}
           onPress={continueToReview}
         />
       )}
@@ -113,7 +117,7 @@ export default function BookingDateVenueScreen({ navigation, route }) {
           <View style={s.card}>
             <Text style={[s.label, styles.groupLabel]}>// SHOW TIME · 24 HOURS</Text>
             <Text testID="selected-date-label" style={[styles.timezone, layout.wide && styles.wideTimezone]}>
-              {formatSelectedDate(selectedDate, timeZone)}
+              {dateLabel}
             </Text>
             {selectedDateBooked && (
               <Text accessibilityLiveRegion="polite" style={styles.unavailableHint}>
