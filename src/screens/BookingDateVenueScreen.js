@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import CalendarPicker from '../components/CalendarPicker';
@@ -10,6 +10,7 @@ import {
   saveBookingDraft,
   validateVenueDetails,
 } from '../services/bookingDraftService';
+import { getBookedDateKeys } from '../services/bookingConflictService';
 import { useTimeZonePreference } from '../services/settingsService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { buildTimeSlots, formatSelectedDate, parseDateKey, toDateKey } from '../utils/bookingCalendar';
@@ -18,33 +19,56 @@ import { getTimeZoneLabel } from '../utils/timeZones';
 
 const TIME_SLOTS = buildTimeSlots();
 
-export default function BookingDateVenueScreen({ navigation }) {
+export default function BookingDateVenueScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const preferredTimeZone = useTimeZonePreference();
-  const [selectedDate, setSelectedDate] = useState(() => parseDateKey(DEFAULT_BOOKING_DRAFT.date));
-  const [selectedTime, setSelectedTime] = useState(DEFAULT_BOOKING_DRAFT.timeSlot);
+  // The conflict screen hands the cached draft back so nothing has to be retyped.
+  const cachedDraft = route?.params?.booking || route?.params?.draft;
+  const returningFromConflict = Boolean(route?.params?.focusCalendar);
+  // A fresh booking starts with nothing highlighted: the green "selected" day
+  // only appears after the user taps it. A draft handed back after a conflict
+  // keeps its date so the choice is not lost.
+  const [selectedDate, setSelectedDate] = useState(() => (cachedDraft?.date ? parseDateKey(cachedDraft.date) : null));
+  const [selectedTime, setSelectedTime] = useState(cachedDraft?.timeSlot || DEFAULT_BOOKING_DRAFT.timeSlot);
+  // One show per day: dates already claimed by a submission cannot be picked again.
+  const [bookedDates, setBookedDates] = useState(getBookedDateKeys);
   const [form, setForm] = useState(() => ({
-    venueName: DEFAULT_BOOKING_DRAFT.venueName,
-    streetAddress: DEFAULT_BOOKING_DRAFT.streetAddress,
-    city: DEFAULT_BOOKING_DRAFT.city,
-    postalCode: DEFAULT_BOOKING_DRAFT.postalCode,
+    eventName: cachedDraft?.eventName ?? DEFAULT_BOOKING_DRAFT.eventName,
+    venueName: cachedDraft?.venueName ?? DEFAULT_BOOKING_DRAFT.venueName,
+    streetAddress: cachedDraft?.streetAddress ?? DEFAULT_BOOKING_DRAFT.streetAddress,
+    city: cachedDraft?.city ?? DEFAULT_BOOKING_DRAFT.city,
+    postalCode: cachedDraft?.postalCode ?? DEFAULT_BOOKING_DRAFT.postalCode,
   }));
+
+  useEffect(() => {
+    const refreshBookedDates = () => setBookedDates(getBookedDateKeys());
+    refreshBookedDates();
+    const unsubscribe = navigation?.addListener?.('focus', refreshBookedDates);
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
+    // Refreshing only needs to subscribe once; navigation identity is stable in the app.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const errors = validateVenueDetails(form);
   const complete = isVenueDetailsComplete(form);
+  const selectedDateBooked = Boolean(selectedDate) && bookedDates.includes(toDateKey(selectedDate));
   // The venue postal code decides how show times are interpreted; the profile
   // preference is only a fallback for codes we cannot resolve yet.
   const venueTimeZone = getTimeZoneForPostalCode(form.postalCode);
   const timeZone = venueTimeZone || preferredTimeZone;
+  const dateLabel = selectedDate ? formatSelectedDate(selectedDate, timeZone) : 'SELECT A DATE';
 
   function updateField(field, value) {
     setForm((previous) => ({ ...previous, [field]: value }));
   }
 
   function continueToReview() {
-    if (!complete) return;
+    if (!complete || !selectedDate || selectedDateBooked) return;
     const saved = saveBookingDraft({
+      eventName: form.eventName,
+      droneCount: cachedDraft?.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount,
+      durationMinutes: cachedDraft?.durationMinutes ?? DEFAULT_BOOKING_DRAFT.durationMinutes,
       date: toDateKey(selectedDate),
       dateLabel: formatSelectedDate(selectedDate, timeZone),
       timeSlot: selectedTime,
@@ -70,24 +94,36 @@ export default function BookingDateVenueScreen({ navigation }) {
           testID="continue-to-review"
           title="Continue to booking review"
           showArrow
-          disabled={!complete}
+          disabled={!complete || !selectedDate || selectedDateBooked}
           onPress={continueToReview}
         />
       )}
     >
       <BookingWizardProgress currentStep={1} />
 
+      {returningFromConflict && (
+        <View testID="conflict-return-notice" accessibilityRole="alert" style={[s.card, styles.conflictNotice]}>
+          <Text style={[s.label, styles.groupLabel]}>// DATE NO LONGER AVAILABLE</Text>
+          <Text style={s.body}>Your event details are saved. Pick another date below to continue.</Text>
+        </View>
+      )}
+
       <View testID="booking-columns" style={[styles.columns, layout.wide && styles.wideColumns]}>
         <View style={[s.card, styles.calendarCard, layout.wide && styles.column]}>
-          <CalendarPicker value={selectedDate} onChange={setSelectedDate} />
+          <CalendarPicker value={selectedDate} onChange={setSelectedDate} unavailableDates={bookedDates} />
         </View>
 
         <View style={[layout.wide && styles.column]}>
           <View style={s.card}>
             <Text style={[s.label, styles.groupLabel]}>// SHOW TIME · 24 HOURS</Text>
             <Text testID="selected-date-label" style={[styles.timezone, layout.wide && styles.wideTimezone]}>
-              {formatSelectedDate(selectedDate, timeZone)}
+              {dateLabel}
             </Text>
+            {selectedDateBooked && (
+              <Text accessibilityLiveRegion="polite" style={styles.unavailableHint}>
+                This date already has a show. Pick another date to continue.
+              </Text>
+            )}
             <View accessibilityRole="radiogroup" style={styles.timeRow}>
               {TIME_SLOTS.map((slot) => {
                 const active = slot.value === selectedTime;
@@ -121,6 +157,19 @@ export default function BookingDateVenueScreen({ navigation }) {
 
           <View style={s.card}>
             <Text style={[s.label, styles.groupLabel]}>// VENUE & ADDRESS</Text>
+
+            <Text style={styles.fieldLabel}>EVENT NAME</Text>
+            <TextInput
+              accessibilityLabel="Event name"
+              testID="event-name-input"
+              value={form.eventName}
+              onChangeText={(value) => updateField('eventName', value)}
+              placeholder="Apex Year-end Celebration"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+              autoCorrect={false}
+              style={[styles.input, layout.wide && styles.wideInput]}
+            />
 
             <Text style={styles.fieldLabel}>VENUE NAME</Text>
             <TextInput
@@ -205,6 +254,7 @@ const styles = StyleSheet.create({
   wideColumns: { flexDirection: 'row', gap: 24 },
   column: { flex: 1, minWidth: 0 },
   calendarCard: { paddingVertical: 14 },
+  conflictNotice: { borderColor: colors.gold },
   groupLabel: { marginBottom: 10 },
   timezone: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700', letterSpacing: 0.4, marginBottom: 10 },
   wideTimezone: { fontSize: 14 },
@@ -246,6 +296,7 @@ const styles = StyleSheet.create({
   splitRow: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },
   validationHint: { color: colors.error, fontSize: 11, lineHeight: 16, marginTop: -2 },
+  unavailableHint: { color: colors.gold, fontSize: 11, lineHeight: 16, marginBottom: 10 },
   timeZoneHint: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.3, lineHeight: 14, marginTop: -8, marginBottom: 12 },
   disclaimerDivider: { marginTop: 14, marginBottom: 10 },
   wideDisclaimer: { fontSize: 13, lineHeight: 20 },

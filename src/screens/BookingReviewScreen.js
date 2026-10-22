@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { getLatestBookingDraft } from '../services/bookingDraftService';
+import { getLatestBookingDraft, markBookingSubmitted } from '../services/bookingDraftService';
+import { requestBookingSlot } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 export default function BookingReviewScreen({ route, navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
-  const [noticeVisible, setNoticeVisible] = useState(false);
   const booking = route?.params?.booking || getLatestBookingDraft();
   // The date row stays a single line; the zone is already shown on its own row.
   const dateOnly = booking?.dateLabel ? String(booking.dateLabel).split(' // ')[0] : booking?.date;
+
+  function submitRequest() {
+    const result = requestBookingSlot(booking);
+    if (!result.ok) {
+      navigation.navigate('BookingConflict', { booking, conflict: result.error });
+      return;
+    }
+    const submitted = markBookingSubmitted(booking.id) || booking;
+    navigation.navigate('BookingSubmitted', { booking: submitted, submission: result.submission });
+  }
 
   return (
     <ScreenLayout
@@ -22,17 +32,17 @@ export default function BookingReviewScreen({ route, navigation }) {
       badge="● CLIENT"
       showProgress={false}
       backLabel="Back to date & venue"
-      onBack={() => navigation.navigate('BookingDateVenue')}
+      onBack={() => navigation.navigate('BookingDateVenue', { booking })}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={
         <View style={styles.footerActions}>
-          <PrimaryButton title="Edit date & venue" onPress={() => navigation.navigate('BookingDateVenue')} />
+          <PrimaryButton title="Edit date & venue" onPress={() => navigation.navigate('BookingDateVenue', { booking })} />
           {booking ? (
             <PrimaryButton
               testID="submit-request"
               title="Submit request"
               showArrow
-              onPress={() => setNoticeVisible(true)}
+              onPress={submitRequest}
             />
           ) : null}
         </View>
@@ -44,6 +54,10 @@ export default function BookingReviewScreen({ route, navigation }) {
         <View style={[styles.columns, layout.wide && styles.wideColumns]}>
           <View style={[s.card, layout.wide && styles.column]}>
             <Text style={[s.label, styles.groupLabel]}>// REQUEST PARAMETERS</Text>
+            <View style={styles.parameter}>
+              <Text style={s.body}>Event</Text>
+              <Text style={styles.value}>{booking.eventName}</Text>
+            </View>
             <View style={styles.parameter}>
               <Text style={s.body}>Date</Text>
               <Text style={styles.value}>{dateOnly}</Text>
@@ -76,16 +90,6 @@ export default function BookingReviewScreen({ route, navigation }) {
           <PrimaryButton title="Start a booking" onPress={() => navigation.navigate('BookingDateVenue')} />
         </View>
       )}
-
-      <Modal visible={noticeVisible} transparent animationType="fade" onRequestClose={() => setNoticeVisible(false)}>
-        <View style={styles.modalBackdrop}>
-          <View testID="submit-request-notice" accessibilityRole="alert" style={[s.card, styles.modalCard]}>
-            <Text style={[s.label, styles.groupLabel]}>// SUBMIT REQUEST</Text>
-            <Text style={styles.modalTitle}>Part of task OSPSA-57</Text>
-            <PrimaryButton title="Close" onPress={() => setNoticeVisible(false)} />
-          </View>
-        </View>
-      </Modal>
     </ScreenLayout>
   );
 }
@@ -103,7 +107,4 @@ const styles = StyleSheet.create({
   divider: { marginVertical: 12 },
   emptyMessage: { marginBottom: 20 },
   footerActions: { width: '100%', gap: 10 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  modalCard: { width: '100%', maxWidth: 360, marginBottom: 0 },
-  modalTitle: { color: colors.text, fontFamily: monoFont, fontSize: 14, lineHeight: 21, marginBottom: 16 },
 });

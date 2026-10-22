@@ -1,4 +1,5 @@
 export const DEFAULT_BOOKING_DRAFT = {
+  eventName: 'Apex Year-end Celebration',
   date: '2026-11-21',
   timeSlot: '8:00 PM',
   venueName: 'Marina Bay Event Deck',
@@ -6,6 +7,8 @@ export const DEFAULT_BOOKING_DRAFT = {
   city: 'Singapore',
   postalCode: '018956',
   timeZone: 'America/Los_Angeles',
+  droneCount: 200,
+  durationMinutes: 10,
 };
 
 // Session-only cache. Replace with POST /api/bookings when the backend exists.
@@ -30,6 +33,7 @@ export function saveBookingDraft(draft) {
   const record = {
     id: `booking-${Date.now()}-${bookingSession.bookings.length + 1}`,
     ...draft,
+    eventName: String(draft.eventName ?? '').trim(),
     venueName: String(draft.venueName).trim(),
     streetAddress: String(draft.streetAddress).trim(),
     city: String(draft.city).trim(),
@@ -38,6 +42,14 @@ export function saveBookingDraft(draft) {
     savedAt: new Date().toISOString(),
   };
   bookingSession.bookings.push(record);
+  return record;
+}
+
+export function markBookingSubmitted(id) {
+  const record = bookingSession.bookings.find((booking) => booking.id === id);
+  if (!record) return null;
+  record.status = 'submitted';
+  record.submittedAt = new Date().toISOString();
   return record;
 }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
-export default function PrimaryButton({ title, onPress, disabled = false, loading = false, showArrow = false, testID }) {
+export default function PrimaryButton({ title, onPress, disabled = false, loading = false, showArrow = false, leadingIcon = null, testID }) {
   const layout = useResponsiveLayout();
   const unavailable = disabled || loading;
   return (
@@ -17,6 +17,7 @@ export default function PrimaryButton({ title, onPress, disabled = false, loadin
     >
       {loading ? <ActivityIndicator color={colors.background} /> : (
         <View style={styles.content}>
+          {leadingIcon}
           {showArrow && <Text style={[styles.arrow, layout.wide && { fontSize: 16 }]}>→</Text>}
           <Text style={[styles.text, layout.wide && { fontSize: 13 }]}>{title}</Text>
         </View>
