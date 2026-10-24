@@ -75,6 +75,8 @@ const EmployeeSuccessfulScanScreen = ({ navigation, route }) => {
 
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel="Scan next passenger"
+        onPress={() => navigation?.navigate?.('QRCodeScanner')}
         style={({ pressed }) => [styles.nextButton, styles.halfWidth, pressed && styles.nextButtonPressed]}
       >
         <Text style={styles.nextButtonText}>Scan Next Passenger</Text>

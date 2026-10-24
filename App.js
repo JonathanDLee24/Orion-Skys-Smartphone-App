@@ -22,6 +22,7 @@ import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
+import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -77,6 +78,7 @@ export default function App() {
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
               <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
+              <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
