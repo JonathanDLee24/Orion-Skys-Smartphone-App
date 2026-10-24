@@ -20,6 +20,7 @@ import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -73,6 +74,7 @@ export default function App() {
             <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
