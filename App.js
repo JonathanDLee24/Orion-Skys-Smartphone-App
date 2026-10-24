@@ -15,6 +15,7 @@ import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
+import EmployeeSuccessfulScanScreen from './src/screens/EmployeeSuccessfulScanScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
@@ -74,6 +75,7 @@ export default function App() {
             <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
