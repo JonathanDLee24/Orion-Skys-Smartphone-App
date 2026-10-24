@@ -1,21 +1,32 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { hasEmployeeUsername, validateEmployeePassword } from '../services/employeeAuthService';
 import { colors } from '../theme';
-
-const DEMO_USERNAME = 'test';
-const DEMO_PASSWORD = 'password1234';
 
 export default function EmployeeLoginScreen({ navigation }) {
   const s = useScreenStyles();
+  const passwordInputRef = useRef(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
 
   const signIn = () => {
-    if (username.trim() !== DEMO_USERNAME || password !== DEMO_PASSWORD) {
-      setError('Username or password is incorrect.');
+    if (!username.trim()) {
+      setError('Username cannot be empty.');
+      return;
+    }
+    if (!hasEmployeeUsername(username)) {
+      setError('Username not found.');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Password cannot be empty.');
+      return;
+    }
+    if (!validateEmployeePassword(username, password)) {
+      setError('Password is incorrect.');
       return;
     }
     setError('');
@@ -41,6 +52,7 @@ export default function EmployeeLoginScreen({ navigation }) {
             setUsername(value);
             setError('');
           }}
+          onSubmitEditing={() => passwordInputRef.current?.focus()}
           placeholder="Enter your username"
           placeholderTextColor={colors.muted}
           returnKeyType="next"
@@ -50,6 +62,7 @@ export default function EmployeeLoginScreen({ navigation }) {
         <Text style={styles.label}>Password</Text>
         <View style={styles.passwordField}>
           <TextInput
+            ref={passwordInputRef}
             accessibilityLabel="Password"
             autoCapitalize="none"
             autoComplete="current-password"
@@ -94,9 +107,6 @@ export default function EmployeeLoginScreen({ navigation }) {
         >
           <Text style={styles.buttonText}>Sign in</Text>
         </Pressable>
-        <Text style={styles.demoNote}>
-          Demo login: username test · password password1234
-        </Text>
       </View>
     </ScreenLayout>
   );
@@ -183,11 +193,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.82,
-  },
-  demoNote: {
-    color: colors.muted,
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 18,
   },
 });

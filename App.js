@@ -6,8 +6,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
+import BookingDateVenueScreen from './src/screens/BookingDateVenueScreen';
+import BookingConflictScreen from './src/screens/BookingConflictScreen';
+import BookingManageScreen from './src/screens/BookingManageScreen';
+import BookingReviewScreen from './src/screens/BookingReviewScreen';
+import BookingSubmittedScreen from './src/screens/BookingSubmittedScreen';
+import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
+import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
@@ -61,18 +68,26 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <View style={styles.app}>
+        <View style={styles.app}>
         <NavigationContainer theme={navigationTheme}>
-          <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
-            <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+            <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
+              <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+              <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
-            <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
-            <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
-            <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
-            <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+            <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
+            <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
+            <Stack.Screen name="BookingConflict" component={BookingConflictScreen} />
+            <Stack.Screen name="BookingManage" component={BookingManageScreen} />
+            <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
+              <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+              <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+              <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+              <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
         {isOffline && (
           <View accessibilityRole="alert" style={styles.offlineOverlay}>
             <View style={styles.offlineCard}>
@@ -81,6 +96,7 @@ export default function App() {
             </View>
           </View>
         )}
+        </View>
       </View>
     </SafeAreaProvider>
   );

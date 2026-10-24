@@ -5,7 +5,14 @@ import AccountSettingsScreen from '../src/screens/AccountSettingsScreen';
 import DashboardScreen from '../src/screens/DashboardScreen';
 import { saveNotificationSettings } from '../src/services/settingsService';
 
-jest.mock('../src/services/settingsService', () => ({ saveNotificationSettings: jest.fn() }));
+jest.mock('../src/services/settingsService', () => ({
+  saveNotificationSettings: jest.fn(),
+  getSettingsPreferences: () => ({
+    notifications: { email: true, push: false, shows: true, billing: true },
+    language: 'en',
+    timeZone: 'America/Los_Angeles',
+  }),
+}));
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -38,9 +45,9 @@ test('renders the specified defaults and helper copy', async () => {
   expect(state['Show updates']).toBe(true);
   expect(state['Billing messages']).toBe(true);
   expect(text()).toContain('English');
-  expect(text()).toContain('Singapore · SGT (UTC+8)');
+  expect(text()).toContain('California · Pacific Time (PT)');
   expect(text()).toContain('Essential security alerts and contractual notices are always sent by email, regardless of these preferences.');
-  expect(text()).toContain("Event schedules always show the venue's local time.");
+  expect(text()).toContain('Used as the default for bookings. A recognized venue postal code sets the show\'s time zone automatically.');
   expect(text()).toContain('Save preferences');
   expect(text()).toContain('Cancel · Back to account');
 });
@@ -66,7 +73,7 @@ test('the language dropdown expands into a scrollable overlay and selects', asyn
   expect(tree.root.findAll((node) => node.props.testID === 'language-select-panel')).toHaveLength(0);
 });
 
-test('the time zone picker defaults to Singapore and updates', async () => {
+test('the time zone picker defaults to California and updates', async () => {
   await render(<AccountSettingsScreen navigation={{ navigate: jest.fn() }} />);
   await press('Time zone', 'button');
   await press('Tokyo · JST (UTC+9)', 'button');
@@ -82,7 +89,7 @@ test('saving pushes the payload to the settings service and shows a success toas
   expect(saveNotificationSettings).toHaveBeenCalledWith({
     notifications: { email: true, push: true, shows: true, billing: true },
     language: 'en',
-    timeZone: 'Asia/Singapore',
+    timeZone: 'America/Los_Angeles',
   });
   expect(text()).toContain('Preferences saved');
 });
