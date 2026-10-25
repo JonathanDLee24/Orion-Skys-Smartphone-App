@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
@@ -47,12 +47,17 @@ export default function App() {
     });
 
     // Browsers emit these events as soon as the device loses or regains its link.
-    if (typeof window !== 'undefined') {
+   if (
+        Platform.OS === 'web' &&
+        typeof window !== 'undefined' &&
+        typeof window.addEventListener === 'function'
+      ) 
+      {
       const handleOffline = () => setIsOffline(true);
       const handleOnline = () => setIsOffline(false);
       window.addEventListener('offline', handleOffline);
       window.addEventListener('online', handleOnline);
-      setIsOffline(!window.navigator.onLine);
+      setIsOffline(window.navigator.onLine === false);
 
       return () => {
         unsubscribe();
