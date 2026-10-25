@@ -5,8 +5,8 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import Toast from '../components/Toast';
 import ToggleSwitch from '../components/ToggleSwitch';
-import { defaultNotificationSettings, languageOptions, timeZoneOptions } from '../mockData';
-import { saveNotificationSettings } from '../services/settingsService';
+import { languageOptions, timeZoneOptions } from '../mockData';
+import { getSettingsPreferences, saveNotificationSettings } from '../services/settingsService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const NOTIFICATION_STREAMS = [
@@ -19,9 +19,9 @@ const NOTIFICATION_STREAMS = [
 export default function AccountSettingsScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
-  const [notifications, setNotifications] = useState(() => ({ ...defaultNotificationSettings.notifications }));
-  const [language, setLanguage] = useState(defaultNotificationSettings.language);
-  const [timeZone, setTimeZone] = useState(defaultNotificationSettings.timeZone);
+  const [notifications, setNotifications] = useState(() => ({ ...getSettingsPreferences().notifications }));
+  const [language, setLanguage] = useState(() => getSettingsPreferences().language);
+  const [timeZone, setTimeZone] = useState(() => getSettingsPreferences().timeZone);
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState(null);
   const [saveError, setSaveError] = useState(null);
@@ -52,6 +52,7 @@ export default function AccountSettingsScreen({ navigation }) {
     <ScreenLayout
       label="CLIENT ACCOUNT // SETTINGS"
       title="Notification Preferences"
+      onLogoPress={() => navigation.navigate('EmployeeDashboard')}
       backLabel="ACCOUNT"
       backGlyph="<"
       onBack={backToDashboard}
@@ -86,7 +87,7 @@ export default function AccountSettingsScreen({ navigation }) {
           <DropdownSelect testID="language-select" label="Language" value={language} options={languageOptions} onChange={setLanguage} />
           <Text style={styles.fieldLabel}>TIME ZONE</Text>
           <DropdownSelect testID="timezone-select" label="Time zone" value={timeZone} options={timeZoneOptions} onChange={setTimeZone} />
-          <Text style={s.body}>Event schedules always show the venue's local time.</Text>
+          <Text style={s.body}>Used as the default for bookings. A recognized venue postal code sets the show's time zone automatically.</Text>
         </View>
       </View>
     </ScreenLayout>

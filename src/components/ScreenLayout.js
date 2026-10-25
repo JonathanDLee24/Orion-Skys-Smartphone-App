@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
@@ -18,18 +19,25 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, phase, secure = false, headerBadge, headerTone, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+  const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
   const shouldShowProgress = showProgress && phase != null;
+  const logo = <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />;
   return (
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
         {!layout.wide && <WebStatusBar />}
-        {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}><Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} /><Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>CLIENT OPERATIONS / PAYMENTS</Text></View>}
+        {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Return to home" onPress={onLogoPress || (() => navigation.popToTop())}>
+            <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />
+          </Pressable>
+          <Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text>
+        </View>}
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
-            <Text style={[styles.label, layout.wide && styles.wideLabel, headerTone === 'success' && styles.successLabel, headerTone === 'danger' && styles.dangerLabel, headerTone === 'gold' && styles.goldLabel]}>// {label}</Text>
+            {label ? <Text style={[styles.label, layout.wide && styles.wideLabel, headerTone === 'success' && styles.successLabel, headerTone === 'danger' && styles.dangerLabel, headerTone === 'gold' && styles.goldLabel]}>// {label}</Text> : <View />}
             <View style={styles.headerActions}>
               {!!onAccount && (
                 <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>
@@ -48,7 +56,14 @@ export default function ScreenLayout({ label, title, phase, secure = false, head
             ))}
           </View>
         )}
-        <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { padding: layout.padding }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { padding: layout.padding }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+          keyboardDismissMode="on-drag"
+        >
           {onBack && (
             <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
               <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
@@ -56,8 +71,8 @@ export default function ScreenLayout({ label, title, phase, secure = false, head
           )}
           {children}
         </ScrollView>
-        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter]}>
-          <View style={[styles.footerInner, layout.wide && styles.wideFooterInner]}>{footer}</View>
+        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
+          <View testID="footer-actions" style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
         </View>}
       </View>
       {overlay}
@@ -97,7 +112,7 @@ const styles = StyleSheet.create({
   wideLabel: { fontSize: 12 },
   wideBackText: { fontSize: 14 },
   footerInner: { width: '100%' },
-  wideFooterInner: { maxWidth: 360, alignSelf: 'flex-end' },
+  wideFooterInner: { maxWidth: 360, alignSelf: 'center' },
   status: { height: 44, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   clock: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700' },
   statusIcons: { flexDirection: 'row', alignItems: 'center', gap: 5 },
@@ -136,4 +151,5 @@ const styles = StyleSheet.create({
   content: { padding: 18, flexGrow: 1 },
   footer: { backgroundColor: colors.card, borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingTop: 13, paddingBottom: 26 },
   flushFooter: { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
+  plainFooter: { backgroundColor: 'transparent', borderTopWidth: 0, paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 },
 });

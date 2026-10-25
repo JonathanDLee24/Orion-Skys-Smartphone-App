@@ -4,6 +4,10 @@ import { Text, TextInput } from 'react-native';
 import SerializedDroneManifestScreen from '../src/screens/SerializedDroneManifestScreen';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ popToTop: jest.fn(), navigate: jest.fn() }),
+}));
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
 

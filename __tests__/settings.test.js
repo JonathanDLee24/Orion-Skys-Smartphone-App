@@ -5,8 +5,19 @@ import AccountSettingsScreen from '../src/screens/AccountSettingsScreen';
 import DashboardScreen from '../src/screens/DashboardScreen';
 import { saveNotificationSettings } from '../src/services/settingsService';
 
-jest.mock('../src/services/settingsService', () => ({ saveNotificationSettings: jest.fn() }));
+jest.mock('../src/services/settingsService', () => ({
+  saveNotificationSettings: jest.fn(),
+  getSettingsPreferences: () => ({
+    notifications: { email: true, push: false, shows: true, billing: true },
+    language: 'en',
+    timeZone: 'America/Los_Angeles',
+  }),
+}));
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ popToTop: jest.fn(), navigate: jest.fn() }),
+}));
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
 let tree;
@@ -34,9 +45,9 @@ test('renders the specified defaults and helper copy', async () => {
   expect(state['Show updates']).toBe(true);
   expect(state['Billing messages']).toBe(true);
   expect(text()).toContain('English');
-  expect(text()).toContain('Singapore · SGT (UTC+8)');
+  expect(text()).toContain('California · Pacific Time (PT)');
   expect(text()).toContain('Essential security alerts and contractual notices are always sent by email, regardless of these preferences.');
-  expect(text()).toContain("Event schedules always show the venue's local time.");
+  expect(text()).toContain('Used as the default for bookings. A recognized venue postal code sets the show\'s time zone automatically.');
   expect(text()).toContain('Save preferences');
   expect(text()).toContain('Cancel · Back to account');
 });
@@ -62,7 +73,7 @@ test('the language dropdown expands into a scrollable overlay and selects', asyn
   expect(tree.root.findAll((node) => node.props.testID === 'language-select-panel')).toHaveLength(0);
 });
 
-test('the time zone picker defaults to Singapore and updates', async () => {
+test('the time zone picker defaults to California and updates', async () => {
   await render(<AccountSettingsScreen navigation={{ navigate: jest.fn() }} />);
   await press('Time zone', 'button');
   await press('Tokyo · JST (UTC+9)', 'button');
@@ -78,7 +89,7 @@ test('saving pushes the payload to the settings service and shows a success toas
   expect(saveNotificationSettings).toHaveBeenCalledWith({
     notifications: { email: true, push: true, shows: true, billing: true },
     language: 'en',
-    timeZone: 'Asia/Singapore',
+    timeZone: 'America/Los_Angeles',
   });
   expect(text()).toContain('Preferences saved');
 });
@@ -102,10 +113,17 @@ test('cancel and the account breadcrumb return to the dashboard without saving',
   expect(saveNotificationSettings).not.toHaveBeenCalled();
 });
 
+test('the logo from account settings returns to the employee dashboard', async () => {
+  const navigation = { navigate: jest.fn() };
+  await render(<AccountSettingsScreen navigation={navigation} />);
+  await press('Return to home', 'button');
+  expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
+});
+
 test('dashboard links route to fees and to account settings', async () => {
   const navigation = { navigate: jest.fn() };
   await render(<DashboardScreen navigation={navigation} />);
-  expect(text()).toContain('Client Dashboard');
+  expect(text()).toContain('My Account');
   await press('Review booking fees', 'button');
   await press('Account settings', 'button');
   expect(navigation.navigate).toHaveBeenNthCalledWith(1, 'FeeReview');
