@@ -46,8 +46,6 @@ export default function BookingReviewScreen({ route, navigation }) {
       title="Review your request."
       badge="● CLIENT"
       showProgress={false}
-      backLabel="Back to date & venue"
-      onBack={editDateVenue}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={
         <View style={styles.footer}>
@@ -55,7 +53,7 @@ export default function BookingReviewScreen({ route, navigation }) {
             <PrimaryButton
               testID="submit-request"
               title="Submit booking request"
-              showArrow
+              leadingIcon={<Text style={styles.sendIcon}>✈︎</Text>}
               onPress={submitRequest}
             />
           ) : null}
@@ -139,6 +137,7 @@ export default function BookingReviewScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  sendIcon: { color: colors.background, fontSize: 13, fontWeight: '700', lineHeight: 16 },
   stack: { flexDirection: 'column', gap: 0 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
   editLink: { minHeight: 44, justifyContent: 'center' },
