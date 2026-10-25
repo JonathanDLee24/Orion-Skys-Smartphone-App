@@ -1,8 +1,9 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
-import { Alert, StyleSheet, Text, TextInput } from 'react-native';
+import { StyleSheet, Text, TextInput } from 'react-native';
 import FeeReviewScreen from '../src/screens/FeeReviewScreen';
 import PaymentCheckoutScreen from '../src/screens/PaymentCheckoutScreen';
+import PaymentResultScreen from '../src/screens/PaymentResultScreen';
 import PrimaryButton from '../src/components/PrimaryButton';
 import FeeRow from '../src/components/FeeRow';
 import { getBookingFees } from '../src/services/feeService';
@@ -54,9 +55,9 @@ test('failed request shows an error and Try again refetches', async () => {
   expect(text()).toContain('$450.00');
 });
 
-test('checkout total is the sum of the fee rows and proceeds with a Sprint 2 alert', async () => {
-  const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
-  await render(<PaymentCheckoutScreen route={{ params: { booking: mockBooking } }} navigation={{ navigate: jest.fn() }} />);
+test('checkout total is the sum of the fee rows and opens the payment result', async () => {
+  const navigation = { navigate: jest.fn() };
+  await render(<PaymentCheckoutScreen route={{ params: { booking: mockBooking } }} navigation={navigation} />);
   expect(text()).toContain('Grand Total');
   expect(text()).toContain('$4,674.00');
   expect(tree.root.findAllByType(FeeRow)).toHaveLength(5);
@@ -64,7 +65,20 @@ test('checkout total is the sum of the fee rows and proceeds with a Sprint 2 ale
   const button = tree.root.findByType(PrimaryButton);
   expect(button.props.disabled).toBe(false);
   await act(async () => button.props.onPress());
-  expect(alert).toHaveBeenCalledWith('Payment screen coming in Sprint 2');
+  expect(navigation.navigate).toHaveBeenCalledWith('PaymentStatus', expect.objectContaining({ outcome: 'success', total: '$4,674.00' }));
+});
+
+test('payment results render the three Jira/Figma outcomes', async () => {
+  const navigation = { navigate: jest.fn() };
+  await render(<PaymentResultScreen route={{ params: { outcome: 'success' } }} navigation={navigation} />);
+  expect(text()).toContain('Payment Authorized');
+  expect(text()).toContain('TXN-SF-8849204');
+  await render(<PaymentResultScreen route={{ params: { outcome: 'partial' } }} navigation={navigation} />);
+  expect(text()).toContain('Partial Settlement');
+  expect(text()).toContain('$3,174.00 Remaining');
+  await render(<PaymentResultScreen route={{ params: { outcome: 'declined' } }} navigation={navigation} />);
+  expect(text()).toContain('Payment Declined');
+  expect(text()).toContain('EXPIRED_CARD_DETECTED');
 });
 
 test('coverage switch removes the liability fee from the next summary', async () => {

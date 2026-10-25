@@ -5,6 +5,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { calculateTotalCents, formatUSD } from '../utils/fees';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
+import { createPayment, submitPayment } from '../services/paymentService';
 
 export default function PaymentCheckoutScreen({ route, navigation }) {
   const layout = useResponsiveLayout();
@@ -24,11 +25,16 @@ export default function PaymentCheckoutScreen({ route, navigation }) {
     error = err.message;
   }
 
-  function proceed() {
-    const message = 'Payment screen coming in Sprint 2';
-    // React Native Alert has no web implementation; use the browser equivalent.
-    if (Platform.OS === 'web') window.alert(message);
-    else Alert.alert(message);
+  async function proceed() {
+    const previewOutcome = Platform.OS === 'web' && typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('outcome') : null;
+    const payment = createPayment({ bookingId: booking?.id || 1, amountCents: totalCents, outcome: route.params?.paymentOutcome || previewOutcome || 'success' });
+    try {
+      const result = await submitPayment(payment);
+      navigation.navigate('PaymentStatus', { outcome: result.status, payment: result, booking, total: formatUSD(totalCents) });
+    } catch (err) {
+      if (Platform.OS === 'web') window.alert(err.message);
+      else Alert.alert(err.message);
+    }
   }
 
   return (
