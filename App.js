@@ -14,6 +14,7 @@ import BookingSubmittedScreen from './src/screens/BookingSubmittedScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
+import DossierShowSelectScreen from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
@@ -92,6 +93,7 @@ export default function App() {
               <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
               <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+              <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
               <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
             </Stack.Navigator>
           </NavigationContainer>
