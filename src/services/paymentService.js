@@ -29,8 +29,9 @@ export async function submitPayment(payment) {
 }
 
 // This is the client-side contract for the backend Stripe webhook. The production
-// endpoint should call this same transition after verifying Stripe's signature.
+// endpoint must verify Stripe's signature before passing a normalized event here.
 export function handleStripeWebhook(event) {
+  if (event?.provider !== 'stripe' || event?.signatureVerified !== true) return null;
   const paymentId = event?.data?.object?.metadata?.paymentId || event?.paymentId;
   const status = event?.type === 'payment_intent.succeeded' ? 'success'
     : event?.type === 'payment_intent.partially_paid' ? 'partial'

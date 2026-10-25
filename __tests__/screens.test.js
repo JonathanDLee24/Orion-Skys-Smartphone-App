@@ -79,10 +79,19 @@ test('payment results render the three Jira/Figma outcomes', async () => {
   expect(text()).toContain('TXN-SF-8849204');
   await render(<PaymentResultScreen route={{ params: { outcome: 'partial' } }} navigation={navigation} />);
   expect(text()).toContain('Partial Settlement');
-  expect(text()).toContain('$3,174.00 Remaining');
+  expect(text()).toContain('$3,174.00');
+  expect(text()).toContain('Remaining');
   await render(<PaymentResultScreen route={{ params: { outcome: 'declined' } }} navigation={navigation} />);
   expect(text()).toContain('Payment Declined');
   expect(text()).toContain('EXPIRED_CARD_DETECTED');
+});
+
+test('declined retry returns to the card form instead of a fake success screen', async () => {
+  const navigation = { navigate: jest.fn() };
+  await render(<PaymentResultScreen route={{ params: { outcome: 'declined', booking: mockBooking } }} navigation={navigation} />);
+  const retry = tree.root.findAll((node) => node.props.accessibilityLabel === 'RETRY TRANSACTION')[0];
+  await act(async () => retry.props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('Checkout', { booking: mockBooking, retryPayment: true });
 });
 
 test('coverage switch removes the liability fee from the next summary', async () => {

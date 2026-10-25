@@ -12,6 +12,15 @@ const paymentColors = {
   red: '#FF3B30',
 };
 
+function parseUSD(value) {
+  const parsed = Number.parseFloat(String(value || '').replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0;
+}
+
+function formatUSD(cents) {
+  return `$${(Math.max(0, cents) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function ActionButton({ title, tone = 'outline', onPress }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={({ pressed }) => [styles.actionButton, tone === 'filled' && styles.filledAction, tone === 'gold' && styles.goldAction, tone === 'danger' && styles.dangerAction, pressed && styles.pressed]}>
@@ -52,14 +61,18 @@ export default function PaymentResultScreen({ route, navigation }) {
   const total = route.params?.total || '$4,674.00';
 
   if (outcome === 'partial') {
+    const totalCents = payment?.amountCents || parseUSD(total) || 467400;
+    const paidCents = Math.min(payment?.paidAmountCents || 150000, totalCents);
+    const remainingCents = totalCents - paidCents;
+    const completionPercent = totalCents ? Math.round((paidCents / totalCents) * 100) : 0;
     return (
       <ScreenLayout hideBrand showProgress={false} label="ESCROW: LEDGER_BALANCED" headerBadge="PARTIAL_OK" headerTone="gold" title="Partial Settlement" footer={<ResultFooter onHome={() => navigation.navigate('Dashboard')} actions={[{ title: 'VIEW PAYMENT SCHEDULE', onPress: () => {} }, { title: 'PAY REMAINING BALANCE', tone: 'gold', onPress: () => navigation.navigate('Checkout', { booking }) }]} />}>
         <View style={styles.resultContent}>
           <View style={[styles.progressCard, layout.wide && styles.wideCard]}>
             <Text style={styles.sectionLabel}>// PORTAL_PROGRESS</Text>
-            <View style={styles.amountLine}><Text style={styles.partialAmount}>$1,500.00</Text><Text style={styles.paidText}>{`of ${total} paid`}</Text></View>
-            <View style={styles.progressTrack}><View style={styles.partialProgress} /></View>
-            <View style={styles.progressLabels}><Text style={styles.metaLabel}>32% Completed</Text><Text style={[styles.metaLabel, styles.goldText]}>$3,174.00 Remaining</Text></View>
+            <View style={styles.amountLine}><Text style={styles.partialAmount}>{formatUSD(paidCents)}</Text><Text style={styles.paidText}>{`of ${formatUSD(totalCents)} paid`}</Text></View>
+            <View style={styles.progressTrack}><View style={[styles.partialProgress, { width: `${completionPercent}%` }]} /></View>
+            <View style={styles.progressLabels}><Text style={styles.metaLabel}>{completionPercent}% Completed</Text><Text style={[styles.metaLabel, styles.goldText]}>{formatUSD(remainingCents)} Remaining</Text></View>
           </View>
           <View style={[styles.metadataCard, layout.wide && styles.wideCard]}>
             <Text style={styles.sectionLabel}>// SCHEDULED_PAYMENT_PLAN</Text>
@@ -74,7 +87,7 @@ export default function PaymentResultScreen({ route, navigation }) {
 
   if (outcome === 'declined') {
     return (
-    <ScreenLayout hideBrand showProgress={false} label="GATEWAY: TRANSACTION_ERR" headerBadge="REJECTED" headerTone="danger" title="Payment Declined" footer={<ResultFooter onHome={() => navigation.navigate('Dashboard')} actions={[{ title: 'USE ANOTHER CARD', onPress: () => navigation.navigate('Checkout', { booking }) }, { title: 'RETRY TRANSACTION', tone: 'danger', onPress: () => navigation.navigate('PaymentStatus', { outcome: 'success', booking, payment }) }]} />}>
+    <ScreenLayout hideBrand showProgress={false} label="GATEWAY: TRANSACTION_ERR" headerBadge="REJECTED" headerTone="danger" title="Payment Declined" footer={<ResultFooter onHome={() => navigation.navigate('Dashboard')} actions={[{ title: 'USE ANOTHER CARD', onPress: () => navigation.navigate('Checkout', { booking }) }, { title: 'RETRY TRANSACTION', tone: 'danger', onPress: () => navigation.navigate('Checkout', { booking, retryPayment: true }) }]} />}>
         <View style={styles.resultContent}>
           <View style={[styles.declineCard, layout.wide && styles.wideCard]}>
             <View style={styles.warningIcon}><Text style={styles.warningIconText}>!</Text></View>
