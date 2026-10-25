@@ -14,7 +14,8 @@
       "name": "Orion Skys | Client payments"
     },
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sharing"
     ],
     "android": {
       "package": "com.anonymous.orionskys"

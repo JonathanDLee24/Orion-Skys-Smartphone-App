@@ -1,7 +1,8 @@
-import React from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { downloadDossierPdf } from '../services/dossierPdfService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 // Mock content for now; the dossier will load from the booking once the document service exists.
@@ -18,6 +19,21 @@ const DOCUMENT_GROUPS = [
 export default function DocumentDossierScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const [generating, setGenerating] = useState(false);
+
+  async function generatePdf() {
+    setGenerating(true);
+    try {
+      await downloadDossierPdf(dossier.id);
+    } catch (err) {
+      const message = err.message || 'We could not generate the PDF. Please try again.';
+      // React Native Alert has no web implementation; use the browser equivalent.
+      if (Platform.OS === 'web') window.alert(message);
+      else Alert.alert(message);
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   return (
     <ScreenLayout
@@ -28,7 +44,7 @@ export default function DocumentDossierScreen({ navigation }) {
       secure
       onBack={() => navigation.navigate('Dashboard')}
       backLabel="Back to account"
-      footer={<PrimaryButton title="Reconcile & Generate Complete PDF" onPress={() => Alert.alert('PDF generation coming soon')} />}
+      footer={<PrimaryButton title="Reconcile & Generate Complete PDF" loading={generating} onPress={generatePdf} />}
     >
       <Text style={[s.label, styles.sectionLabel]}>// COMPILED OPERATIONS PACKAGE</Text>
       <View testID="document-groups" style={[styles.groups, layout.wide && styles.wideGroups]}>
