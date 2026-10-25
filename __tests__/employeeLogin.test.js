@@ -47,7 +47,7 @@ test('invalid employee credentials show an error without navigating', async () =
   );
   await act(async () => submit.props.onPress());
   expect(tree.root.findAllByType(Text).some(
-    (node) => node.props.children === 'Username or password is incorrect.',
+    (node) => node.props.children === 'Username not found.',
   )).toBe(true);
   expect(navigation.navigate).not.toHaveBeenCalled();
   await act(async () => tree.unmount());

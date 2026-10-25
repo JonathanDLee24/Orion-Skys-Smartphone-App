@@ -56,7 +56,14 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
             ))}
           </View>
         )}
-        <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { padding: layout.padding }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { padding: layout.padding }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+          keyboardDismissMode="on-drag"
+        >
           {onBack && (
             <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
               <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
@@ -65,7 +72,7 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
           {children}
         </ScrollView>
         {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
-          <View style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
+          <View testID="footer-actions" style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
         </View>}
       </View>
       {overlay}
@@ -105,7 +112,7 @@ const styles = StyleSheet.create({
   wideLabel: { fontSize: 12 },
   wideBackText: { fontSize: 14 },
   footerInner: { width: '100%' },
-  wideFooterInner: { maxWidth: 360, alignSelf: 'flex-end' },
+  wideFooterInner: { maxWidth: 360, alignSelf: 'center' },
   status: { height: 44, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   clock: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700' },
   statusIcons: { flexDirection: 'row', alignItems: 'center', gap: 5 },

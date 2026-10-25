@@ -6,7 +6,7 @@ export const defaultNotificationSettings = {
     billing: true,
   },
   language: 'en',
-  timeZone: 'Asia/Singapore',
+  timeZone: 'America/Los_Angeles',
 };
 
 export const languageOptions = [
@@ -26,8 +26,17 @@ export const timeZoneOptions = [
   { value: 'Asia/Dubai', label: 'Dubai · GST (UTC+4)' },
   { value: 'Europe/London', label: 'London · GMT (UTC+0)' },
   { value: 'America/New_York', label: 'New York · EDT (UTC-4)' },
-  { value: 'America/Los_Angeles', label: 'Los Angeles · PDT (UTC-7)' },
+  { value: 'America/Chicago', label: 'Chicago · Central Time (CT)' },
+  { value: 'America/Denver', label: 'Denver · Mountain Time (MT)' },
+  { value: 'America/Los_Angeles', label: 'California · Pacific Time (PT)' },
 ];
+
+// Stand-in for GET /api/account until profile data comes from the backend.
+export const mockRequestContact = {
+  name: 'Kenneth Elliott',
+  organization: 'Apex Global Corp',
+  email: 'kenneth.elliott@csus.edu',
+};
 
 export const mockBooking = {
   id: 1,

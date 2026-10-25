@@ -4,6 +4,7 @@ import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, useResponsiveLayout } from '../theme';
 
 const QUICK_LINKS = [
+  { key: 'booking', label: 'Schedule a drone show', description: 'Pick a date, time and venue', route: 'BookingDateVenue' },
   { key: 'fees', label: 'Review booking fees', description: 'Coverage, policy and checkout', route: 'FeeReview' },
   { key: 'settings', label: 'Account settings', description: 'Notifications, language and time zone', route: 'AccountSettings' },
   { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DocumentDossier' },
