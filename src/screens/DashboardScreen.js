@@ -6,6 +6,7 @@ import { colors, useResponsiveLayout } from '../theme';
 const QUICK_LINKS = [
   { key: 'fees', label: 'Review booking fees', description: 'Coverage, policy and checkout', route: 'FeeReview' },
   { key: 'settings', label: 'Account settings', description: 'Notifications, language and time zone', route: 'AccountSettings' },
+  { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DocumentDossier' },
 ];
 
 export default function DashboardScreen({ navigation }) {

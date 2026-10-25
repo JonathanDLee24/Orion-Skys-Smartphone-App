@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
@@ -71,6 +72,7 @@ export default function App() {
             <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
             <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
           </Stack.Navigator>
         </NavigationContainer>
         {isOffline && (
