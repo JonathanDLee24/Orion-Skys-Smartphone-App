@@ -1,18 +1,33 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { getLatestBookingDraft, markBookingSubmitted } from '../services/bookingDraftService';
-import { requestBookingSlot } from '../services/bookingConflictService';
+import { DEFAULT_BOOKING_DRAFT, getLatestBookingDraft, markBookingSubmitted } from '../services/bookingDraftService';
+import { formatUnavailableSlot, requestBookingSlot } from '../services/bookingConflictService';
+import { mockRequestContact } from '../mockData';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
+
+function shortZoneLabel(booking) {
+  const label = booking?.timeZoneLabel || '';
+  return label.split(' · ').pop() || booking?.timeZone || '';
+}
 
 export default function BookingReviewScreen({ route, navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const booking = route?.params?.booking || getLatestBookingDraft();
-  // The date row stays a single line; the zone is already shown on its own row.
-  const dateOnly = booking?.dateLabel ? String(booking.dateLabel).split(' // ')[0] : booking?.date;
+  const schedule = booking ? formatUnavailableSlot({ date: booking.date, timeSlot: booking.timeSlot }) : '';
+  const zoneHelper = booking ? `${shortZoneLabel(booking)} · requested start time` : '';
+  const address = booking
+    ? [booking.streetAddress, `${booking.city || ''} ${booking.postalCode || ''}`.trim()].filter(Boolean).join(', ')
+    : '';
+  const droneCount = booking?.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount;
+  const durationMinutes = booking?.durationMinutes ?? DEFAULT_BOOKING_DRAFT.durationMinutes;
+
+  function editDateVenue() {
+    navigation.navigate('BookingDateVenue', { booking });
+  }
 
   function submitRequest() {
     const result = requestBookingSlot(booking);
@@ -28,58 +43,87 @@ export default function BookingReviewScreen({ route, navigation }) {
     <ScreenLayout
       caption="CLIENT OPERATIONS / BOOKING"
       label="NEW BOOKING // REVIEW"
-      title="Booking review."
+      title="Review your request."
       badge="● CLIENT"
       showProgress={false}
       backLabel="Back to date & venue"
-      onBack={() => navigation.navigate('BookingDateVenue', { booking })}
+      onBack={editDateVenue}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={
-        <View style={styles.footerActions}>
-          <PrimaryButton title="Edit date & venue" onPress={() => navigation.navigate('BookingDateVenue', { booking })} />
+        <View style={styles.footer}>
           {booking ? (
             <PrimaryButton
               testID="submit-request"
-              title="Submit request"
+              title="Submit booking request"
               showArrow
               onPress={submitRequest}
             />
           ) : null}
+          <Text style={[s.body, styles.microCopy]}>No payment is due when submitting this request.</Text>
         </View>
       }
     >
       <BookingWizardProgress currentStep={2} />
 
       {booking ? (
-        <View style={[styles.columns, layout.wide && styles.wideColumns]}>
-          <View style={[s.card, layout.wide && styles.column]}>
-            <Text style={[s.label, styles.groupLabel]}>// REQUEST PARAMETERS</Text>
-            <View style={styles.parameter}>
-              <Text style={s.body}>Event</Text>
-              <Text style={styles.value}>{booking.eventName}</Text>
+        <View style={styles.stack}>
+          <View style={s.card}>
+            <View style={styles.cardHeader}>
+              <Text style={s.label}>// DATE &amp; VENUE</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit date & venue"
+                onPress={editDateVenue}
+                style={({ pressed }) => [styles.editLink, pressed && styles.pressed]}
+              >
+                <Text style={styles.editText}>Edit</Text>
+              </Pressable>
             </View>
-            <View style={styles.parameter}>
-              <Text style={s.body}>Date</Text>
-              <Text style={styles.value}>{dateOnly}</Text>
+
+            <Text style={[s.label, styles.subLabel]}>DATE</Text>
+            <Text style={styles.fieldValue}>{schedule}</Text>
+            <Text style={[s.body, styles.helper]}>{zoneHelper}</Text>
+
+            <View style={[s.divider, styles.divider]} />
+
+            <Text style={[s.label, styles.subLabel]}>VENUE</Text>
+            <Text style={styles.venueName}>{booking.venueName}</Text>
+            <Text style={styles.address}>{address}</Text>
+          </View>
+
+          <View style={s.card}>
+            <Text style={[s.label, styles.groupLabel]}>// EVENT SPECIFICATIONS</Text>
+            <View style={styles.fieldBox}>
+              <Text style={[s.label, styles.subLabel]}>EVENT NAME</Text>
+              <Text style={styles.fieldValue}>{booking.eventName}</Text>
             </View>
-            <View style={styles.parameter}>
-              <Text style={s.body}>Time block</Text>
-              <Text style={styles.value}>{booking.timeSlot}</Text>
-            </View>
-            <View style={styles.parameter}>
-              <Text style={s.body}>Time zone</Text>
-              <Text style={styles.value}>{booking.timeZoneLabel || booking.timeZone}</Text>
+            <View style={styles.specRow}>
+              <View style={[styles.fieldBox, styles.specCell]}>
+                <Text style={[s.label, styles.subLabel]}>DRONE COUNT</Text>
+                <Text style={styles.fieldValue}>{`${droneCount} drones`}</Text>
+              </View>
+              <View style={[styles.fieldBox, styles.specCell]}>
+                <Text style={[s.label, styles.subLabel]}>SHOW DURATION</Text>
+                <Text style={styles.fieldValue}>{`${durationMinutes} minutes`}</Text>
+              </View>
             </View>
           </View>
 
-          <View style={[s.card, layout.wide && styles.column]}>
-            <Text style={[s.label, styles.groupLabel]}>// VENUE</Text>
-            <Text style={[styles.venueName, layout.wide && styles.wideVenueName]}>{booking.venueName}</Text>
-            <Text style={styles.address}>{booking.streetAddress}</Text>
-            <Text style={styles.address}>{booking.city} {booking.postalCode}</Text>
-            <View style={[s.divider, styles.divider]} />
-            <Text style={s.body}>
-              Operations will review venue suitability and airspace before confirming this request.
+          <View style={s.card}>
+            <Text style={[s.label, styles.groupLabel]}>// REQUEST CONTACT</Text>
+            <Text style={styles.contactName}>
+              {`${mockRequestContact.name} · ${mockRequestContact.organization}`}
+            </Text>
+            <Text style={styles.address}>{mockRequestContact.email}</Text>
+          </View>
+
+          <View style={[s.card, styles.disclaimerCard]}>
+            <View style={styles.infoIcon}>
+              <Text style={styles.infoGlyph}>i</Text>
+            </View>
+            <Text style={[s.body, styles.disclaimerText]}>
+              Submitting sends a request — your show is pending venue and airspace review approval before operations
+              confirms the date.
             </Text>
           </View>
         </View>
@@ -95,16 +139,34 @@ export default function BookingReviewScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  columns: { alignItems: 'stretch' },
-  wideColumns: { flexDirection: 'row', gap: 24 },
-  column: { flex: 1, minWidth: 0 },
-  groupLabel: { marginBottom: 10 },
-  parameter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, marginBottom: 10 },
-  value: { color: colors.text, fontFamily: monoFont, fontSize: 12, lineHeight: 18, flexShrink: 1, textAlign: 'right' },
-  venueName: { color: colors.accent, fontSize: 16, fontWeight: '700', marginBottom: 5 },
-  wideVenueName: { fontSize: 20 },
-  address: { color: colors.text, fontSize: 12, lineHeight: 19 },
+  stack: { flexDirection: 'column', gap: 0 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
+  editLink: { minHeight: 44, justifyContent: 'center' },
+  editText: { color: colors.accent, fontSize: 12, fontWeight: '600' },
+  pressed: { opacity: 0.7 },
+  subLabel: { marginBottom: 4 },
+  fieldValue: { color: colors.text, fontFamily: monoFont, fontSize: 12, lineHeight: 18 },
+  helper: { marginTop: 4 },
   divider: { marginVertical: 12 },
+  venueName: { color: colors.text, fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  address: { color: colors.muted, fontSize: 12, lineHeight: 18 },
+  groupLabel: { marginBottom: 10 },
+  fieldBox: {
+    backgroundColor: colors.field,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 10,
+  },
+  specRow: { flexDirection: 'row', gap: 10 },
+  specCell: { flex: 1, minWidth: 0, marginBottom: 0 },
+  contactName: { color: colors.text, fontSize: 13, fontWeight: '600', marginBottom: 4 },
+  disclaimerCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: colors.field },
+  infoIcon: { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  infoGlyph: { color: colors.accent, fontFamily: monoFont, fontSize: 11, fontWeight: '700', lineHeight: 15 },
+  disclaimerText: { flex: 1, lineHeight: 18 },
   emptyMessage: { marginBottom: 20 },
-  footerActions: { width: '100%', gap: 10 },
+  footer: { width: '100%', gap: 10 },
+  microCopy: { textAlign: 'center' },
 });
