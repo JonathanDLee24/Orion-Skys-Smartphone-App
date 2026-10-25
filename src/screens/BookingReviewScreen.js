@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import SendPlaneIcon from '../components/SendPlaneIcon';
 import { DEFAULT_BOOKING_DRAFT, getLatestBookingDraft, markBookingSubmitted } from '../services/bookingDraftService';
 import { formatUnavailableSlot, requestBookingSlot } from '../services/bookingConflictService';
 import { mockRequestContact } from '../mockData';
@@ -53,7 +54,7 @@ export default function BookingReviewScreen({ route, navigation }) {
             <PrimaryButton
               testID="submit-request"
               title="Submit booking request"
-              leadingIcon={<Text style={styles.sendIcon}>✈︎</Text>}
+              leadingIcon={<SendPlaneIcon size={18} color={colors.background} />}
               onPress={submitRequest}
             />
           ) : null}
@@ -137,7 +138,6 @@ export default function BookingReviewScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  sendIcon: { color: colors.background, fontSize: 13, fontWeight: '700', lineHeight: 16 },
   stack: { flexDirection: 'column', gap: 0 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
   editLink: { minHeight: 44, justifyContent: 'center' },
