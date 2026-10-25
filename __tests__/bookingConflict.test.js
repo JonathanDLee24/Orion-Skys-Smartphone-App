@@ -99,21 +99,28 @@ test('the confirmation screen shows the saved request and its next actions', asy
 
   const text = textOf(tree);
   expect(text).toContain('NEW BOOKING // REQUEST SUBMITTED');
-  expect(text).toContain('Your show is in the queue.');
-  expect(text).toContain('REQUEST RECEIVED');
-  expect(text).toContain('● IN REVIEW');
+  expect(text).toContain("You're in the review queue.");
+  expect(text).toContain('BOOKING REQUEST RECEIVED');
+  expect(text).toContain('Your request has been sent to operations. Your show is not confirmed yet.');
+  expect(text).toContain('PENDING REVIEW');
   expect(text).toContain('REQ-20261121-2000');
-  expect(text).toContain('SAT, 21 NOV');
-  expect(text).toContain('8:00 PM');
+  expect(text).toContain('Sat, 21 Nov 2026 · 8:00 PM');
   expect(text).toContain('California · Pacific Time (PT)');
-  expect(text).toContain('Marina Bay Event Deck');
-  expect(text).toContain('10 Bayfront Avenue, Singapore 018956');
+  expect(text).toContain('Marina Bay Event Deck · Singapore');
+  expect(text).toContain('200 drones');
+  expect(text).toContain('10 minutes');
+  expect(text).toContain('WHAT HAPPENS NEXT');
+  expect(text).toContain('Venue & airspace review');
+  expect(text).toContain('Quote & show agreement');
+  expect(text).toContain('Show confirmation');
+  expect(text).toContain('A request receipt will be sent to');
+  expect(text).toContain('kenneth.elliott@csus.edu');
   expect(text).toContain('temporarily saved on this device');
 
   const progress = tree.root.findAll((node) => node.props.accessibilityRole === 'progressbar')[0];
   expect(progress.props.accessibilityValue.now).toBe(3);
 
-  await act(async () => findButton(tree, 'Back to dashboard').props.onPress());
+  await act(async () => findButton(tree, 'View my requests').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
 
   await act(async () => findButton(tree, 'Schedule another show').props.onPress());

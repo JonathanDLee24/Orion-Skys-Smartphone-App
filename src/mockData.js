@@ -31,6 +31,13 @@ export const timeZoneOptions = [
   { value: 'America/Los_Angeles', label: 'California · Pacific Time (PT)' },
 ];
 
+// Stand-in for GET /api/account until profile data comes from the backend.
+export const mockRequestContact = {
+  name: 'Kenneth Elliott',
+  organization: 'Apex Global Corp',
+  email: 'kenneth.elliott@csus.edu',
+};
+
 export const mockBooking = {
   id: 1,
   name: 'Neon Lights Festival',
