@@ -6,7 +6,6 @@ import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const paymentColors = {
   panel: '#111622',
-  cyan: '#00F0FF',
   green: '#10B981',
   gold: '#FFB800',
   red: '#FF3B30',
@@ -154,12 +153,14 @@ const styles = StyleSheet.create({
   stepText: { color: colors.text, fontFamily: monoFont, fontSize: 9, flex: 1 },
   footer: { backgroundColor: paymentColors.panel, borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 10 },
   footerActions: { flexDirection: 'row', gap: 8 },
-  actionButton: { flex: 1, minHeight: 38, borderWidth: 1, borderColor: colors.muted, borderRadius: 4, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
-  actionText: { color: colors.text, fontFamily: monoFont, fontSize: 8, fontWeight: '700', textAlign: 'center' },
-  filledAction: { backgroundColor: paymentColors.cyan, borderColor: paymentColors.cyan },
-  goldAction: { backgroundColor: paymentColors.gold, borderColor: paymentColors.gold },
-  dangerAction: { backgroundColor: paymentColors.red, borderColor: paymentColors.red },
-  dangerActionText: { color: '#FFFFFF' },
+  // The client-facing CTA system uses the shared lime accent on every payment outcome.
+  // Status colors remain reserved for status badges, progress, and error messaging.
+  actionButton: { flex: 1, minHeight: 38, borderWidth: 1, borderColor: colors.accent, borderRadius: 4, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  actionText: { color: colors.accent, fontFamily: monoFont, fontSize: 8, fontWeight: '700', textAlign: 'center' },
+  filledAction: { backgroundColor: colors.accent, borderColor: colors.accent },
+  goldAction: { backgroundColor: colors.accent, borderColor: colors.accent },
+  dangerAction: { backgroundColor: colors.accent, borderColor: colors.accent },
+  dangerActionText: { color: colors.background },
   filledActionText: { color: colors.background },
   pressed: { opacity: 0.72 },
   homeIndicator: { alignSelf: 'center', width: 150, height: 5, borderRadius: 4, backgroundColor: colors.muted, marginTop: 14, opacity: 0.9 },
