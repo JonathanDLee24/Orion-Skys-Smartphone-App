@@ -20,6 +20,7 @@ import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -90,6 +91,7 @@ export default function App() {
               <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
               <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
               <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+              <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
             </Stack.Navigator>
           </NavigationContainer>
