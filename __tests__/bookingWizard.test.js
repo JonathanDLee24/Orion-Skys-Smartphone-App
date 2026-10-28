@@ -278,18 +278,29 @@ test('review step renders the saved session draft and lights stage two', async (
     postalCode: '018956',
   });
 
+  const navigation = { navigate: jest.fn() };
   let tree;
   await act(async () => {
-    tree = create(<BookingReviewScreen navigation={{ navigate: jest.fn() }} />);
+    tree = create(<BookingReviewScreen navigation={navigation} />);
   });
 
   const text = textOf(tree);
-  expect(text).toContain('Booking review.');
-  expect(text).toContain('SAT, 21 NOV');
+  expect(text).toContain('Review your request.');
+  expect(text).toContain('Sat, 21 Nov 2026 · 8:00 PM');
   expect(text).not.toContain('// PST');
   expect(text).toContain('Marina Bay Event Deck');
   expect(text).toContain('10 Bayfront Avenue');
   expect(text).toContain(saved.postalCode);
+  expect(text).toContain('200 drones');
+  expect(text).toContain('10 minutes');
+  expect(text).toContain('REQUEST CONTACT');
+  expect(text).toContain('Kenneth Elliott · Apex Global Corp');
+  expect(text).toContain('kenneth.elliott@csus.edu');
+  expect(text).toContain('No payment is due when submitting this request.');
+
+  const editLink = findButton(tree, 'Edit date & venue');
+  await act(async () => editLink.props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingDateVenue', { booking: expect.objectContaining({ id: saved.id }) });
 
   await act(async () => tree.unmount());
 });
@@ -313,7 +324,7 @@ test('submitting the review claims the slot and routes to the confirmation scree
     tree = create(<BookingReviewScreen navigation={navigation} />);
   });
 
-  await act(async () => findButton(tree, 'Submit request').props.onPress());
+  await act(async () => findButton(tree, 'Submit booking request').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingSubmitted', {
     booking: expect.objectContaining({ id: saved.id, eventName: 'Apex Year-end Celebration', status: 'submitted' }),
     submission: expect.objectContaining({
@@ -353,7 +364,7 @@ test('another booking on the same date is routed to the conflict screen', async 
   await act(async () => {
     firstTree = create(<BookingReviewScreen route={{ params: { booking: first } }} navigation={navigation} />);
   });
-  await act(async () => findButton(firstTree, 'Submit request').props.onPress());
+  await act(async () => findButton(firstTree, 'Submit booking request').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingSubmitted', expect.anything());
   await act(async () => firstTree.unmount());
 
@@ -361,7 +372,7 @@ test('another booking on the same date is routed to the conflict screen', async 
   await act(async () => {
     secondTree = create(<BookingReviewScreen route={{ params: { booking: second } }} navigation={navigation} />);
   });
-  await act(async () => findButton(secondTree, 'Submit request').props.onPress());
+  await act(async () => findButton(secondTree, 'Submit booking request').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingConflict', {
     booking: expect.objectContaining({ id: second.id, eventName: 'Harbour Night Market' }),
     conflict: expect.objectContaining({

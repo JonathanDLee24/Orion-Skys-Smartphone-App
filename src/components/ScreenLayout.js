@@ -19,7 +19,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, showProgress = true, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
@@ -29,22 +29,22 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
     <SafeAreaView style={styles.safe}>
       <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }]}>
         {!layout.wide && <WebStatusBar />}
-        <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>
+        {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Return to home" onPress={onLogoPress || (() => navigation.popToTop())}>
             <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />
           </Pressable>
           <Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text>
-        </View>
+        </View>}
         <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
           <View style={styles.labelRow}>
-            {label ? <Text style={[styles.label, layout.wide && styles.wideLabel]}>// {label}</Text> : <View />}
+            {label ? <Text style={[styles.label, layout.wide && styles.wideLabel, headerTone === 'success' && styles.successLabel, headerTone === 'danger' && styles.dangerLabel, headerTone === 'gold' && styles.goldLabel]}>// {label}</Text> : <View />}
             <View style={styles.headerActions}>
               {!!onAccount && (
                 <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>
                   <Text style={styles.accountText}>◈ ACCOUNT</Text>
                 </Pressable>
               )}
-              {!!badgeText && <Text style={[styles.badge, layout.wide && styles.wideLabel, secure && styles.secure]}>{badgeText}</Text>}
+              {!!badgeText && <Text style={[styles.badge, layout.wide && styles.wideLabel, secure && styles.secure, headerTone === 'success' && styles.successBadge, headerTone === 'danger' && styles.dangerBadge, headerTone === 'gold' && styles.goldBadge]}>{badgeText}</Text>}
             </View>
           </View>
           <Text accessibilityRole="header" style={[styles.title, layout.wide && styles.wideTitle]}>{title}</Text>
@@ -56,7 +56,14 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
             ))}
           </View>
         )}
-        <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { padding: layout.padding }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { padding: layout.padding }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+          keyboardDismissMode="on-drag"
+        >
           {onBack && (
             <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
               <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
@@ -121,10 +128,16 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 7 },
   label: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  successLabel: { color: '#10B981' },
+  dangerLabel: { color: '#FF3B30' },
+  goldLabel: { color: '#FFB800' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   account: { minHeight: 44, justifyContent: 'center' },
   accountText: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
   badge: { color: colors.accent, borderColor: colors.accent, borderWidth: 1, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1, fontFamily: monoFont, fontSize: 8 },
+  successBadge: { color: '#10B981', borderColor: '#10B981' },
+  dangerBadge: { color: '#FF3B30', borderColor: '#FF3B30' },
+  goldBadge: { color: '#FFB800', borderColor: '#FFB800' },
   secure: { borderWidth: 0, paddingHorizontal: 0 },
   onlineBadge: { color: colors.cyan, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0 },
   title: { color: colors.text, fontFamily: monoFont, fontSize: 17, fontWeight: '700', letterSpacing: 0.2, lineHeight: 24 },
