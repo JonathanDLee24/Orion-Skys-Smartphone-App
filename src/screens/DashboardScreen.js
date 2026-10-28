@@ -8,6 +8,7 @@ const QUICK_LINKS = [
   { key: 'fees', label: 'Review booking fees', description: 'Coverage, policy and checkout', route: 'FeeReview' },
   { key: 'settings', label: 'Account settings', description: 'Notifications, language and time zone', route: 'AccountSettings' },
   { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DossierShowSelect' },
+  { key: 'qrScanner', label: 'Scan QR codes', description: 'Check-in staff and guests', route: 'QRCodeScanner' },
 ];
 
 export default function DashboardScreen({ navigation }) {
