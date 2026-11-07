@@ -25,6 +25,7 @@ import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifest
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
+import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import { colors } from './src/theme';
 
@@ -87,6 +88,7 @@ export default function App() {
               <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
               <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
+              <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />

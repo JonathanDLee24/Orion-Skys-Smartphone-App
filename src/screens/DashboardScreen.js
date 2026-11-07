@@ -9,6 +9,7 @@ const QUICK_LINKS = [
   { key: 'settings', label: 'Account settings', description: 'Notifications, language and time zone', route: 'AccountSettings' },
   { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DossierShowSelect' },
   { key: 'qrScanner', label: 'Scan QR codes', description: 'Check-in staff and guests', route: 'QRCodeScanner' },
+  { key: 'employeeQRCode', label: 'Employee QR Code', description: 'View your personal QR code', route: 'EmployeeQRCode' },
 ];
 
 export default function DashboardScreen({ navigation }) {
