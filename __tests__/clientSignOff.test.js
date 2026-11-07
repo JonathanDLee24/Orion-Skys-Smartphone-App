@@ -137,14 +137,42 @@ describe('ClientSignOffScreen', () => {
     expect(byTestID('credential-title')[0].props.children).toBe(profile.title);
     expect(byTestID('credential-company')[0].props.children).toBe(profile.company);
     expect(byTestID('credential-verification-date')[0].props.children).toBe(formatVerificationDate(profile.verifiedAt));
-    expect(tree.root.findAllByType(TextInput)).toHaveLength(0);
+    const inputs = tree.root.findAllByType(TextInput);
+    expect(inputs).toHaveLength(1);
+    expect(inputs[0].props.testID).toBe('typed-signature');
+    expect(inputs[0].props.value).toBe('');
     expect(text()).toContain('cannot be edited here');
+  });
+
+  test('pulls the default verified client when routed without a profile', async () => {
+    await act(async () => {
+      tree = create(<ClientSignOffScreen route={{ params: {} }} navigation={{ navigate: jest.fn() }} />);
+    });
+    expect(byTestID('credential-signer-name')[0].props.children).toBe(DEFAULT_CREDENTIAL_PROFILE.signerName);
+    expect(byTestID('credential-title')[0].props.children).toBe(DEFAULT_CREDENTIAL_PROFILE.title);
+    expect(byTestID('credential-company')[0].props.children).toBe(DEFAULT_CREDENTIAL_PROFILE.company);
+  });
+
+  test('Submit stays disabled until a signature is drawn or typed', async () => {
+    await render();
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
+    expect(text()).toContain('AWAITING SIGNATURE');
+
+    await act(async () => tree.root.findByType(TextInput).props.onChangeText('Jordan Matthews'));
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(false);
+    expect(text()).toContain('SIGNATURE CAPTURED');
+
+    await act(async () => tree.root.findByType(TextInput).props.onChangeText('   '));
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
+
+    await act(async () => pad().props.onResponderGrant(gestureEvent(14, 22)));
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(false);
   });
 
   test('submit without a signature shows an error and saves nothing', async () => {
     await render();
     await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
-    expect(text()).toContain('Please draw your signature before submitting.');
+    expect(text()).toContain('Please draw or type your signature before submitting.');
     expect(getLatestSignature()).toBeNull();
   });
 
@@ -156,6 +184,7 @@ describe('ClientSignOffScreen', () => {
     await act(async () => pad().props.onResponderMove(gestureEvent(48, 60, { x: 14, y: 22 })));
 
     expect(text()).not.toContain('Draw your signature here');
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(false);
 
     await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
 
@@ -173,45 +202,38 @@ describe('ClientSignOffScreen', () => {
     expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
   });
 
-  test('Clear Pad erases the current signature so it can be redrawn', async () => {
+  test('Clear Signature erases both inputs and disables Submit again', async () => {
     await render();
     await act(async () => pad().props.onResponderGrant(gestureEvent(20, 20)));
-    expect(text()).not.toContain('Draw your signature here');
+    await act(async () => tree.root.findByType(TextInput).props.onChangeText('Jordan Matthews'));
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(false);
 
-    await press('Clear Pad');
+    await press('Clear Signature');
     expect(text()).toContain('Draw your signature here');
-
-    await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
-    expect(text()).toContain('Please draw your signature before submitting.');
+    expect(tree.root.findByType(TextInput).props.value).toBe('');
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
     expect(getLatestSignature()).toBeNull();
   });
 
-  test('Keypad Input accepts a typed name as the signature', async () => {
+  test('typing a name below the pad signs and submits without drawing', async () => {
     await render();
-    await press('Keypad Input');
-
-    await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
-    expect(text()).toContain('Enter your full legal name before submitting.');
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(true);
 
     await act(async () => tree.root.findByType(TextInput).props.onChangeText('Jordan Matthews'));
+    expect(tree.root.findByType(PrimaryButton).props.disabled).toBe(false);
+
     await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
 
     expect(getLatestSignature()).toMatchObject({ signatureType: 'keypad', signatureText: 'Jordan Matthews' });
     expect(text()).toContain('Keypad input');
   });
 
-  test('switching methods clears the previous entry', async () => {
+  test('a drawn signature takes precedence when a name is also typed', async () => {
     await render();
     await act(async () => pad().props.onResponderGrant(gestureEvent(20, 20)));
-    await press('Keypad Input');
-    expect(tree.root.findAll((node) => node.props.testID === 'signature-pad')).toHaveLength(0);
+    await act(async () => tree.root.findByType(TextInput).props.onChangeText('Jordan Matthews'));
     await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
-    expect(text()).toContain('Enter your full legal name before submitting.');
 
-    await act(async () => tree.root.findByType(TextInput).props.onChangeText('Jo'));
-    await press('Use Drawing Pad');
-    await act(async () => tree.root.findByType(PrimaryButton).props.onPress());
-    expect(text()).toContain('Please draw your signature before submitting.');
-    expect(getLatestSignature()).toBeNull();
+    expect(getLatestSignature()).toMatchObject({ signatureType: 'draw', pointCount: 1, signatureText: '' });
   });
 });

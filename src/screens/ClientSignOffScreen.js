@@ -5,9 +5,11 @@ import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import SignaturePad from '../components/SignaturePad';
 import Toast from '../components/Toast';
 import {
+  countPoints,
   formatSignatureTimestamp,
   formatVerificationDate,
   getCredentialProfile,
+  hasSignature,
   signatureErrorMessage,
   submitSignature,
 } from '../services/signOffService';
@@ -27,7 +29,6 @@ export default function ClientSignOffScreen({ route, navigation }) {
   const s = useScreenStyles();
   const layout = useResponsiveLayout();
   const profile = useMemo(() => getCredentialProfile(route?.params?.profile), [route?.params?.profile]);
-  const [mode, setMode] = useState('draw');
   const [strokes, setStrokes] = useState([]);
   const [typedName, setTypedName] = useState('');
   const [error, setError] = useState('');
@@ -37,18 +38,15 @@ export default function ClientSignOffScreen({ route, navigation }) {
 
   const signed = Boolean(record);
   const verificationDate = formatVerificationDate(profile.verifiedAt);
+  // A drawn signature wins when both inputs contain something, so the saved
+  // method always matches what the signer actually drew.
+  const signatureMode = countPoints(strokes) > 0 ? 'draw' : 'keypad';
+  const signatureReady = hasSignature({ mode: signatureMode, strokes, typedName });
 
   function clearSignature() {
     setStrokes([]);
     setTypedName('');
     setError('');
-  }
-
-  function toggleMode() {
-    // Switching method intentionally discards whatever was entered, so the saved
-    // signature always matches the method shown on screen.
-    clearSignature();
-    setMode((current) => (current === 'draw' ? 'keypad' : 'draw'));
   }
 
   function updateStrokes(next) {
@@ -63,14 +61,18 @@ export default function ClientSignOffScreen({ route, navigation }) {
 
   async function sign() {
     if (signed || saving) return;
+    if (!signatureReady) {
+      setError('Please draw or type your signature before submitting.');
+      return;
+    }
     setSaving(true);
     try {
-      const saved = await submitSignature({ profile, mode, strokes, typedName });
+      const saved = await submitSignature({ profile, mode: signatureMode, strokes, typedName });
       setRecord(saved);
       setError('');
       setToast(`Signature saved · ${formatSignatureTimestamp(saved.timestamp)}`);
     } catch (err) {
-      setError(err.message || signatureErrorMessage(mode));
+      setError(err.message || signatureErrorMessage(signatureMode));
     } finally {
       setSaving(false);
     }
@@ -89,7 +91,7 @@ export default function ClientSignOffScreen({ route, navigation }) {
         <PrimaryButton
           testID="submit-sign"
           title="Submit & Sign"
-          disabled={signed}
+          disabled={signed || !signatureReady}
           loading={saving}
           onPress={sign}
         />
@@ -131,27 +133,29 @@ export default function ClientSignOffScreen({ route, navigation }) {
         <View style={styles.cardHeader}>
           <Text style={s.label}>// AUTHORIZED SIGNATURE</Text>
           <Text accessibilityLiveRegion="polite" style={styles.modeStatus}>
-            {mode === 'draw' ? 'DRAWING PAD' : 'KEYPAD INPUT'}
+            {signatureReady ? 'SIGNATURE CAPTURED' : 'AWAITING SIGNATURE'}
           </Text>
         </View>
         <Text style={[s.body, styles.helpText]}>
-          Draw your signature by touch, or switch to keypad input to type your full legal name.
+          Draw your signature by touch, or type your full legal name below. Either method can be submitted.
         </Text>
 
-        {mode === 'draw' ? (
-          <SignaturePad
-            testID="signature-pad"
-            strokes={strokes}
-            onChange={updateStrokes}
-            disabled={signed}
-            placeholder="Draw your signature here"
-          />
-        ) : (
+        <Text style={styles.fieldLabel}>SIGNATURE PAD</Text>
+        <SignaturePad
+          testID="signature-pad"
+          strokes={strokes}
+          onChange={updateStrokes}
+          disabled={signed}
+          placeholder="Draw your signature here"
+        />
+
+        <View style={styles.nameField}>
+          <Text style={styles.fieldLabel}>TYPE FULL NAME</Text>
           <TextInput
             testID="typed-signature"
             accessibilityLabel="Typed signature"
-            accessibilityHint="Type your full legal name"
-            placeholder="Type your full legal signature"
+            accessibilityHint="Type your full legal name to sign, or draw above"
+            placeholder="Type your full legal name"
             placeholderTextColor={colors.muted}
             value={typedName}
             editable={!signed}
@@ -160,7 +164,7 @@ export default function ClientSignOffScreen({ route, navigation }) {
             autoCorrect={false}
             style={[styles.typedInput, layout.wide && styles.wideTypedInput]}
           />
-        )}
+        </View>
 
         {error ? <Text accessibilityRole="alert" style={styles.errorText}>{error}</Text> : null}
 
@@ -171,23 +175,11 @@ export default function ClientSignOffScreen({ route, navigation }) {
             <Pressable
               testID="clear-pad"
               accessibilityRole="button"
-              accessibilityLabel="Clear Pad"
+              accessibilityLabel="Clear Signature"
               onPress={clearSignature}
               style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
             >
-              <Text style={styles.secondaryText}>Clear Pad</Text>
-            </Pressable>
-            <Pressable
-              testID="toggle-keypad"
-              accessibilityRole="button"
-              accessibilityLabel={mode === 'draw' ? 'Keypad Input' : 'Use Drawing Pad'}
-              accessibilityState={{ pressed: mode === 'keypad' }}
-              onPress={toggleMode}
-              style={({ pressed }) => [styles.secondaryButton, mode === 'keypad' && styles.activeButton, pressed && styles.pressed]}
-            >
-              <Text style={[styles.secondaryText, mode === 'keypad' && styles.activeText]}>
-                {mode === 'draw' ? 'Keypad Input' : 'Use Drawing Pad'}
-              </Text>
+              <Text style={styles.secondaryText}>Clear Signature</Text>
             </Pressable>
           </View>
         )}
@@ -219,21 +211,23 @@ const styles = StyleSheet.create({
   readOnlyNote: { marginTop: 10 },
   helpText: { marginBottom: 12 },
   modeStatus: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
+  fieldLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
+  nameField: { marginTop: 14 },
   typedInput: {
-    minHeight: 190,
+    minHeight: 52,
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: colors.border,
     borderRadius: 6,
     backgroundColor: colors.field,
     color: colors.text,
-    fontSize: 22,
+    fontSize: 20,
     fontStyle: 'italic',
     fontFamily: 'serif',
     paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
-  wideTypedInput: { minHeight: 190 },
+  wideTypedInput: { minHeight: 56 },
   errorText: { color: colors.error, fontSize: 12, fontWeight: '600', lineHeight: 18, marginTop: 10 },
   actions: { flexDirection: 'column', gap: 10, marginTop: 14 },
   wideActions: { flexDirection: 'row' },
@@ -248,9 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  activeButton: { borderColor: colors.accent, backgroundColor: colors.accentTint },
   secondaryText: { color: colors.text, fontFamily: monoFont, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  activeText: { color: colors.accent },
   pressed: { opacity: 0.7 },
   lockedNote: { marginTop: 12 },
   receiptCard: { borderColor: colors.green },
