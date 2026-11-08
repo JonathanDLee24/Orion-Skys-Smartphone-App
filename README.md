@@ -12,7 +12,7 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 | Navigation | `@react-navigation/native-stack`, single stack in `App.js` |
 | Language | JavaScript (no TypeScript/typecheck) |
 | Styling | React Native `StyleSheet`, shared theme in `src/theme.js` |
-| Testing | Jest + `jest-expo`, 17 suites / 127 tests |
+| Testing | Jest + `jest-expo`, 19 suites / 135 tests |
 | Platforms | iOS, Android, web (Expo Go or simulator/emulator) |
 | Backend | None — all services are local mocks |
 
@@ -66,6 +66,7 @@ All routes are registered in `App.js` with `headerShown: false`; each screen ren
 | `AdminLogin` | `AdminLoginScreen.js` | Admin sign-in with five-attempt lockout |
 | `EmployeeDashboard` | `EmployeeDashboard.js` | Stats, next show, schedule/events/account tabs |
 | `EmployeeEvents` | `EmployeeEventsScreen.js` | Your events: summary metrics, status filters, confirmed cards and pending alerts |
+| `Credits` | `CreditsScreen.js` | Credits balance, how credits work and recent account activity |
 | `BookingDateVenue` | `BookingDateVenueScreen.js` | Booking step 1 — date, time, venue, contact details |
 | `BookingReview` | `BookingReviewScreen.js` | Booking step 2 — final review before submission |
 | `BookingConflict` | `BookingConflictScreen.js` | Recovery when the chosen date was just taken |
@@ -86,6 +87,7 @@ Welcome
 │    │                                      ↑                    │
 │    │                                      └──── BookingConflict ┘  (date was taken)
 │    ├─ EVENTS → EmployeeEvents → BookingManage
+│    │    └─ Credits → Credits (balance, rules and activity)
 │    └─ ACCOUNT → Dashboard → FeeReview → Checkout
 │                          └→ AccountSettings
 └─ Admin Sign In → AdminLogin → DroneManifest
@@ -153,15 +155,19 @@ On tablet and desktop the screen uses the same treatment as the review and recei
 - Dashboard greets “Welcome back, Kenneth”, shows **scheduled shows** / **in review** counts, a **+ Schedule a show** button, the next chronological show (reference, status, date, venue, manage link), a “Review your show brief” action, and a help row. Both counts start at `00`: a pending request raises **IN REVIEW**, while confirmed upcoming shows raise **SCHEDULED SHOWS**. The events feed seeds its demo schedule on first visit. On desktop (1200+ px) the portal uses two columns — stats, schedule action, next action and help on the left; the next show on the right — so it fits one page at 1366×700 and larger. iPad/tablet and phone keep the previous centered single column (max 720 px).
 - The bottom navigation is shared (`EmployeeBottomNav`): HOME, SCHEDULE, EVENTS, ACCOUNT.
 - **Your events** (`EmployeeEventsScreen`) is the schedule feed:
-  - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to `Dashboard`) and the EVENTS tab lit.
+  - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to the dedicated `Credits` workspace) and the EVENTS tab lit.
   - The readout line is derived from the live ledger, e.g. `2 scheduled shows • 1 request in review`.
   - The **Upcoming**, **Requests** and **Past** segmented tabs swap the feed immediately without a reload. Upcoming shows confirmed cards plus amber pending alerts; Requests lists open proposals; Past archives completed or dated shows. Each tab has its own helper line, e.g. `UPCOMING // VENUE LOCAL TIME • UTC+8`.
-  - Confirmed cards use a lime date block, a green `● CONFIRMED` pill, the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
+  - Confirmed cards use a lime date block, a green `● CONFIRMED` pill, and clock/location icons beside the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
   - The amber pending alert (`Apex Product Launch • 5 Dec`, “Venue & airspace review pending.”) opens the same management screen. New shows start from the **SCHEDULE** tab; the feed itself has no schedule button.
   - `src/services/eventFeedService.js` seeds four demo shows into the session ledger on the first visit (2 confirmed, 1 pending, 1 completed) so the feed is populated out of the box. Real submissions and cancellations update the same ledger.
   - Every filter has its own empty state. Tests can pass `seedDemoData={false}` to start from an empty ledger.
   - On desktop the confirmed cards and pending alerts use a two-column feed, so the dashboard fits one screen at 1366×768 and larger instead of leaving a narrow centered column and a long scroll.
 - The “show brief” and “contact coordinator” rows are visual placeholders.
+
+### Credits workspace (`CreditsScreen`)
+
+The **Credits** button in the events header opens a dedicated workspace instead of the general account hub. It shows the available balance (`1,120 credits`, with `● ACTIVE`), a three-step “How credits work” card and a recent-activity ledger with top-ups and show reservations. Tablet and desktop use two columns; phones stack the balance, rules and activity. The footer opens the booking wizard, and the back link returns to **Your events**. Credits are local mock data in `src/services/creditsService.js`; no top-up or payment is connected.
 
 ### Admin fleet manifest
 
@@ -269,7 +275,7 @@ npx expo export --platform all
 
 Current results on `OSPSA-68-events-dashboard` (8 November 2026):
 
-- **127 tests across 17 suites pass** (`jest --runInBand`).
+- **135 tests across 19 suites pass** (`jest --runInBand`).
 - `expo install --check` reports **Dependencies are up to date**.
 - `expo export --platform all` succeeds and emits web, Android and iOS bundles.
 
@@ -281,10 +287,12 @@ Current results on `OSPSA-68-events-dashboard` (8 November 2026):
 | `settings.test.js` | Notification defaults/toggles, pickers, save success/failure, cancel and breadcrumb routing, dashboard links |
 | `settingsService.test.js` | Saved payload, delay, failure |
 | `responsive.test.js` | Phone/tablet/desktop breakpoints, short-window compaction, footer width, desktop booking three-column layout, tablet full-width Venue & Address, desktop and tablet receipt layouts, full-width receipt note, phone receipt compact action row and header, home-indicator clearance, manage two-column and compact footer layouts, cancelled status layout, footer action order, archived-note visibility |
+| `credits.test.js` | Balance/rules/activity content, back and booking routes, stacked phone vs two-column wide layout |
+| `eventCardsResponsive.test.js` | Confirmed card layout at 320, 390, 768 and 1440 px, including wrap and non-truncation rules |
 | `employeeLogin.test.js` | Demo credentials, invalid credentials, password visibility, logo home |
 | `adminLogin.test.js` | Five-attempt lockout and reset, inert SSO button |
 | `employeeDashboard.test.js` | Dashboard content, bottom nav, submitted show, events routing |
-| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, card/arrow/alert routing, Credits and schedule CTA |
+| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, clock/location logistics icons, card/arrow/alert routing, Credits and schedule CTA |
 | `bookingWizard.test.js` | Same-day/Sundays, empty initial selection, past-slot disabling, late-night fallback, calendar paging, time zone from postal code, validation, draft save, review submission, conflict routing, booked-date blocking |
 | `bookingConflict.test.js` | Backend slot parsing, conflict screen restore/routing, fallback draft, whole-date ledger, receipt content |
 | `bookingCancellation.test.js` | Cancelling frees the date, confirmation flow, confirmed/completed statuses, dashboard routing |

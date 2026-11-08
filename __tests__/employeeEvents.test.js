@@ -152,10 +152,23 @@ test('the pending alert and Credits button use their existing routes', async () 
   });
 
   await act(async () => findButton(tree, 'Credits').props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('Dashboard');
+  expect(navigation.navigate).toHaveBeenCalledWith('Credits');
 
   // The schedule wizard is reached from the SCHEDULE tab, not a feed CTA.
   expect(findButton(tree, '+ Schedule another show')).toBeUndefined();
+
+  await act(async () => tree.unmount());
+});
+
+test('confirmed cards show clock and location icons in their logistics rows', async () => {
+  let tree;
+  await act(async () => { tree = create(<EmployeeEventsScreen navigation={{ navigate: jest.fn() }} />); });
+
+  const card = tree.root.findByProps({ testID: 'event-card-demo-apex-summit' });
+  const icons = card.findAll((node) => node.props.type === 'clock' || node.props.type === 'pin');
+  expect(icons.map((icon) => icon.props.type).sort()).toEqual(['clock', 'pin']);
+  expect(card.findAllByProps({ testID: 'event-schedule-demo-apex-summit' }).length).toBeGreaterThan(0);
+  expect(card.findAllByProps({ testID: 'event-venue-demo-apex-summit' }).length).toBeGreaterThan(0);
 
   await act(async () => tree.unmount());
 });
