@@ -167,7 +167,7 @@ On tablet and desktop the screen uses the same treatment as the review and recei
 
 ### Credits workspace (`CreditsScreen`)
 
-The **Credits** button in the events header opens a dedicated workspace instead of the general account hub. It shows the available balance (`1,120 credits`, with `● ACTIVE`), a three-step “How credits work” card and a recent-activity ledger with top-ups and show reservations. Tablet and desktop use two columns; phones stack the balance, rules and activity. The footer opens the booking wizard, and the back link returns to **Your events**. Credits are local mock data in `src/services/creditsService.js`; no top-up or payment is connected.
+The **Credits** button in the events header opens a dedicated workspace instead of the general account hub. It shows the available balance (`1,120 credits`, with `● ACTIVE`), a three-step “How credits work” card and a recent-activity ledger with top-ups and show reservations. Tablet and desktop use two columns; phones stack the balance, rules and activity. Both the back link and the footer action return to **Your events**; the footer action is full-width on phones, 240 px on iPad and 320 px on desktop. Credits are local mock data in `src/services/creditsService.js`; no top-up or payment is connected.
 
 ### Admin fleet manifest
 

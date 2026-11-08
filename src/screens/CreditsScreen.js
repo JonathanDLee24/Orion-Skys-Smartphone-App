@@ -14,6 +14,8 @@ const CREDIT_RULES = [
 export default function CreditsScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const tablet = layout.mode === 'tablet';
+  const desktop = layout.mode === 'desktop';
   const account = getCreditAccount();
 
   return (
@@ -27,13 +29,23 @@ export default function CreditsScreen({ navigation }) {
       backGlyph="<"
       onBack={() => navigation.navigate('EmployeeEvents')}
       onAccount={() => navigation.navigate('AccountSettings')}
-      footer={
-        <PrimaryButton
-          title="Schedule a show"
-          showArrow
-          onPress={() => navigation.navigate('BookingDateVenue')}
-        />
-      }
+      footer={(
+        <View
+          testID="credits-footer-action"
+          style={[
+            styles.footerAction,
+            tablet && styles.footerActionTablet,
+            desktop && styles.footerActionDesktop,
+          ]}
+        >
+          <PrimaryButton
+            testID="credits-back-to-events"
+            title="Back to events"
+            showArrow
+            onPress={() => navigation.navigate('EmployeeEvents')}
+          />
+        </View>
+      )}
     >
       <View
         testID="credits-columns"
@@ -191,4 +203,9 @@ const styles = StyleSheet.create({
   amount: { fontFamily: monoFont, fontSize: 12, fontWeight: '700' },
   amountPositive: { color: colors.green },
   amountSpent: { color: colors.text },
+  // Match the other reviewed screens: full-width action on phones, a 240 px
+  // action centred on iPad and a 320 px action centred on desktop.
+  footerAction: { width: '100%' },
+  footerActionTablet: { width: 240, alignSelf: 'center' },
+  footerActionDesktop: { width: 320, alignSelf: 'center' },
 });
