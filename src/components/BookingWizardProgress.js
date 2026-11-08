@@ -13,7 +13,7 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
       accessibilityRole="progressbar"
       accessibilityLabel="Booking progress"
       accessibilityValue={{ min: 1, max: BOOKING_WIZARD_STEPS.length, now: currentStep, text: `${BOOKING_WIZARD_STEPS[currentStep - 1]} step` }}
-      style={styles.row}
+      style={[styles.row, layout.tight && styles.tightRow]}
     >
       {BOOKING_WIZARD_STEPS.map((label, index) => {
         const step = index + 1;
@@ -41,7 +41,8 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  tightRow: { marginBottom: 8 },
   segment: { flex: 1, minWidth: 0 },
   label: { color: colors.muted, fontFamily: monoFont, fontWeight: '700', letterSpacing: 0.4, marginBottom: 7 },
   completeLabel: { color: colors.text },

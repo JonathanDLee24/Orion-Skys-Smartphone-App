@@ -109,7 +109,7 @@ test('the manage screen confirms before cancelling and reports the released date
   await act(async () => findButton(tree, 'Cancel booking').props.onPress());
   await act(async () => findButton(tree, 'Yes, cancel booking').props.onPress());
 
-  expect(textOf(tree)).toContain('Booking cancelled.');
+  expect(textOf(tree)).toContain('BOOKING CANCELLED');
   expect(textOf(tree)).toContain('● CANCELLED');
   expect(textOf(tree)).toContain('available to book again');
   expect(tree.root.findAll((node) => node.props.testID === 'cancelled-state').length).toBeGreaterThan(0);

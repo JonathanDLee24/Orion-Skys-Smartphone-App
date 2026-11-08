@@ -13,14 +13,27 @@ import {
 import { getBookedDateKeys } from '../services/bookingConflictService';
 import { useTimeZonePreference } from '../services/settingsService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
-import { buildTimeSlots, formatSelectedDate, parseDateKey, toDateKey } from '../utils/bookingCalendar';
+import {
+  buildTimeSlots,
+  formatSelectedDate,
+  isSameDay,
+  isTimeSlotPast,
+  parseDateKey,
+  toDateKey,
+} from '../utils/bookingCalendar';
 import { getTimeZoneForPostalCode } from '../utils/postalCodeTimeZones';
 import { getTimeZoneLabel } from '../utils/timeZones';
 
 const TIME_SLOTS = buildTimeSlots();
 
-export default function BookingDateVenueScreen({ navigation, route }) {
+function findTimeSlot(value) {
+  return TIME_SLOTS.find((slot) => slot.value === value) || null;
+}
+
+export default function BookingDateVenueScreen({ navigation, route, now }) {
   const layout = useResponsiveLayout();
+  // Tests can pin the clock; the app always reads the device clock on render.
+  const deviceNow = now || new Date();
   const s = useScreenStyles();
   const preferredTimeZone = useTimeZonePreference();
   // The conflict screen hands the cached draft back so nothing has to be retyped.
@@ -50,6 +63,10 @@ export default function BookingDateVenueScreen({ navigation, route }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Desktop gets all three cards on one row so the whole step fits a laptop
+  // viewport without scrolling. Tablets put the calendar and time side by side
+  // and let Venue & Address span the full width underneath.
+  const splitLayout = layout.mode === 'desktop';
   const errors = validateVenueDetails(form);
   const complete = isVenueDetailsComplete(form);
   const selectedDateBooked = Boolean(selectedDate) && bookedDates.includes(toDateKey(selectedDate));
@@ -57,14 +74,35 @@ export default function BookingDateVenueScreen({ navigation, route }) {
   // preference is only a fallback for codes we cannot resolve yet.
   const venueTimeZone = getTimeZoneForPostalCode(form.postalCode);
   const timeZone = venueTimeZone || preferredTimeZone;
-  const dateLabel = selectedDate ? formatSelectedDate(selectedDate, timeZone) : 'SELECT A DATE';
+  const dateLabel = selectedDate ? formatSelectedDate(selectedDate, timeZone) : 'SELECT A TIME';
+
+  const selectedSlot = findTimeSlot(selectedTime);
+  const selectedTimePast = Boolean(selectedDate && selectedSlot && isTimeSlotPast(selectedSlot.hour, selectedDate, deviceNow));
+  const selectedDateIsToday = Boolean(selectedDate && isSameDay(selectedDate, deviceNow));
+  const noTimeSlotsLeftToday = selectedDateIsToday && TIME_SLOTS.every((slot) => isTimeSlotPast(slot.hour, selectedDate, deviceNow));
+  const canContinue = complete && Boolean(selectedDate) && !selectedDateBooked && Boolean(selectedTime) && !selectedTimePast;
 
   function updateField(field, value) {
     setForm((previous) => ({ ...previous, [field]: value }));
   }
 
+  function selectDate(date) {
+    setSelectedDate(date);
+    const tapNow = now || new Date();
+    if (isSameDay(date, tapNow)) {
+      const currentSlot = findTimeSlot(selectedTime);
+      if (!currentSlot || isTimeSlotPast(currentSlot.hour, date, tapNow)) {
+        const nextSlot = TIME_SLOTS.find((slot) => !isTimeSlotPast(slot.hour, date, tapNow));
+        setSelectedTime(nextSlot ? nextSlot.value : null);
+      }
+      return;
+    }
+    // Moving off today restores a default time if every slot had already passed.
+    if (!selectedTime) setSelectedTime(DEFAULT_BOOKING_DRAFT.timeSlot);
+  }
+
   function continueToReview() {
-    if (!complete || !selectedDate || selectedDateBooked) return;
+    if (!canContinue) return;
     const saved = saveBookingDraft({
       eventName: form.eventName,
       droneCount: cachedDraft?.droneCount ?? DEFAULT_BOOKING_DRAFT.droneCount,
@@ -94,27 +132,44 @@ export default function BookingDateVenueScreen({ navigation, route }) {
           testID="continue-to-review"
           title="Continue to booking review"
           showArrow
-          disabled={!complete || !selectedDate || selectedDateBooked}
+          disabled={!canContinue}
           onPress={continueToReview}
         />
       )}
     >
-      <BookingWizardProgress currentStep={1} />
+      <View testID="booking-shell" style={styles.bookingShell}>
+        <BookingWizardProgress currentStep={1} />
 
-      {returningFromConflict && (
-        <View testID="conflict-return-notice" accessibilityRole="alert" style={[s.card, styles.conflictNotice]}>
-          <Text style={[s.label, styles.groupLabel]}>// DATE NO LONGER AVAILABLE</Text>
-          <Text style={s.body}>Your event details are saved. Pick another date below to continue.</Text>
-        </View>
-      )}
+        {returningFromConflict && (
+          <View testID="conflict-return-notice" accessibilityRole="alert" style={[s.card, styles.conflictNotice]}>
+            <Text style={[s.label, styles.groupLabel]}>// DATE NO LONGER AVAILABLE</Text>
+            <Text style={s.body}>Your event details are saved. Pick another date below to continue.</Text>
+          </View>
+        )}
 
-      <View testID="booking-columns" style={[styles.columns, layout.wide && styles.wideColumns]}>
-        <View style={[s.card, styles.calendarCard, layout.wide && styles.column]}>
-          <CalendarPicker value={selectedDate} onChange={setSelectedDate} unavailableDates={bookedDates} />
-        </View>
+        <View
+          testID="booking-columns"
+          style={[
+            styles.columns,
+            splitLayout ? styles.splitColumns : layout.wide && styles.tabletColumns,
+          ]}
+        >
+          <View
+            testID="booking-calendar-column"
+            style={[
+              s.card,
+              styles.calendarCard,
+              layout.tight && styles.tightCalendarCard,
+              splitLayout ? styles.splitCalendarColumn : layout.wide && styles.tabletCalendarColumn,
+            ]}
+          >
+            <CalendarPicker value={selectedDate} onChange={selectDate} today={deviceNow} unavailableDates={bookedDates} />
+          </View>
 
-        <View style={[layout.wide && styles.column]}>
-          <View style={s.card}>
+          <View
+            testID="booking-time-card"
+            style={[s.card, layout.wide && styles.compactCard, layout.wide && (splitLayout ? styles.splitTimeColumn : styles.tabletTimeColumn)]}
+          >
             <Text style={[s.label, styles.groupLabel]}>// SHOW TIME · 24 HOURS</Text>
             <Text testID="selected-date-label" style={[styles.timezone, layout.wide && styles.wideTimezone]}>
               {dateLabel}
@@ -124,28 +179,47 @@ export default function BookingDateVenueScreen({ navigation, route }) {
                 This date already has a show. Pick another date to continue.
               </Text>
             )}
+            {!selectedDateBooked && noTimeSlotsLeftToday && (
+              <Text testID="no-time-slots-hint" accessibilityLiveRegion="polite" style={styles.pastTimeHint}>
+                No time slots remain today. Choose another date.
+              </Text>
+            )}
+            {!selectedDateBooked && selectedTimePast && !noTimeSlotsLeftToday && (
+              <Text testID="past-time-hint" accessibilityLiveRegion="polite" style={styles.pastTimeHint}>
+                That start time has passed today. Pick a later time.
+              </Text>
+            )}
             <View accessibilityRole="radiogroup" style={styles.timeRow}>
               {TIME_SLOTS.map((slot) => {
                 const active = slot.value === selectedTime;
+                const slotPast = isTimeSlotPast(slot.hour, selectedDate, deviceNow);
                 return (
                   <Pressable
                     key={slot.value}
                     testID={slot.testID}
                     accessibilityRole="radio"
                     accessibilityLabel={slot.value}
-                    accessibilityState={{ checked: active }}
+                    accessibilityState={slotPast ? { checked: active, disabled: true } : { checked: active }}
                     aria-checked={active}
+                    disabled={slotPast}
                     onPress={() => setSelectedTime(slot.value)}
                     style={({ pressed }) => [
                       styles.slot,
                       layout.wide && styles.wideSlot,
+                      layout.tight && styles.tightSlot,
                       active && styles.activeSlot,
-                      pressed && styles.pressed,
+                      slotPast && styles.disabledSlot,
+                      pressed && !slotPast && styles.pressed,
                     ]}
                   >
                     <Text
                       numberOfLines={1}
-                      style={[styles.slotText, layout.wide && styles.wideSlotText, active && styles.activeSlotText]}
+                      style={[
+                        styles.slotText,
+                        layout.wide && styles.wideSlotText,
+                        active && styles.activeSlotText,
+                        slotPast && styles.disabledSlotText,
+                      ]}
                     >
                       {slot.value}
                     </Text>
@@ -155,34 +229,42 @@ export default function BookingDateVenueScreen({ navigation, route }) {
             </View>
           </View>
 
-          <View style={s.card}>
+          <View
+            testID="booking-venue-card"
+            style={[s.card, layout.wide && styles.compactCard, layout.wide && (splitLayout ? styles.splitVenueColumn : styles.tabletVenueColumn)]}
+          >
             <Text style={[s.label, styles.groupLabel]}>// VENUE & ADDRESS</Text>
 
-            <Text style={styles.fieldLabel}>EVENT NAME</Text>
-            <TextInput
-              accessibilityLabel="Event name"
-              testID="event-name-input"
-              value={form.eventName}
-              onChangeText={(value) => updateField('eventName', value)}
-              placeholder="Apex Year-end Celebration"
-              placeholderTextColor={colors.muted}
-              autoCapitalize="words"
-              autoCorrect={false}
-              style={[styles.input, layout.wide && styles.wideInput]}
-            />
-
-            <Text style={styles.fieldLabel}>VENUE NAME</Text>
-            <TextInput
-              accessibilityLabel="Venue name"
-              testID="venue-name-input"
-              value={form.venueName}
-              onChangeText={(value) => updateField('venueName', value)}
-              placeholder="Marina Bay Event Deck"
-              placeholderTextColor={colors.muted}
-              autoCapitalize="words"
-              autoCorrect={false}
-              style={[styles.input, layout.wide && styles.wideInput, errors.venueName && styles.invalidInput]}
-            />
+            <View style={layout.wide ? styles.splitRow : undefined}>
+              <View style={layout.wide ? styles.half : undefined}>
+                <Text style={styles.fieldLabel}>EVENT NAME</Text>
+                <TextInput
+                  accessibilityLabel="Event name"
+                  testID="event-name-input"
+                  value={form.eventName}
+                  onChangeText={(value) => updateField('eventName', value)}
+                  placeholder="Apex Year-end Celebration"
+                  placeholderTextColor={colors.muted}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  style={[styles.input, layout.wide && styles.wideInput]}
+                />
+              </View>
+              <View style={layout.wide ? styles.half : undefined}>
+                <Text style={styles.fieldLabel}>VENUE NAME</Text>
+                <TextInput
+                  accessibilityLabel="Venue name"
+                  testID="venue-name-input"
+                  value={form.venueName}
+                  onChangeText={(value) => updateField('venueName', value)}
+                  placeholder="Marina Bay Event Deck"
+                  placeholderTextColor={colors.muted}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  style={[styles.input, layout.wide && styles.wideInput, errors.venueName && styles.invalidInput]}
+                />
+              </View>
+            </View>
 
             <Text style={styles.fieldLabel}>STREET ADDRESS</Text>
             <TextInput
@@ -251,13 +333,26 @@ export default function BookingDateVenueScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   columns: { alignItems: 'stretch' },
-  wideColumns: { flexDirection: 'row', gap: 24 },
-  column: { flex: 1, minWidth: 0 },
-  calendarCard: { paddingVertical: 14 },
+  bookingShell: { width: '100%' },
+  tabletColumns: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 16 },
+  tabletCalendarColumn: { flexBasis: '48%', flexGrow: 1, flexShrink: 0, marginBottom: 0 },
+  tabletTimeColumn: { flexBasis: '48%', flexGrow: 1, flexShrink: 0, marginBottom: 0 },
+  tabletVenueColumn: { flexBasis: '100%', flexGrow: 0, flexShrink: 0, marginBottom: 0 },
+  // A tighter desktop gutter gives the show-time card the room it needs while
+  // the venue card keeps its original width.
+  splitColumns: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  splitCalendarColumn: { flexBasis: '29%', flexGrow: 0, flexShrink: 0, marginBottom: 0 },
+  splitTimeColumn: { flexBasis: '27%', flexGrow: 0, flexShrink: 0, marginBottom: 0 },
+  splitVenueColumn: { flexBasis: '42%', flexGrow: 1, flexShrink: 1, minWidth: 0, marginBottom: 0 },
+  // Wide cards use a slightly tighter padding than the shared card default so
+  // three columns can share one row without overflowing vertically.
+  compactCard: { padding: 16 },
+  calendarCard: { padding: 8 },
+  tightCalendarCard: { padding: 6 },
   conflictNotice: { borderColor: colors.gold },
   groupLabel: { marginBottom: 10 },
   timezone: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700', letterSpacing: 0.4, marginBottom: 10 },
-  wideTimezone: { fontSize: 14 },
+  wideTimezone: { fontSize: 13 },
   timeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   slot: {
     flexGrow: 1,
@@ -272,11 +367,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.field,
   },
-  wideSlot: { minHeight: 50, flexBasis: '22%' },
+  wideSlot: { minHeight: 44, flexBasis: '21%', paddingHorizontal: 2 },
+  tightSlot: { minHeight: 40 },
   activeSlot: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  disabledSlot: { opacity: 0.35 },
   slotText: { color: colors.muted, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
-  wideSlotText: { fontSize: 13 },
+  wideSlotText: { fontSize: 11 },
   activeSlotText: { color: colors.accent },
+  disabledSlotText: { color: colors.muted },
   fieldLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.5, marginBottom: 6 },
   input: {
     minHeight: 44,
@@ -291,14 +389,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 12,
   },
-  wideInput: { minHeight: 48, fontSize: 14 },
+  wideInput: { minHeight: 44, fontSize: 13 },
   invalidInput: { borderColor: colors.error },
   splitRow: { flexDirection: 'row', gap: 10 },
   half: { flex: 1, minWidth: 0 },
   validationHint: { color: colors.error, fontSize: 11, lineHeight: 16, marginTop: -2 },
   unavailableHint: { color: colors.gold, fontSize: 11, lineHeight: 16, marginBottom: 10 },
+  pastTimeHint: { color: colors.gold, fontSize: 11, lineHeight: 16, marginBottom: 10 },
   timeZoneHint: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.3, lineHeight: 14, marginTop: -8, marginBottom: 12 },
   disclaimerDivider: { marginTop: 14, marginBottom: 10 },
-  wideDisclaimer: { fontSize: 13, lineHeight: 20 },
+  wideDisclaimer: { fontSize: 12, lineHeight: 18 },
   pressed: { opacity: 0.7 },
 });

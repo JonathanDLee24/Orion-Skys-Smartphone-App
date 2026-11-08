@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import EmployeeBottomNav from '../components/EmployeeBottomNav';
 import EmployeeIcon from '../components/EmployeeIcon';
-import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import {
   formatUnavailableSlot,
@@ -148,7 +147,11 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
     const confirmed = tone === 'confirmed';
     const pending = tone === 'pending';
     return (
-      <View key={submission.id} testID={`event-card-${submission.id}`} style={[s.card, styles.eventCard]}>
+      <View
+        key={submission.id}
+        testID={`event-card-${submission.id}`}
+        style={[s.card, styles.eventCard, layout.mode === 'desktop' && styles.desktopFeedCard]}
+      >
         <View style={styles.cardMain}>
           <View
             style={[
@@ -223,7 +226,12 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
         accessibilityRole="button"
         accessibilityLabel={`Review request for ${name}`}
         onPress={() => openEvent(submission)}
-        style={({ pressed }) => [s.card, styles.alertCard, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          s.card,
+          styles.alertCard,
+          layout.mode === 'desktop' && styles.desktopFeedCard,
+          pressed && styles.pressed,
+        ]}
       >
         <View style={styles.alertIcon}>
           <EmployeeIcon type="clock" color={colors.gold} size={18} />
@@ -291,7 +299,7 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
         />
       )}
     >
-      <View style={[styles.list, layout.wide && styles.wideList]}>
+      <View style={styles.list}>
         <Text testID="events-summary" accessibilityLiveRegion="polite" style={[s.body, styles.summary]}>
           {summary}
         </Text>
@@ -330,13 +338,13 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
           {timezoneHelper}
         </Text>
 
-        <View testID="events-list">
+        <View
+          testID="events-list"
+          style={[styles.feed, layout.mode === 'desktop' && styles.desktopFeed]}
+        >
           {renderFeed()}
         </View>
 
-        <View style={styles.primaryAction}>
-          <PrimaryButton testID="events-schedule-another" title="+ Schedule another show" onPress={openSchedule} />
-        </View>
       </View>
     </ScreenLayout>
   );
@@ -344,7 +352,9 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
 
 const styles = StyleSheet.create({
   list: { width: '100%' },
-  wideList: { maxWidth: 720, alignSelf: 'center' },
+  feed: { width: '100%' },
+  desktopFeed: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  desktopFeedCard: { flexBasis: '48%', flexGrow: 1, marginBottom: 0 },
   summary: { marginTop: -6, marginBottom: 12, color: colors.text },
   tabs: {
     flexDirection: 'row',
@@ -478,6 +488,5 @@ const styles = StyleSheet.create({
   emptyCard: { borderStyle: 'dashed' },
   emptyTitle: { color: colors.text, fontSize: 15, fontWeight: '600', marginBottom: 6 },
   emptyCopy: { lineHeight: 17 },
-  primaryAction: { marginTop: 2 },
   pressed: { opacity: 0.72 },
 });

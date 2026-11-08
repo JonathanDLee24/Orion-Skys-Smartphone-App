@@ -141,7 +141,7 @@ test('a card link and its arrow both open that show in management', async () => 
   await act(async () => tree.unmount());
 });
 
-test('the pending alert, Credits button and schedule CTA use their existing routes', async () => {
+test('the pending alert and Credits button use their existing routes', async () => {
   const navigation = { navigate: jest.fn() };
   let tree;
   await act(async () => { tree = create(<EmployeeEventsScreen navigation={navigation} />); });
@@ -154,8 +154,8 @@ test('the pending alert, Credits button and schedule CTA use their existing rout
   await act(async () => findButton(tree, 'Credits').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('Dashboard');
 
-  await act(async () => findButton(tree, '+ Schedule another show').props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('BookingDateVenue');
+  // The schedule wizard is reached from the SCHEDULE tab, not a feed CTA.
+  expect(findButton(tree, '+ Schedule another show')).toBeUndefined();
 
   await act(async () => tree.unmount());
 });
