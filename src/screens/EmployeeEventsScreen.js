@@ -149,8 +149,9 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
     const pending = tone === 'pending';
     return (
       <View key={submission.id} testID={`event-card-${submission.id}`} style={[s.card, styles.eventCard]}>
-        <View style={styles.cardMain}>
+        <View testID={`event-card-main-${submission.id}`} style={styles.cardMain}>
           <View
+            testID={`event-date-block-${submission.id}`}
             style={[
               styles.dateBlock,
               confirmed && styles.dateBlockConfirmed,
@@ -171,9 +172,9 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
             <Text style={[styles.dateDay, tone === 'past' && styles.dateDayPast]}>{date.getDate()}</Text>
           </View>
 
-          <View style={styles.cardCopy}>
-            <View style={styles.titleRow}>
-              <Text style={[styles.eventName, layout.wide && styles.wideEventName]}>{name}</Text>
+          <View testID={`event-card-copy-${submission.id}`} style={styles.cardCopy}>
+            <View testID={`event-title-row-${submission.id}`} style={styles.titleRow}>
+              <Text testID={`event-name-${submission.id}`} style={[styles.eventName, layout.wide && styles.wideEventName]}>{name}</Text>
               <Text
                 style={[
                   styles.statusBadge,
@@ -185,10 +186,16 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
                 ● {statusLabel(submission.status)}
               </Text>
             </View>
-            <Text testID={`event-schedule-${submission.id}`} style={styles.schedule}>
-              {eventSchedule(submission)}
-            </Text>
-            <Text style={styles.venue}>{eventVenue(submission)}</Text>
+            <View testID={`event-schedule-row-${submission.id}`} style={styles.logisticsRow}>
+              <EmployeeIcon type="clock" color={colors.muted} size={13} />
+              <Text testID={`event-schedule-${submission.id}`} style={styles.schedule}>
+                {eventSchedule(submission)}
+              </Text>
+            </View>
+            <View testID={`event-venue-row-${submission.id}`} style={styles.logisticsRow}>
+              <EmployeeIcon type="pin" color={colors.muted} size={13} />
+              <Text testID={`event-venue-${submission.id}`} style={styles.venue}>{eventVenue(submission)}</Text>
+            </View>
           </View>
         </View>
 
@@ -273,7 +280,7 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Credits"
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('Credits')}
           style={({ pressed }) => [styles.credits, pressed && styles.pressed]}
         >
           <Text style={styles.creditsText}>Credits</Text>
@@ -431,8 +438,9 @@ const styles = StyleSheet.create({
   confirmedBadge: { color: colors.green, backgroundColor: '#04241C' },
   pendingBadge: { color: colors.gold, backgroundColor: '#171200' },
   pastBadge: { color: colors.muted, backgroundColor: colors.field },
-  schedule: { color: colors.text, fontFamily: monoFont, fontSize: 11, lineHeight: 17, marginBottom: 3 },
-  venue: { color: colors.muted, fontFamily: monoFont, fontSize: 10, lineHeight: 15 },
+  logisticsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 3 },
+  schedule: { color: colors.text, fontFamily: monoFont, fontSize: 11, lineHeight: 17, flexShrink: 1, minWidth: 0 },
+  venue: { color: colors.muted, fontFamily: monoFont, fontSize: 10, lineHeight: 15, flexShrink: 1, minWidth: 0 },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
