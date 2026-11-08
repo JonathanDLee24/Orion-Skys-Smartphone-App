@@ -64,7 +64,7 @@ export default function CreditsScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={s.card}>
+          <View style={[s.card, layout.wide && styles.rulesCardWide]}>
             <Text style={[s.label, styles.groupLabel]}>// HOW CREDITS WORK</Text>
             {CREDIT_RULES.map((rule, index) => (
               <View key={rule} style={[styles.rule, index > 0 && styles.ruleDivider]}>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 18,
   },
-  balanceCardWide: { paddingVertical: 24 },
+  balanceCardWide: { paddingVertical: 16, marginBottom: 16 },
   balanceCopy: { flex: 1, minWidth: 0 },
   balanceLabel: { color: colors.accent, marginBottom: 8 },
   balanceRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 },
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 44,
   },
-  balanceValueWide: { fontSize: 56, lineHeight: 60 },
+  balanceValueWide: { fontSize: 52, lineHeight: 56 },
   balanceUnit: {
     color: colors.muted,
     fontFamily: monoFont,
@@ -153,8 +153,9 @@ const styles = StyleSheet.create({
   columnsWide: { flexDirection: 'row', alignItems: 'flex-start' },
   column: { width: '100%' },
   wideColumn: { width: 'auto', flex: 1, minWidth: 0 },
+  rulesCardWide: { paddingVertical: 16, marginBottom: 0 },
   groupLabel: { marginBottom: 8 },
-  rule: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 10 },
+  rule: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8 },
   ruleDivider: { borderTopWidth: 1, borderColor: colors.border },
   ruleNumber: {
     width: 22,
@@ -172,8 +173,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     fontStyle: 'italic',
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderColor: colors.border,
   },

@@ -22,10 +22,10 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 - **Booking wizard:** a three-step request flow with a device-date calendar, past-slot disabling, postal-code time zones, draft preservation and conflict recovery.
 - **Review and receipt:** a final review with edit-in-place, then a review-queue receipt with the request reference, pending-review state and next steps.
 - **Show management:** pending, confirmed, completed and cancelled states, a cancellation confirmation that releases the date, and archive mode for past shows.
-- **Your events (OSPSA-68):** aggregate metrics, Upcoming / Requests / Past filters, confirmed event cards, pending review alerts and deep links into management.
+- **Your events (OSPSA-68):** aggregate metrics, Upcoming / Requests / Past filters, reusable confirmed event cards, pending review alerts, a Credits workspace and deep links into management.
 - **Responsive redesign:** phone-first layouts plus tablet and desktop arrangements for the dashboard, events feed, date and venue step, review, receipt and manage screens, including equal-width footers and clearer phone headers.
 - **Supporting screens:** account settings, fee review, checkout placeholder and the admin fleet manifest.
-- **Verification:** 127 Jest tests across 17 suites, covering routing, booking state, services and every responsive breakpoint.
+- **Verification:** 135 Jest tests across 19 suites, covering routing, booking state, services and every responsive breakpoint.
 
 ## Install and run
 
@@ -158,7 +158,7 @@ On tablet and desktop the screen uses the same treatment as the review and recei
   - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to the dedicated `Credits` workspace) and the EVENTS tab lit.
   - The readout line is derived from the live ledger, e.g. `2 scheduled shows • 1 request in review`.
   - The **Upcoming**, **Requests** and **Past** segmented tabs swap the feed immediately without a reload. Upcoming shows confirmed cards plus amber pending alerts; Requests lists open proposals; Past archives completed or dated shows. Each tab has its own helper line, e.g. `UPCOMING // VENUE LOCAL TIME • UTC+8`.
-  - Confirmed cards use a lime date block, a green `● CONFIRMED` pill, and clock/location icons beside the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
+  - Cards render through the shared `src/components/EventFeedCard.js` node, so the Upcoming, Requests and Past feeds keep one layout. Confirmed cards use a lime date block, a green `● CONFIRMED` pill, and clock/location icons beside the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
   - The amber pending alert (`Apex Product Launch • 5 Dec`, “Venue & airspace review pending.”) opens the same management screen. New shows start from the **SCHEDULE** tab; the feed itself has no schedule button.
   - `src/services/eventFeedService.js` seeds four demo shows into the session ledger on the first visit (2 confirmed, 1 pending, 1 completed) so the feed is populated out of the box. Real submissions and cancellations update the same ledger.
   - Every filter has its own empty state. Tests can pass `seedDemoData={false}` to start from an empty ledger.
@@ -235,6 +235,7 @@ Everything is session state; a reload clears it. Replace these modules with real
 | `services/bookingDraftService.js` | `POST /api/bookings` + draft cache | `DEFAULT_BOOKING_DRAFT`, venue validation, trimmed session records |
 | `services/bookingConflictService.js` | Booking/date-lock API | One active show per date, references, conflict payloads, cancel releases the date |
 | `services/eventFeedService.js` | `GET /api/events` | Four demo shows seeded once into the booking ledger |
+| `services/creditsService.js` | `GET /api/clients/me/credits` | In-memory balance and activity ledger shown in the Credits workspace |
 | `services/settingsService.js` | `GET/PUT /api/clients/me/settings` | In-memory store, 500 ms save, failure flag |
 | `services/feeService.js` | `GET /api/bookings/:id/fees` | 600 ms mock from `mockData.js`, failure flag |
 | `services/employeeAuthService.js` | Employee auth | Local username/password table |
@@ -292,7 +293,7 @@ Current results on `OSPSA-68-events-dashboard` (8 November 2026):
 | `employeeLogin.test.js` | Demo credentials, invalid credentials, password visibility, logo home |
 | `adminLogin.test.js` | Five-attempt lockout and reset, inert SSO button |
 | `employeeDashboard.test.js` | Dashboard content, bottom nav, submitted show, events routing |
-| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, clock/location logistics icons, card/arrow/alert routing, Credits and schedule CTA |
+| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, clock/location logistics icons, card/arrow/alert routing, Credits routing and the absence of a feed schedule CTA |
 | `bookingWizard.test.js` | Same-day/Sundays, empty initial selection, past-slot disabling, late-night fallback, calendar paging, time zone from postal code, validation, draft save, review submission, conflict routing, booked-date blocking |
 | `bookingConflict.test.js` | Backend slot parsing, conflict screen restore/routing, fallback draft, whole-date ledger, receipt content |
 | `bookingCancellation.test.js` | Cancelling frees the date, confirmation flow, confirmed/completed statuses, dashboard routing |
