@@ -26,7 +26,17 @@ export default function BookingManageScreen({ route, navigation }) {
     () => route?.params?.submission || route?.params?.booking || getNextScheduledSubmission()
   );
   const [confirming, setConfirming] = useState(false);
-  const cancelled = record?.status === CANCELLED_STATUS;
+  const status = record?.status || 'pending';
+  const cancelled = status === CANCELLED_STATUS;
+  const confirmed = status === 'confirmed';
+  const completed = status === 'completed';
+  const statusPill = cancelled
+    ? '● CANCELLED'
+    : confirmed
+      ? '● CONFIRMED'
+      : completed
+        ? '● COMPLETED'
+        : '● IN REVIEW';
 
   function backToDashboard() {
     navigation.navigate('EmployeeDashboard');
@@ -74,15 +84,28 @@ export default function BookingManageScreen({ route, navigation }) {
     <ScreenLayout
       caption="EMPLOYEE OPERATIONS / BOOKINGS"
       label={`SHOW MANAGEMENT // ${record.reference || 'BOOKING'}`}
-      title={cancelled ? 'Booking cancelled.' : 'Manage this show.'}
-      badge={cancelled ? '● CANCELLED' : '● IN REVIEW'}
+      title={cancelled ? 'Booking cancelled.' : completed ? 'Past show.' : 'Manage this show.'}
+      badge={statusPill}
+      headerTone={cancelled ? 'danger' : confirmed ? 'success' : completed ? undefined : 'gold'}
       secure
       showProgress={false}
       backLabel="Back to dashboard"
       onBack={backToDashboard}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={
-        cancelled ? (
+        completed ? (
+          <View style={styles.actions}>
+            <PrimaryButton title="Back to dashboard" showArrow onPress={backToDashboard} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Schedule another show"
+              onPress={() => navigation.navigate('BookingDateVenue')}
+              style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+            >
+              <Text style={styles.secondaryText}>+ Schedule another show</Text>
+            </Pressable>
+          </View>
+        ) : cancelled ? (
           <View style={styles.actions}>
             <PrimaryButton title="Back to dashboard" showArrow onPress={backToDashboard} />
             <Pressable
@@ -153,13 +176,22 @@ export default function BookingManageScreen({ route, navigation }) {
       ) : (
         <>
           <Text style={[s.body, styles.intro]}>
-            Review the booked show below. Cancelling releases its date immediately.
+            {completed
+              ? 'This show has completed. Its details remain available in your event archive.'
+              : 'Review the booked show below. Cancelling releases its date immediately.'}
           </Text>
 
           <View testID="manage-booking" style={[s.card, confirming ? styles.cardDimmed : null]}>
             <View style={styles.cardHeader}>
               <Text style={[s.label, styles.groupLabel]}>// YOUR EVENT DETAILS</Text>
-              <Text style={styles.pendingPill}>● IN REVIEW</Text>
+              <Text style={[
+                styles.pendingPill,
+                confirmed && styles.confirmedPill,
+                completed && styles.completedPill,
+              ]}
+              >
+                {statusPill}
+              </Text>
             </View>
             <Text style={[styles.eventName, layout.wide && styles.wideEventName]}>{record.eventName}</Text>
             <SummaryRow s={s} label="Reference" value={record.reference || '—'} />
@@ -200,7 +232,9 @@ export default function BookingManageScreen({ route, navigation }) {
                 <Text style={styles.infoGlyph}>i</Text>
               </View>
               <Text style={[s.body, styles.infoText]}>
-                Cancelling frees {date}. Every detail stays visible until you confirm.
+                {completed
+                  ? 'This event is archived. Completed shows stay available for your records.'
+                  : `Cancelling frees ${date}. Every detail stays visible until you confirm.`}
               </Text>
             </View>
           )}
@@ -227,6 +261,16 @@ const styles = StyleSheet.create({
     fontFamily: monoFont,
     fontSize: 9,
     fontWeight: '700',
+  },
+  confirmedPill: {
+    color: colors.green,
+    backgroundColor: '#04241C',
+    borderColor: colors.green,
+  },
+  completedPill: {
+    color: colors.muted,
+    backgroundColor: colors.field,
+    borderColor: colors.border,
   },
   cancelledPill: {
     color: colors.error,

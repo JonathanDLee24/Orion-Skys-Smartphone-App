@@ -14,6 +14,7 @@ import {
   requestBookingSlot,
 } from '../src/services/bookingConflictService';
 import { clearBookingSession } from '../src/services/bookingDraftService';
+import { DEMO_EVENTS, seedDemoEvents } from '../src/services/eventFeedService';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 jest.mock('@react-navigation/native', () => ({
@@ -121,6 +122,35 @@ test('the manage screen confirms before cancelling and reports the released date
   await act(async () => findButton(tree, 'Schedule another show').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingDateVenue');
 
+  await act(async () => tree.unmount());
+});
+
+test('confirmed and completed shows keep their real status in management', async () => {
+  seedDemoEvents();
+  const navigation = { navigate: jest.fn() };
+
+  let tree;
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={navigation} />
+    );
+  });
+  expect(textOf(tree)).toContain('Manage this show.');
+  expect(textOf(tree)).toContain('● CONFIRMED');
+  expect(findButton(tree, 'Cancel booking')).toBeTruthy();
+  await act(async () => tree.unmount());
+
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[3] } }} navigation={navigation} />
+    );
+  });
+  expect(textOf(tree)).toContain('Past show.');
+  expect(textOf(tree)).toContain('● COMPLETED');
+  expect(textOf(tree)).toContain('This show has completed.');
+  expect(textOf(tree)).toContain('This event is archived.');
+  expect(findButton(tree, 'Cancel booking')).toBeUndefined();
+  expect(findButton(tree, 'Back to dashboard')).toBeTruthy();
   await act(async () => tree.unmount());
 });
 

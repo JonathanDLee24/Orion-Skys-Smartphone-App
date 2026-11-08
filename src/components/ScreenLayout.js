@@ -19,7 +19,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, headerAction, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
@@ -39,6 +39,7 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
           <View style={styles.labelRow}>
             {label ? <Text style={[styles.label, layout.wide && styles.wideLabel, headerTone === 'success' && styles.successLabel, headerTone === 'danger' && styles.dangerLabel, headerTone === 'gold' && styles.goldLabel]}>// {label}</Text> : <View />}
             <View style={styles.headerActions}>
+              {headerAction}
               {!!onAccount && (
                 <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>
                   <Text style={styles.accountText}>◈ ACCOUNT</Text>

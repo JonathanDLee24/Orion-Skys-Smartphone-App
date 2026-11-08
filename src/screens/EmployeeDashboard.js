@@ -10,6 +10,7 @@ import {
   getScheduledSubmissions,
 } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
+import { toDateKey } from '../utils/bookingCalendar';
 
 // Show data comes from the booking ledger; Schedule and the show actions route
 // to the booking wizard and management screens.
@@ -47,14 +48,15 @@ export default function EmployeeDashboard({ navigation }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nextShow = getNextScheduledSubmission() || submissions[0] || null;
+  const todayKey = toDateKey(new Date());
+  const scheduled = submissions.filter(
+    (submission) => submission.status === 'confirmed' && submission.date >= todayKey
+  );
+  const review = submissions.filter((submission) => submission.status === 'pending');
+  const nextShow = getNextScheduledSubmission() || scheduled[0] || null;
   const stats = [
-    { key: 'scheduled', value: String(submissions.length).padStart(2, '0'), label: 'SCHEDULED SHOWS' },
-    {
-      key: 'review',
-      value: String(submissions.filter((submission) => submission.status === 'pending').length).padStart(2, '0'),
-      label: 'IN REVIEW',
-    },
+    { key: 'scheduled', value: String(scheduled.length).padStart(2, '0'), label: 'SCHEDULED SHOWS' },
+    { key: 'review', value: String(review.length).padStart(2, '0'), label: 'IN REVIEW' },
   ];
 
   return (

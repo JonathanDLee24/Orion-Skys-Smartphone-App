@@ -12,7 +12,7 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 | Navigation | `@react-navigation/native-stack`, single stack in `App.js` |
 | Language | JavaScript (no TypeScript/typecheck) |
 | Styling | React Native `StyleSheet`, shared theme in `src/theme.js` |
-| Testing | Jest + `jest-expo`, 16 suites / 90 tests |
+| Testing | Jest + `jest-expo`, 17 suites / 98 tests |
 | Platforms | iOS, Android, web (Expo Go or simulator/emulator) |
 | Backend | None — all services are local mocks |
 
@@ -54,7 +54,7 @@ All routes are registered in `App.js` with `headerShown: false`; each screen ren
 | `EmployeeLogin` | `EmployeeLoginScreen.js` | Employee sign-in with password visibility toggle |
 | `AdminLogin` | `AdminLoginScreen.js` | Admin sign-in with five-attempt lockout |
 | `EmployeeDashboard` | `EmployeeDashboard.js` | Stats, next show, schedule/events/account tabs |
-| `EmployeeEvents` | `EmployeeEventsScreen.js` | All scheduled shows in date order |
+| `EmployeeEvents` | `EmployeeEventsScreen.js` | Your events: summary metrics, status filters, confirmed cards and pending alerts |
 | `BookingDateVenue` | `BookingDateVenueScreen.js` | Booking step 1 — date, time, venue, contact details |
 | `BookingReview` | `BookingReviewScreen.js` | Booking step 2 — final review before submission |
 | `BookingConflict` | `BookingConflictScreen.js` | Recovery when the chosen date was just taken |
@@ -129,15 +129,22 @@ When the chosen date was already claimed, the screen explains that shows run onc
 
 ### Manage or cancel (`BookingManageScreen`)
 
-Reached from the dashboard’s **Manage event** link or an events-list card. It shows reference, date, time, time zone, venue, address, fleet size and duration. **Cancel booking** asks for confirmation, then cancels the submission; the receipt state explains that the date is available again. Cancelled shows disappear from the dashboard/events list because the ledger only returns active submissions.
+Reached from the dashboard’s **Manage event** link or an events-list card. It shows reference, date, time, time zone, venue, address, fleet size and duration with the record’s real status (`● IN REVIEW`, `● CONFIRMED` or `● COMPLETED`). **Cancel booking** asks for confirmation, then cancels the submission; the receipt state explains that the date is available again. Cancelled shows disappear from the dashboard/events list because the ledger only returns active submissions. Completed shows open in archive mode with no cancel action.
 
 ## Other screens
 
 ### Employee dashboard and events
 
-- Dashboard greets “Welcome back, Kenneth”, shows **scheduled shows** / **in review** counts, a **+ Schedule a show** button, the next chronological show (reference, status, date, venue, manage link), a “Review your show brief” action, and a help row. Both counts start at `00` until a request is submitted.
+- Dashboard greets “Welcome back, Kenneth”, shows **scheduled shows** / **in review** counts, a **+ Schedule a show** button, the next chronological show (reference, status, date, venue, manage link), a “Review your show brief” action, and a help row. Both counts start at `00`: a pending request raises **IN REVIEW**, while confirmed upcoming shows raise **SCHEDULED SHOWS**. The events feed seeds its demo schedule on first visit.
 - The bottom navigation is shared (`EmployeeBottomNav`): HOME, SCHEDULE, EVENTS, ACCOUNT.
-- **Events** lists every active submission in date order with a pending/confirmed badge and a **Manage event** link. It has a dedicated empty state.
+- **Your events** (`EmployeeEventsScreen`) is the schedule feed:
+  - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to `Dashboard`) and the EVENTS tab lit.
+  - The readout line is derived from the live ledger, e.g. `2 scheduled shows • 1 request in review`.
+  - The **Upcoming**, **Requests** and **Past** segmented tabs swap the feed immediately without a reload. Upcoming shows confirmed cards plus amber pending alerts; Requests lists open proposals; Past archives completed or dated shows. Each tab has its own helper line, e.g. `UPCOMING // VENUE LOCAL TIME • UTC+8`.
+  - Confirmed cards use a lime date block, a green `● CONFIRMED` pill, the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
+  - The amber pending alert (`Apex Product Launch • 5 Dec`, “Venue & airspace review pending.”) opens the same management screen. **+ Schedule another show** opens `BookingDateVenue`.
+  - `src/services/eventFeedService.js` seeds four demo shows into the session ledger on the first visit (2 confirmed, 1 pending, 1 completed) so the feed is populated out of the box. Real submissions and cancellations update the same ledger.
+  - Every filter has its own empty state. Tests can pass `seedDemoData={false}` to start from an empty ledger.
 - The “show brief” and “contact coordinator” rows are visual placeholders.
 
 ### Admin fleet manifest
@@ -205,6 +212,7 @@ Everything is session state; a reload clears it. Replace these modules with real
 | --- | --- | --- |
 | `services/bookingDraftService.js` | `POST /api/bookings` + draft cache | `DEFAULT_BOOKING_DRAFT`, venue validation, trimmed session records |
 | `services/bookingConflictService.js` | Booking/date-lock API | One active show per date, references, conflict payloads, cancel releases the date |
+| `services/eventFeedService.js` | `GET /api/events` | Four demo shows seeded once into the booking ledger |
 | `services/settingsService.js` | `GET/PUT /api/clients/me/settings` | In-memory store, 500 ms save, failure flag |
 | `services/feeService.js` | `GET /api/bookings/:id/fees` | 600 ms mock from `mockData.js`, failure flag |
 | `services/employeeAuthService.js` | Employee auth | Local username/password table |
@@ -245,7 +253,7 @@ npx expo export --platform all
 
 Current results on `OSPSA-57-final-review-page` (25 October 2026):
 
-- **90 tests across 16 suites pass** (`jest --runInBand`).
+- **98 tests across 17 suites pass** (`jest --runInBand`).
 - `expo install --check` reports **Dependencies are up to date**.
 - `expo export --platform all` succeeds and emits web, Android and iOS bundles.
 
@@ -260,10 +268,10 @@ Current results on `OSPSA-57-final-review-page` (25 October 2026):
 | `employeeLogin.test.js` | Demo credentials, invalid credentials, password visibility, logo home |
 | `adminLogin.test.js` | Five-attempt lockout and reset, inert SSO button |
 | `employeeDashboard.test.js` | Dashboard content, bottom nav, submitted show, events routing |
-| `employeeEvents.test.js` | Empty state, date ordering, manage routing |
+| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, card/arrow/alert routing, Credits and schedule CTA |
 | `bookingWizard.test.js` | Lead time/Sundays, empty initial selection, calendar paging, time zone from postal code, validation, draft save, review submission, conflict routing, booked-date blocking |
 | `bookingConflict.test.js` | Backend slot parsing, conflict screen restore/routing, fallback draft, whole-date ledger, receipt content |
-| `bookingCancellation.test.js` | Cancelling frees the date, confirmation flow, dashboard routing |
+| `bookingCancellation.test.js` | Cancelling frees the date, confirmation flow, confirmed/completed statuses, dashboard routing |
 | `bookingTimezoneSync.test.js` | Postal-code time zone overrides the saved preference |
 | `postalCodeTimeZones.test.js` | Singapore, US ZIP prefixes, London/Sydney/Tokyo, unsupported codes |
 | `manifest.test.js` | Fleet manifest rendering and search filtering |
@@ -288,6 +296,7 @@ src/
   services/
     bookingDraftService.js            Draft cache and venue validation
     bookingConflictService.js         Session booking ledger, date lock, conflicts, cancel
+    eventFeedService.js               Demo schedule fixture seeded into the events ledger
     settingsService.js                Preferences store and mock save
     feeService.js                     Mock fee fetch with failure flag
     employeeAuthService.js            Employee demo accounts
@@ -314,6 +323,7 @@ __tests__/                            Jest suites listed above
 
 - **Not production authentication.** Credentials are plain-text in the bundle, there is no session token, role enforcement or password reset. Client/employee/admin screens are all reachable in the same stack.
 - **No backend.** Bookings, date locks and settings live in memory and disappear on reload. Two devices cannot see each other's bookings, and receipt emails are not sent.
+- **Demo schedule fixture.** `eventFeedService.js` seeds four sample shows the first time the events screen opens. They live in the same ledger as real requests and block their dates until the app reloads.
 - **No payments.** Checkout stops at a Sprint 2 alert. Promo codes and split payment are visual only.
 - **Static admin data.** The fleet manifest is six sample rows; the header total is hard-coded, and the fleet tabs do not navigate.
 - **Placeholder actions.** Admin Enterprise SSO, “Review your show brief” and “Contact your show coordinator” have no behavior.

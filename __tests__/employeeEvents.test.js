@@ -20,14 +20,18 @@ beforeEach(() => {
 });
 
 const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
+const findButton = (tree, label) => tree.root.findAll(
+  (node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function',
+)[0];
+const findTab = (tree, key) => tree.root.findAll((node) => node.props.testID === `events-filter-${key}`)[0];
 
 const booking = (overrides = {}) => ({
   id: 'booking-1',
   eventName: 'Harbour Night Market',
-  date: '2026-12-05',
+  date: '2027-01-09',
   timeSlot: '9:00 PM',
   timeZone: 'Asia/Singapore',
-  timeZoneLabel: 'Singapore · Singapore Time (SGT)',
+  timeZoneLabel: 'Singapore · SGT (UTC+8)',
   venueName: 'Marina Bay Event Deck',
   streetAddress: '10 Bayfront Avenue',
   city: 'Singapore',
@@ -59,51 +63,141 @@ test('the dashboard view all link opens the events screen', async () => {
   await act(async () => tree.unmount());
 });
 
-test('the events screen shows an empty state without submissions', async () => {
+test('the events feed shows the aggregate metrics, confirmed shows and pending review', async () => {
   let tree;
   await act(async () => { tree = create(<EmployeeEventsScreen navigation={{ navigate: jest.fn() }} />); });
 
   const text = textOf(tree);
-  expect(text).toContain('All scheduled events');
-  expect(text).toContain('Nothing on the schedule yet.');
-  expect(text).toContain('No shows booked yet.');
-  expect(tree.root.findAll((node) => node.props.testID === 'events-list')).toHaveLength(0);
-  await act(async () => tree.unmount());
-});
-
-test('the events screen lists every scheduled show in date order', async () => {
-  requestBookingSlot(booking({ id: 'booking-late', eventName: 'New Year Drone Gala', date: '2026-12-31', timeSlot: '11:30 PM' }));
-  requestBookingSlot(booking({ id: 'booking-early' }));
-
-  let tree;
-  await act(async () => { tree = create(<EmployeeEventsScreen navigation={{ navigate: jest.fn() }} />); });
-
-  const text = textOf(tree);
-  expect(text).toContain('02 events on the schedule.');
-  expect(text).toContain('New Year Drone Gala');
-  expect(text).toContain('Harbour Night Market');
-  expect(text).toContain('Sat, 5 Dec 2026 · 9:00 PM');
-  expect(text).toContain('Thu, 31 Dec 2026 · 11:30 PM');
-  expect(text).toContain('Singapore · Singapore Time (SGT) · 10-minute show');
-  expect(text).toContain('Marina Bay Event Deck');
-  expect(text).toContain('Singapore 018956 · 200 drones');
-  expect(text.indexOf('Harbour Night Market')).toBeLessThan(text.indexOf('New Year Drone Gala'));
+  expect(text).toContain('CLIENT SCHEDULE // 2026');
+  expect(text).toContain('Your events');
+  expect(text).toContain('2 scheduled shows • 1 request in review');
+  expect(text).toContain('UPCOMING // VENUE LOCAL TIME • UTC+8');
+  expect(text).toContain('Apex Global Summit');
+  expect(text).toContain('CONFIRMED');
+  expect(text).toContain('Sat, 14 Nov 2026 • 8:00 PM SGT');
+  expect(text).toContain('Marina Bay Event Deck • Singapore');
+  expect(text).toContain('NOV');
+  expect(text).toContain('14');
+  expect(text).toContain('Apex Partner Night');
+  expect(text).toContain('Sat, 12 Dec 2026 • 8:30 PM SGT');
+  expect(text).toContain('Apex Product Launch • 5 Dec');
+  expect(text).toContain('Venue & airspace review pending.');
+  expect(findTab(tree, 'upcoming').props.accessibilityState).toEqual({ selected: true });
+  expect(findButton(tree, 'Upcoming (2)')).toBeTruthy();
+  expect(findButton(tree, 'Requests (1)')).toBeTruthy();
+  expect(findButton(tree, 'Past')).toBeTruthy();
   expect(tree.root.findAll((node) => node.props.testID === 'events-empty')).toHaveLength(0);
+  expect(tree.root.find((node) => node.props.accessibilityLabel === 'EVENTS navigation').props.accessibilityState.selected).toBe(true);
 
   await act(async () => tree.unmount());
 });
 
-test('managing an event from the list opens the booking management screen', async () => {
-  requestBookingSlot(booking({ id: 'booking-1' }));
+test('switching filters swaps the feed and its time-zone helper without a reload', async () => {
+  let tree;
+  await act(async () => { tree = create(<EmployeeEventsScreen navigation={{ navigate: jest.fn() }} />); });
 
+  await act(async () => findButton(tree, 'Requests (1)').props.onPress());
+  let text = textOf(tree);
+  expect(text).toContain('REQUESTS // VENUE LOCAL TIME • UTC+8');
+  expect(text).toContain('Apex Product Launch');
+  expect(text).toContain('PENDING REVIEW');
+  expect(text).toContain('Sat, 5 Dec 2026 • 8:00 PM SGT');
+  expect(text).not.toContain('Apex Global Summit');
+  expect(findTab(tree, 'requests').props.accessibilityState).toEqual({ selected: true });
+
+  await act(async () => findButton(tree, 'Past').props.onPress());
+  text = textOf(tree);
+  expect(text).toContain('PAST // VENUE LOCAL TIME • UTC+8');
+  expect(text).toContain('Apex Summer Showcase');
+  expect(text).toContain('COMPLETED');
+  expect(text).toContain('Sat, 22 Aug 2026 • 9:00 PM SGT');
+  expect(text).not.toContain('Apex Partner Night');
+
+  await act(async () => findButton(tree, 'Upcoming (2)').props.onPress());
+  text = textOf(tree);
+  expect(text).toContain('UPCOMING // VENUE LOCAL TIME • UTC+8');
+  expect(text).toContain('Apex Global Summit');
+  expect(text).toContain('Apex Partner Night');
+
+  await act(async () => tree.unmount());
+});
+
+test('a card link and its arrow both open that show in management', async () => {
   const navigation = { navigate: jest.fn() };
   let tree;
   await act(async () => { tree = create(<EmployeeEventsScreen navigation={navigation} />); });
 
-  const manage = tree.root.find((node) => node.props.accessibilityLabel === 'Manage event for Harbour Night Market');
-  await act(async () => manage.props.onPress());
+  await act(async () => findButton(tree, 'View event & manage for Apex Global Summit').props.onPress());
   expect(navigation.navigate).toHaveBeenCalledWith('BookingManage', {
-    submission: expect.objectContaining({ id: expect.any(String), eventName: 'Harbour Night Market' }),
+    submission: expect.objectContaining({ id: 'demo-apex-summit', eventName: 'Apex Global Summit' }),
   });
+
+  navigation.navigate.mockClear();
+  await act(async () => findButton(tree, 'Open event dashboard for Apex Partner Night').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingManage', {
+    submission: expect.objectContaining({ id: 'demo-apex-partner-night', eventName: 'Apex Partner Night' }),
+  });
+
+  await act(async () => tree.unmount());
+});
+
+test('the pending alert, Credits button and schedule CTA use their existing routes', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => { tree = create(<EmployeeEventsScreen navigation={navigation} />); });
+
+  await act(async () => findButton(tree, 'Review request for Apex Product Launch').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingManage', {
+    submission: expect.objectContaining({ id: 'demo-apex-product-launch' }),
+  });
+
+  await act(async () => findButton(tree, 'Credits').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('Dashboard');
+
+  await act(async () => findButton(tree, '+ Schedule another show').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingDateVenue');
+
+  await act(async () => tree.unmount());
+});
+
+test('the metrics and request list follow ledger submissions instead of demo fixtures', async () => {
+  requestBookingSlot(booking({ id: 'booking-late', eventName: 'New Year Drone Gala', date: '2027-02-14', timeSlot: '11:30 PM' }));
+  requestBookingSlot(booking({ id: 'booking-early', date: '2027-01-09', timeSlot: '9:00 PM' }));
+
+  let tree;
+  await act(async () => {
+    tree = create(<EmployeeEventsScreen seedDemoData={false} navigation={{ navigate: jest.fn() }} />);
+  });
+
+  expect(textOf(tree)).toContain('0 scheduled shows • 2 requests in review');
+  expect(findButton(tree, 'Requests (2)')).toBeTruthy();
+
+  await act(async () => findButton(tree, 'Requests (2)').props.onPress());
+  const text = textOf(tree);
+  expect(text).toContain('Harbour Night Market');
+  expect(text).toContain('New Year Drone Gala');
+  expect(text.indexOf('Harbour Night Market')).toBeLessThan(text.indexOf('New Year Drone Gala'));
+  expect(text).toContain('Sat, 9 Jan 2027 • 9:00 PM SGT');
+  expect(text).toContain('Sun, 14 Feb 2027 • 11:30 PM SGT');
+
+  await act(async () => tree.unmount());
+});
+
+test('each filter has its own empty state', async () => {
+  let tree;
+  await act(async () => {
+    tree = create(<EmployeeEventsScreen seedDemoData={false} navigation={{ navigate: jest.fn() }} />);
+  });
+
+  expect(textOf(tree)).toContain('0 scheduled shows • 0 requests in review');
+  expect(textOf(tree)).toContain('No upcoming shows.');
+  expect(tree.root.findAll((node) => node.props.testID === 'events-empty').length).toBeGreaterThan(0);
+
+  await act(async () => findButton(tree, 'Requests (0)').props.onPress());
+  expect(textOf(tree)).toContain('No open requests.');
+
+  await act(async () => findButton(tree, 'Past').props.onPress());
+  expect(textOf(tree)).toContain('No past shows.');
+
   await act(async () => tree.unmount());
 });
