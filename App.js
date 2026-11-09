@@ -23,6 +23,7 @@ import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
@@ -103,6 +104,7 @@ export default function App() {
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
               <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
               <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+              <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         {isOffline && (
