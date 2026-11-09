@@ -13,15 +13,21 @@ import BookingReviewScreen from './src/screens/BookingReviewScreen';
 import BookingSubmittedScreen from './src/screens/BookingSubmittedScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
+import DossierShowSelectScreen from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
 import EventActionScreen from './src/screens/EventActionScreen';
 import EventDetailsScreen from './src/screens/EventDetailsScreen';
+import EmployeeSuccessfulScanScreen from './src/screens/EmployeeSuccessfulScanScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
+import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
+import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import { colors } from './src/theme';
 
@@ -81,6 +87,9 @@ export default function App() {
             <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+              <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
+              <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
+              <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
               <Stack.Screen name="EventAction" component={EventActionScreen} />
@@ -97,6 +106,9 @@ export default function App() {
               <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
               <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+              <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
+              <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+              <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         {isOffline && (

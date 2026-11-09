@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { colors, monoFont } from '../theme';
+
+// react-native-web has no native animated module, so fall back to the JS driver there.
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 export default function Toast({ message, onHide, duration = 2600 }) {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -10,9 +13,9 @@ export default function Toast({ message, onHide, duration = 2600 }) {
   useEffect(() => {
     if (!message) return undefined;
     opacity.setValue(0);
-    Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: USE_NATIVE_DRIVER }).start();
     const timer = setTimeout(() => {
-      Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: USE_NATIVE_DRIVER }).start(({ finished }) => {
         if (finished && onHideRef.current) onHideRef.current();
       });
     }, duration);
