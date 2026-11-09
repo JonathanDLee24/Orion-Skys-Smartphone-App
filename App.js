@@ -15,6 +15,8 @@ import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
+import EventActionScreen from './src/screens/EventActionScreen';
+import EventDetailsScreen from './src/screens/EventDetailsScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
@@ -80,6 +82,8 @@ export default function App() {
               <Stack.Screen name="Welcome" component={WelcomeScreen} />
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
+              <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+              <Stack.Screen name="EventAction" component={EventActionScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
