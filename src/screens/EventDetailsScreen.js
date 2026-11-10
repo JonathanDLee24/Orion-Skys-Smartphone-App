@@ -10,7 +10,7 @@ import { colors, monoFont, useResponsiveLayout } from '../theme';
 function DetailRow({ icon, title, detail, children }) {
   return (
     <View style={styles.detailRow}>
-      <EmployeeIcon type={icon} color={colors.cyan} size={21} />
+      <EmployeeIcon type={icon} color={colors.accent} size={21} />
       <View style={styles.detailCopy}>
         <Text style={styles.detailTitle}>{title}</Text>
         <Text style={styles.detailDetail}>{detail}</Text>
@@ -28,7 +28,7 @@ function ManageRow({ icon, title, description, onPress }) {
       onPress={onPress}
       style={({ pressed }) => [styles.manageRow, pressed && styles.pressed]}
     >
-      <EmployeeIcon type={icon} color={colors.cyan} size={20} />
+      <EmployeeIcon type={icon} color={colors.accent} size={20} />
       <View style={styles.manageCopy}>
         <Text style={styles.manageTitle}>{title}</Text>
         <Text style={styles.manageDescription}>{description}</Text>
@@ -122,9 +122,9 @@ export default function EventDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   content: { flex: 1 },
   wideContent: { maxWidth: 720, alignSelf: 'center', width: '100%' },
-  detailsCard: { borderColor: colors.cyan },
+  detailsCard: { borderColor: colors.accent },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
-  sectionLabel: { color: colors.cyan, marginBottom: 0 },
+  sectionLabel: { color: colors.accent, marginBottom: 0 },
   confirmed: { color: colors.green, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 18 },
   detailCopy: { flex: 1 },
@@ -136,15 +136,15 @@ const styles = StyleSheet.create({
   warningText: { color: colors.muted, fontSize: 11, lineHeight: 17 },
   uploadIcon: { color: colors.background, fontSize: 20, fontWeight: '800', lineHeight: 20 },
   selectedFile: { color: colors.green, fontFamily: monoFont, fontSize: 10, marginTop: 10, marginBottom: 3 },
-  manageLabel: { color: colors.cyan, marginTop: 26, marginBottom: 8 },
+  manageLabel: { color: colors.accent, marginTop: 26, marginBottom: 8 },
   manageList: { borderTopWidth: 1, borderColor: colors.border },
   manageRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 70, borderBottomWidth: 1, borderColor: colors.border },
   manageCopy: { flex: 1 },
   manageTitle: { color: colors.text, fontSize: 13, fontWeight: '600', marginBottom: 4 },
   manageDescription: { color: colors.muted, fontSize: 11 },
-  chevron: { color: colors.cyan, fontSize: 25, lineHeight: 25 },
+  chevron: { color: colors.accent, fontSize: 25, lineHeight: 25 },
   footerLinks: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 24, paddingBottom: 8 },
-  messageLink: { color: colors.cyan, fontSize: 11, fontWeight: '700' },
+  messageLink: { color: colors.accent, fontSize: 11, fontWeight: '700' },
   cancelLink: { color: colors.error, fontSize: 11, fontWeight: '700' },
   pressed: { opacity: 0.7 },
 });
