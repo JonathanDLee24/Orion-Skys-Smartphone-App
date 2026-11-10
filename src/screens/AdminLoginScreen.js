@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import DemoUnlock from '../components/DemoUnlock';
 import {
   hasAdminUsername,
   isAdminAccountLocked,
+  resetAdminLoginAttempts,
   validateAdminPassword,
 } from '../services/adminAuthService';
 import { colors } from '../theme';
@@ -26,7 +28,7 @@ export default function AdminLoginScreen({ navigation }) {
       return;
     }
     if (isAdminAccountLocked(username)) {
-      setError('Account locked after 5 incorrect password attempts. Contact an administrator to reset access.');
+      setError('Account locked after 5 incorrect password attempts. Use the demo unlock flow below.');
       return;
     }
     if (!password.trim()) {
@@ -35,7 +37,7 @@ export default function AdminLoginScreen({ navigation }) {
     }
     if (!validateAdminPassword(username, password)) {
       setError(isAdminAccountLocked(username)
-        ? 'Account locked after 5 incorrect password attempts. Contact an administrator to reset access.'
+        ? 'Account locked after 5 incorrect password attempts. Use the demo unlock flow below.'
         : 'Password is incorrect.');
       return;
     }
@@ -90,6 +92,7 @@ export default function AdminLoginScreen({ navigation }) {
           </Pressable>
         </View>
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
+        {isAdminAccountLocked(username) && <DemoUnlock key={username.trim().toLowerCase()} onUnlock={() => { resetAdminLoginAttempts(username); setPassword(''); setError('Demo account unlocked. You can sign in.'); }} />}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Sign in"
