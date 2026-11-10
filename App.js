@@ -29,6 +29,7 @@ import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
+import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -81,6 +82,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
+      <DroneLaunchProvider>
       <View style={styles.app}>
         <View style={styles.app}>
         <NavigationContainer theme={navigationTheme}>
@@ -121,6 +123,7 @@ export default function App() {
         )}
         </View>
       </View>
+      </DroneLaunchProvider>
     </SafeAreaProvider>
   );
 }
