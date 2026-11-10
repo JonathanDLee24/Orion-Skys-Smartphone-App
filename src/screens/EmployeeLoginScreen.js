@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { useDroneLaunch } from '../components/DroneLaunchTransition';
 import { hasEmployeeUsername, validateEmployeePassword } from '../services/employeeAuthService';
 import { colors } from '../theme';
 
 export default function EmployeeLoginScreen({ navigation }) {
   const s = useScreenStyles();
+  const { launch } = useDroneLaunch();
   const passwordInputRef = useRef(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +32,7 @@ export default function EmployeeLoginScreen({ navigation }) {
       return;
     }
     setError('');
+    launch();
     navigation.navigate('EmployeeDashboard');
   };
 
