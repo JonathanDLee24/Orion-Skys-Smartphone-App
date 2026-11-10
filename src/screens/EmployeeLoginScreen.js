@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import DemoUnlock from '../components/DemoUnlock';
+import { hasEmployeeUsername, isEmployeeAccountLocked, resetEmployeeLoginAttempts, validateEmployeePassword } from '../services/employeeAuthService';
 import { useDroneLaunch } from '../components/DroneLaunchTransition';
-import { hasEmployeeUsername, validateEmployeePassword } from '../services/employeeAuthService';
 import { colors } from '../theme';
 
 export default function EmployeeLoginScreen({ navigation }) {
@@ -23,12 +24,18 @@ export default function EmployeeLoginScreen({ navigation }) {
       setError('Username not found.');
       return;
     }
+    if (isEmployeeAccountLocked(username)) {
+      setError('Account locked after 5 incorrect password attempts. Use the demo unlock flow below.');
+      return;
+    }
     if (!password.trim()) {
       setError('Password cannot be empty.');
       return;
     }
     if (!validateEmployeePassword(username, password)) {
-      setError('Password is incorrect.');
+      setError(isEmployeeAccountLocked(username)
+        ? 'Account locked after 5 incorrect password attempts. Use the demo unlock flow below.'
+        : 'Password is incorrect.');
       return;
     }
     setError('');
@@ -102,6 +109,7 @@ export default function EmployeeLoginScreen({ navigation }) {
             {error}
           </Text>
         ) : null}
+        {isEmployeeAccountLocked(username) && <DemoUnlock key={username.trim().toLowerCase()} onUnlock={() => { resetEmployeeLoginAttempts(username); setPassword(''); setError('Demo account unlocked. You can sign in.'); }} />}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Sign in"
