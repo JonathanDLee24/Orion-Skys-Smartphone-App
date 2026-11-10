@@ -17,6 +17,8 @@ import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
 import DossierShowSelectScreen from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
+import EventActionScreen from './src/screens/EventActionScreen';
+import EventDetailsScreen from './src/screens/EventDetailsScreen';
 import EmployeeSuccessfulScanScreen from './src/screens/EmployeeSuccessfulScanScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
@@ -89,6 +91,8 @@ export default function App() {
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
               <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
+              <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+              <Stack.Screen name="EventAction" component={EventActionScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
