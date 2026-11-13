@@ -51,7 +51,7 @@ export default function AdminDashboardScreen({ navigation }) {
       showProgress={false}
       caption="ADMIN OPERATIONS"
       onLogoPress={() => navigation.navigate('Welcome')}
-      onAccount={() => navigation.navigate('AccountSettings')}
+      onAccount={() => navigation.navigate('AccountSettings', { adminMode: true })}
     >
       <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
         <Text style={[s.body, styles.subtitle]}>Administrator · Operations overview</Text>

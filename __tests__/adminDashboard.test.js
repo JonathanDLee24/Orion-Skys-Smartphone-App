@@ -48,6 +48,10 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
     else expect(navigation.navigate).toHaveBeenLastCalledWith(route);
   }
 
+  const accountButton = tree.root.find((node) => node.props.accessibilityLabel === 'Account settings');
+  await act(async () => accountButton.props.onPress());
+  expect(navigation.navigate).toHaveBeenLastCalledWith('AccountSettings', { adminMode: true });
+
   const unavailableActions = [
     ['Dashboard', 'You are already viewing the admin dashboard.'],
     ['QuickBooks Sync', 'QuickBooks sync is not configured in this app yet.'],
