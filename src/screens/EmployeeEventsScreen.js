@@ -4,15 +4,15 @@ import EmployeeBottomNav from '../components/EmployeeBottomNav';
 import EmployeeIcon from '../components/EmployeeIcon';
 import EventFeedCard from '../components/EventFeedCard';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { getScheduledSubmissions } from '../services/bookingConflictService';
+import { getSubmissionHistory } from '../services/bookingConflictService';
 import { seedDemoEvents } from '../services/eventFeedService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { MONTH_NAMES, parseDateKey, toDateKey } from '../utils/bookingCalendar';
 import { formatTimeZoneName } from '../utils/timeZones';
 
 const FILTERS = [
-  { key: 'upcoming', label: 'Upcoming' },
   { key: 'requests', label: 'Requests' },
+  { key: 'upcoming', label: 'Upcoming' },
   { key: 'past', label: 'Past' },
 ];
 
@@ -33,7 +33,7 @@ const EMPTY_STATES = {
   },
   past: {
     title: 'No past shows.',
-    body: 'Completed shows move here after their event date so you can look back at the archive.',
+    body: 'Completed and cancelled shows move here so you can look back at the archive.',
   },
 };
 
@@ -62,13 +62,13 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true, 
   const [activeFilter, setActiveFilter] = useState('upcoming');
   const [submissions, setSubmissions] = useState(() => {
     if (seedDemoData) seedDemoEvents();
-    return getScheduledSubmissions();
+    return getSubmissionHistory();
   });
 
   // The ledger lives for the session, so pick up bookings and cancellations
   // when the user comes back to this tab.
   useEffect(() => {
-    const refreshSubmissions = () => setSubmissions(getScheduledSubmissions());
+    const refreshSubmissions = () => setSubmissions(getSubmissionHistory());
     refreshSubmissions();
     const unsubscribe = navigation?.addListener?.('focus', refreshSubmissions);
     return typeof unsubscribe === 'function' ? unsubscribe : undefined;
@@ -80,8 +80,11 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true, 
     (submission) => submission.status === 'confirmed' && submission.date >= todayKey
   );
   const requests = submissions.filter((submission) => submission.status === 'pending');
+  // Cancelled shows keep their record here so a cancellation is archived rather
+  // than lost, even when the show date was still in the future.
   const past = submissions.filter(
     (submission) => submission.status === 'completed'
+      || submission.status === 'cancelled'
       || (submission.date < todayKey && submission.status !== 'pending')
   );
   const futureRequests = requests.filter((submission) => submission.date >= todayKey);
