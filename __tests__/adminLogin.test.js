@@ -43,7 +43,7 @@ test('admin account locks after five incorrect passwords and can be explicitly r
   expect(isAdminAccountLocked('admin')).toBe(false);
   await act(async () => inputs[1].props.onChangeText('admin1234'));
   await act(async () => submit.props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('DroneManifest');
+  expect(navigation.navigate).toHaveBeenCalledWith('AdminDashboard');
   await act(async () => tree.unmount());
 });
 

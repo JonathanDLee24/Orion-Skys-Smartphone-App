@@ -40,7 +40,7 @@ export default function AdminLoginScreen({ navigation }) {
       return;
     }
     setError('');
-    navigation.navigate('DroneManifest');
+    navigation.navigate('AdminDashboard');
   }
 
   return (
