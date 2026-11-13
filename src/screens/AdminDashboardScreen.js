@@ -1,77 +1,124 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { colors, useResponsiveLayout } from '../theme';
+import {
+  formatUnavailableSlot,
+  getNextScheduledSubmission,
+} from '../services/bookingConflictService';
+import { colors, monoFont, useResponsiveLayout } from '../theme';
 
-const OPERATIONS = [
-  {
-    key: 'shows',
-    number: '01',
-    title: 'Show operations',
-    description: 'Review upcoming shows, booking requests, and completed events.',
-    route: 'EmployeeEvents',
-  },
-  {
-    key: 'fleet',
-    number: '02',
-    title: 'Drone fleet',
-    description: 'Search airframes, RFID identifiers, and fleet status.',
-    route: 'DroneManifest',
-  },
-  {
-    key: 'check-in',
-    number: '03',
-    title: 'QR check-in',
-    description: 'Scan staff and guest passes for event access.',
-    route: 'QRCodeScanner',
-  },
-  {
-    key: 'documents',
-    number: '04',
-    title: 'Show documents',
-    description: 'Access agreements, waivers, receipts, and flight plans.',
-    route: 'DossierShowSelect',
-  },
+const QUICK_ACTIONS = [
+  { label: 'View schedule', route: 'EmployeeEvents' },
+  { label: 'Manage fleet', route: 'DroneManifest' },
+  { label: 'Review contracts', route: 'DossierShowSelect' },
+];
+
+const DESTINATIONS = [
+  { label: 'Dashboard', description: 'Overview and quick actions', icon: '▦', notice: 'You are already viewing the admin dashboard.' },
+  { label: 'Schedule', description: 'Shows, rehearsals, and cues', icon: '▣', route: 'EmployeeEvents' },
+  { label: 'Fleet', description: 'Drones, batteries, and readiness', icon: '✣', route: 'DroneManifest' },
+  { label: 'Contracts', description: 'Venue, crew, and vendor records', icon: '▤', route: 'DossierShowSelect' },
+  { label: 'Crew', description: 'Staff access, gates, and roles', icon: '♙', route: 'QRCodeScanner' },
+  { label: 'Settings', description: 'Portal, security, and preferences', icon: '⚙', route: 'AccountSettings' },
+  { label: 'QuickBooks Sync', description: 'ERP ledger sync and API access', icon: '⟳', notice: 'QuickBooks sync is not configured in this app yet.' },
+  { label: 'Sync status', description: 'View synchronization status', icon: '▦', notice: 'No external synchronization service is connected.' },
+  { label: 'Send survey', description: 'Email feedback survey', icon: '▤', notice: 'Survey delivery is not configured in this app yet.' },
+  { label: 'Shared payments', description: 'Per-booking approval and disable', icon: '▤', notice: 'Shared payment management is not available in this app yet.' },
 ];
 
 export default function AdminDashboardScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const [notice, setNotice] = useState('');
+  const nextShow = getNextScheduledSubmission();
+
+  function openDestination(destination) {
+    if (destination.route) {
+      setNotice('');
+      navigation.navigate(destination.route);
+      return;
+    }
+    setNotice(destination.notice);
+  }
 
   return (
     <ScreenLayout
-      label="ADMIN OPERATIONS"
-      title="Operations Dashboard"
-      headerBadge="● ADMIN"
+      label="ADMIN CONSOLE"
+      title="Admin dashboard"
+      headerBadge="● SECURE"
+      headerTone="success"
       showProgress={false}
+      caption="ADMIN OPERATIONS"
       onLogoPress={() => navigation.navigate('Welcome')}
       onAccount={() => navigation.navigate('AccountSettings')}
     >
-      <View style={styles.dashboard}>
-        <Text style={[s.body, styles.intro]}>
-          Your central hub for managing Orion Skys operations.
-        </Text>
-        <Text style={[s.label, styles.sectionLabel]}>// OPERATIONS CENTER</Text>
-        <View testID="admin-operation-links" style={[styles.operations, layout.wide && styles.wideOperations]}>
-          {OPERATIONS.map((operation) => (
+      <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
+        <Text style={[s.body, styles.subtitle]}>Administrator · Operations overview</Text>
+
+        <View style={[s.card, styles.overviewCard]}>
+          <View style={styles.rowBetween}>
+            <Text style={s.label}>// NEXT SCHEDULED SHOW</Text>
+            <Text style={[s.label, styles.onlineLabel]}>● FLEET REGISTRY</Text>
+          </View>
+          {nextShow ? (
+            <>
+              <Text style={styles.showTitle}>{nextShow.eventName}</Text>
+              <View style={[styles.rowBetween, styles.showDetails]}>
+                <Text style={s.body}>{nextShow.venueName}</Text>
+                <Text style={s.body}>Fleet details in manifest</Text>
+              </View>
+              <Text style={styles.showTime}>● {formatUnavailableSlot({ date: nextShow.date, timeSlot: nextShow.timeSlot })}</Text>
+            </>
+          ) : (
+            <Text style={[s.body, styles.emptyShow]}>No shows are currently on the schedule.</Text>
+          )}
+
+          <Text style={[s.label, styles.quickLabel]}>// QUICK ACTIONS</Text>
+          <View style={styles.quickActions}>
+            {QUICK_ACTIONS.map((action) => (
+              <Pressable
+                key={action.label}
+                accessibilityRole="button"
+                accessibilityLabel={action.label}
+                onPress={() => navigation.navigate(action.route)}
+                style={({ pressed }) => [styles.quickButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.quickButtonText}>{action.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={[s.label, styles.secureNote]}>◈ SECURE ADMIN SESSION</Text>
+        </View>
+
+        <View style={styles.destinationsHeading}>
+          <Text style={s.label}>// ADMIN DESTINATIONS</Text>
+          <Text style={[s.label, styles.onlineLabel]}>● OPERATIONS</Text>
+        </View>
+        {notice ? <Text accessibilityRole="alert" style={styles.notice}>{notice}</Text> : null}
+        <View testID="admin-operation-links" style={styles.destinations}>
+          {DESTINATIONS.map((destination) => (
             <Pressable
-              key={operation.key}
+              key={destination.label}
               accessibilityRole="button"
-              accessibilityLabel={operation.title}
-              onPress={() => navigation.navigate(operation.route)}
+              accessibilityLabel={destination.label}
+              onPress={() => openDestination(destination)}
               style={({ pressed }) => [
                 s.card,
-                styles.operation,
-                layout.wide && styles.wideOperation,
+                styles.destination,
+                layout.wide && styles.wideDestination,
                 pressed && styles.pressed,
               ]}
             >
-              <View style={styles.operationHeader}>
-                <Text style={styles.number}>{operation.number}</Text>
-                <Text style={styles.arrow}>↗</Text>
+              <View style={styles.destinationIcon}>
+                <Text style={styles.destinationIconText}>{destination.icon}</Text>
               </View>
-              <Text style={styles.operationTitle}>{operation.title}</Text>
-              <Text style={s.body}>{operation.description}</Text>
+              <View style={styles.destinationCopy}>
+                <Text style={styles.destinationTitle}>{destination.label}</Text>
+                <Text style={s.body}>{destination.description}</Text>
+              </View>
+              <View style={styles.destinationArrow}>
+                <Text style={styles.arrowText}>→</Text>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -82,15 +129,30 @@ export default function AdminDashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   dashboard: { width: '100%', maxWidth: 1120, alignSelf: 'center' },
-  intro: { marginBottom: 28 },
-  sectionLabel: { marginBottom: 12 },
-  operations: { gap: 2 },
-  wideOperations: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  operation: { minHeight: 142, marginBottom: 14 },
-  wideOperation: { width: '48%', flexGrow: 1, flexBasis: 320, marginBottom: 0 },
-  operationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  number: { color: colors.accent, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  arrow: { color: colors.accent, fontSize: 20 },
-  operationTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  wideDashboard: { maxWidth: 1120 },
+  subtitle: { fontSize: 14, marginBottom: 16 },
+  overviewCard: { padding: 18, borderRadius: 12, borderColor: colors.border },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  onlineLabel: { color: colors.green },
+  showTitle: { color: colors.text, fontSize: 17, fontWeight: '600', marginTop: 16 },
+  showDetails: { marginTop: 6 },
+  showTime: { color: colors.text, fontSize: 14, marginTop: 16 },
+  emptyShow: { marginTop: 16 },
+  quickLabel: { marginTop: 22, marginBottom: 10 },
+  quickActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  quickButton: { minHeight: 42, borderRadius: 9, borderWidth: 1, borderColor: colors.accent, backgroundColor: colors.accentTint, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, flexGrow: 1 },
+  quickButtonText: { color: colors.accent, fontFamily: monoFont, fontSize: 11 },
+  secureNote: { textAlign: 'center', marginTop: 18 },
+  destinationsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 10 },
+  notice: { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 13 },
+  destinations: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
+  destination: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 92, width: '48%', flexGrow: 1, flexBasis: 145, marginBottom: 0, padding: 12 },
+  wideDestination: { flexBasis: 280, minHeight: 104 },
+  destinationIcon: { width: 40, height: 40, flexShrink: 0, borderRadius: 10, backgroundColor: colors.accentTint, alignItems: 'center', justifyContent: 'center' },
+  destinationIconText: { color: colors.accent, fontSize: 21, fontWeight: '700' },
+  destinationCopy: { flex: 1, minWidth: 0 },
+  destinationTitle: { color: colors.text, fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  destinationArrow: { width: 30, height: 30, flexShrink: 0, borderRadius: 15, backgroundColor: colors.accentTint, alignItems: 'center', justifyContent: 'center' },
+  arrowText: { color: colors.accent, fontSize: 19, fontWeight: '700' },
   pressed: { opacity: 0.72 },
 });
