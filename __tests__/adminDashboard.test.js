@@ -1,5 +1,8 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
+import { AdminContractsScreen } from '../src/screens/DossierShowSelectScreen';
+import DocumentDossierScreen from '../src/screens/DocumentDossierScreen';
+import { AdminScheduleScreen } from '../src/screens/EmployeeEventsScreen';
 import AdminDashboardScreen from '../src/screens/AdminDashboardScreen';
 
 jest.mock('@react-navigation/native', () => ({
@@ -18,14 +21,14 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
   });
 
   const expectedRoutes = [
-    ['View schedule', 'EmployeeEvents'],
-    ['Manage fleet', 'DroneManifest'],
-    ['Review contracts', 'DossierShowSelect'],
-    ['Schedule', 'EmployeeEvents'],
-    ['Fleet', 'DroneManifest'],
-    ['Contracts', 'DossierShowSelect'],
-    ['Crew', 'QRCodeScanner'],
-    ['Settings', 'AccountSettings'],
+    ['View schedule', 'AdminSchedule'],
+    ['Manage fleet', 'DroneManifest', { adminMode: true }],
+    ['Review contracts', 'AdminContracts'],
+    ['Schedule', 'AdminSchedule'],
+    ['Fleet', 'DroneManifest', { adminMode: true }],
+    ['Contracts', 'AdminContracts'],
+    ['Crew', 'QRCodeScanner', { adminMode: true }],
+    ['Settings', 'AccountSettings', { adminMode: true }],
   ];
 
   const expectedLabels = [
@@ -38,10 +41,11 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
   ];
   expect(expectedLabels).toHaveLength(13);
 
-  for (const [label, route] of expectedRoutes) {
+  for (const [label, route, params] of expectedRoutes) {
     const link = tree.root.find((node) => node.props.accessibilityLabel === label);
     await act(async () => link.props.onPress());
-    expect(navigation.navigate).toHaveBeenLastCalledWith(route);
+    if (params) expect(navigation.navigate).toHaveBeenLastCalledWith(route, params);
+    else expect(navigation.navigate).toHaveBeenLastCalledWith(route);
   }
 
   const unavailableActions = [
@@ -57,5 +61,51 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
     expect(tree.root.find((node) => node.props.accessibilityRole === 'alert').props.children).toBe(message);
   }
 
+  await act(async () => tree.unmount());
+});
+
+test('admin schedule has a back button and does not show employee bottom navigation', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(<AdminScheduleScreen navigation={navigation} />);
+  });
+
+  expect(tree.root.find((node) => node.props.accessibilityLabel === 'Back to admin dashboard')).toBeTruthy();
+  expect(tree.root.findAll((node) => node.props.accessibilityLabel === 'HOME navigation')).toHaveLength(0);
+  expect(tree.root.findAll((node) => node.props.accessibilityLabel === 'EVENTS navigation')).toHaveLength(0);
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Back to admin dashboard').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('AdminDashboard');
+
+  await act(async () => tree.unmount());
+});
+
+test('admin contract selection and dossier details return within admin navigation', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(<AdminContractsScreen navigation={navigation} />);
+  });
+
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Back to admin dashboard').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('AdminDashboard');
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Review documents for Neon Lights Festival').props.onPress());
+  expect(navigation.navigate).toHaveBeenLastCalledWith('DocumentDossier', {
+    dossier: { id: 'SKY-8902-A', event: 'Neon Lights Festival' },
+    adminMode: true,
+  });
+  await act(async () => tree.unmount());
+
+  await act(async () => {
+    tree = create(
+      <DocumentDossierScreen
+        route={{ params: { dossier: { id: 'SKY-8902-A', event: 'Neon Lights Festival' }, adminMode: true } }}
+        navigation={navigation}
+      />,
+    );
+  });
+  const backButton = tree.root.find((node) => node.props.accessibilityLabel === 'Back to contracts');
+  await act(async () => backButton.props.onPress());
+  expect(navigation.navigate).toHaveBeenLastCalledWith('AdminContracts');
   await act(async () => tree.unmount());
 });

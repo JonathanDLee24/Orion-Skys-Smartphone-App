@@ -16,9 +16,9 @@ import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
-import DossierShowSelectScreen from './src/screens/DossierShowSelectScreen';
+import DossierShowSelectScreen, { AdminContractsScreen } from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
-import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
+import EmployeeEventsScreen, { AdminScheduleScreen } from './src/screens/EmployeeEventsScreen';
 import EmployeeSuccessfulScanScreen from './src/screens/EmployeeSuccessfulScanScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
@@ -94,6 +94,8 @@ export default function App() {
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
               <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+              <Stack.Screen name="AdminSchedule" component={AdminScheduleScreen} />
+              <Stack.Screen name="AdminContracts" component={AdminContractsScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
             <Stack.Screen name="BookingReview" component={BookingReviewScreen} />

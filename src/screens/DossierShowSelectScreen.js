@@ -9,17 +9,18 @@ const SHOWS = [
   { id: 'SKY-8902-A', event: 'Neon Lights Festival' },
 ];
 
-export default function DossierShowSelectScreen({ navigation }) {
+export default function DossierShowSelectScreen({ navigation, adminMode = false }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
 
   return (
     <ScreenLayout
-      caption="EMPLOYEE OPERATIONS / PAYMENTS"
-      label="DOCUMENT REVIEW"
-      title="Select a show"
-      onBack={() => navigation.navigate('Dashboard')}
-      backLabel="Back to account"
+      caption={adminMode ? 'ADMIN OPERATIONS / CONTRACTS' : 'EMPLOYEE OPERATIONS / PAYMENTS'}
+      label={adminMode ? 'ADMIN CONTRACT REVIEW' : 'DOCUMENT REVIEW'}
+      title={adminMode ? 'Review contracts' : 'Select a show'}
+      onLogoPress={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      onBack={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'Dashboard')}
+      backLabel={adminMode ? 'Back to admin dashboard' : 'Back to account'}
     >
       <View style={[styles.list, layout.wide && styles.wideList]}>
         <Text style={[s.body, styles.intro]}>Choose a drone show to review its operations documents.</Text>
@@ -30,7 +31,10 @@ export default function DossierShowSelectScreen({ navigation }) {
               key={show.id}
               accessibilityRole="button"
               accessibilityLabel={`Review documents for ${show.event}`}
-              onPress={() => navigation.navigate('DocumentDossier', { dossier: show })}
+              onPress={() => navigation.navigate('DocumentDossier', {
+                dossier: show,
+                ...(adminMode ? { adminMode: true } : {}),
+              })}
               style={({ pressed }) => [s.card, pressed && styles.pressed]}
             >
               <Text style={styles.dossierId}>DOSSIER: {show.id}</Text>
@@ -46,6 +50,10 @@ export default function DossierShowSelectScreen({ navigation }) {
       </View>
     </ScreenLayout>
   );
+}
+
+export function AdminContractsScreen({ navigation }) {
+  return <DossierShowSelectScreen navigation={navigation} adminMode />;
 }
 
 const styles = StyleSheet.create({

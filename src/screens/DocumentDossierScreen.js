@@ -16,15 +16,17 @@ const DOCUMENT_GROUPS = [
   { key: 'flightPlans', icon: '➤', title: 'FAA Flight Plans', status: 'VERIFIED', count: 4, updated: '12H AGO' },
 ];
 
-export default function DocumentDossierScreen({ navigation }) {
+export default function DocumentDossierScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const [generating, setGenerating] = useState(false);
+  const activeDossier = route?.params?.dossier || dossier;
+  const adminMode = route?.params?.adminMode === true;
 
   async function generatePdf() {
     setGenerating(true);
     try {
-      await downloadDossierPdf(dossier.id);
+      await downloadDossierPdf(activeDossier.id);
     } catch (err) {
       const message = err.message || 'We could not generate the PDF. Please try again.';
       // React Native Alert has no web implementation; use the browser equivalent.
@@ -37,13 +39,14 @@ export default function DocumentDossierScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      caption="EMPLOYEE OPERATIONS / PAYMENTS"
-      label={`DOSSIER: ${dossier.id}`}
-      title={dossier.event}
+      caption={adminMode ? 'ADMIN OPERATIONS / CONTRACTS' : 'EMPLOYEE OPERATIONS / PAYMENTS'}
+      label={`DOSSIER: ${activeDossier.id}`}
+      title={activeDossier.event}
       headerBadge="● ONLINE"
       secure
-      onBack={() => navigation.navigate('Dashboard')}
-      backLabel="Back to account"
+      onLogoPress={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      onBack={() => navigation.navigate(adminMode ? 'AdminContracts' : 'Dashboard')}
+      backLabel={adminMode ? 'Back to contracts' : 'Back to account'}
       footer={<PrimaryButton title="Reconcile & Generate Complete PDF" loading={generating} onPress={generatePdf} />}
     >
       <Text style={[s.label, styles.sectionLabel]}>// COMPILED OPERATIONS PACKAGE</Text>

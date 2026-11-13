@@ -8,18 +8,18 @@ import {
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
-  { label: 'View schedule', route: 'EmployeeEvents' },
-  { label: 'Manage fleet', route: 'DroneManifest' },
-  { label: 'Review contracts', route: 'DossierShowSelect' },
+  { label: 'View schedule', route: 'AdminSchedule' },
+  { label: 'Manage fleet', route: 'DroneManifest', adminMode: true },
+  { label: 'Review contracts', route: 'AdminContracts' },
 ];
 
 const DESTINATIONS = [
   { label: 'Dashboard', description: 'Overview and quick actions', icon: '▦', notice: 'You are already viewing the admin dashboard.' },
-  { label: 'Schedule', description: 'Shows, rehearsals, and cues', icon: '▣', route: 'EmployeeEvents' },
-  { label: 'Fleet', description: 'Drones, batteries, and readiness', icon: '✣', route: 'DroneManifest' },
-  { label: 'Contracts', description: 'Venue, crew, and vendor records', icon: '▤', route: 'DossierShowSelect' },
-  { label: 'Crew', description: 'Staff access, gates, and roles', icon: '♙', route: 'QRCodeScanner' },
-  { label: 'Settings', description: 'Portal, security, and preferences', icon: '⚙', route: 'AccountSettings' },
+  { label: 'Schedule', description: 'Shows, rehearsals, and cues', icon: '▣', route: 'AdminSchedule' },
+  { label: 'Fleet', description: 'Drones, batteries, and readiness', icon: '✣', route: 'DroneManifest', adminMode: true },
+  { label: 'Contracts', description: 'Venue, crew, and vendor records', icon: '▤', route: 'AdminContracts' },
+  { label: 'Crew', description: 'Staff access, gates, and roles', icon: '♙', route: 'QRCodeScanner', adminMode: true },
+  { label: 'Settings', description: 'Portal, security, and preferences', icon: '⚙', route: 'AccountSettings', adminMode: true },
   { label: 'QuickBooks Sync', description: 'ERP ledger sync and API access', icon: '⟳', notice: 'QuickBooks sync is not configured in this app yet.' },
   { label: 'Sync status', description: 'View synchronization status', icon: '▦', notice: 'No external synchronization service is connected.' },
   { label: 'Send survey', description: 'Email feedback survey', icon: '▤', notice: 'Survey delivery is not configured in this app yet.' },
@@ -35,7 +35,8 @@ export default function AdminDashboardScreen({ navigation }) {
   function openDestination(destination) {
     if (destination.route) {
       setNotice('');
-      navigation.navigate(destination.route);
+      if (destination.adminMode) navigation.navigate(destination.route, { adminMode: true });
+      else navigation.navigate(destination.route);
       return;
     }
     setNotice(destination.notice);
@@ -80,7 +81,11 @@ export default function AdminDashboardScreen({ navigation }) {
                 key={action.label}
                 accessibilityRole="button"
                 accessibilityLabel={action.label}
-                onPress={() => navigation.navigate(action.route)}
+                onPress={() => (
+                  action.adminMode
+                    ? navigation.navigate(action.route, { adminMode: true })
+                    : navigation.navigate(action.route)
+                )}
                 style={({ pressed }) => [styles.quickButton, pressed && styles.pressed]}
               >
                 <Text style={styles.quickButtonText}>{action.label}</Text>

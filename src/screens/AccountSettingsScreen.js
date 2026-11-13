@@ -16,9 +16,10 @@ const NOTIFICATION_STREAMS = [
   { key: 'billing', title: 'Billing messages', description: 'Invoices and payment reminders' },
 ];
 
-export default function AccountSettingsScreen({ navigation }) {
+export default function AccountSettingsScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const adminMode = route?.params?.adminMode === true;
   const [notifications, setNotifications] = useState(() => ({ ...getSettingsPreferences().notifications }));
   const [language, setLanguage] = useState(() => getSettingsPreferences().language);
   const [timeZone, setTimeZone] = useState(() => getSettingsPreferences().timeZone);
@@ -27,7 +28,7 @@ export default function AccountSettingsScreen({ navigation }) {
   const [saveError, setSaveError] = useState(null);
 
   function backToDashboard() {
-    navigation.navigate('Dashboard');
+    navigation.navigate(adminMode ? 'AdminDashboard' : 'Dashboard');
   }
 
   function toggleStream(key, value) {
@@ -50,10 +51,10 @@ export default function AccountSettingsScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      label="CLIENT ACCOUNT // SETTINGS"
+      label={adminMode ? 'ADMIN ACCOUNT // SETTINGS' : 'CLIENT ACCOUNT // SETTINGS'}
       title="Notification Preferences"
-      onLogoPress={() => navigation.navigate('EmployeeDashboard')}
-      backLabel="ACCOUNT"
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'EmployeeDashboard')}
+      backLabel={adminMode ? 'Back to admin dashboard' : 'ACCOUNT'}
       backGlyph="<"
       onBack={backToDashboard}
       overlay={<Toast message={savedMessage} onHide={() => setSavedMessage(null)} />}

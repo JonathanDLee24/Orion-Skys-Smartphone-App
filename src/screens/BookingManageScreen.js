@@ -27,6 +27,7 @@ export default function BookingManageScreen({ route, navigation }) {
   // stack the same order.
   const splitLayout = layout.wide;
   const tablet = layout.mode === 'tablet';
+  const adminReturn = route?.params?.adminReturn;
   const [record, setRecord] = useState(
     () => route?.params?.submission || route?.params?.booking || getNextScheduledSubmission()
   );
@@ -44,7 +45,7 @@ export default function BookingManageScreen({ route, navigation }) {
         : '● IN REVIEW';
 
   function backToDashboard() {
-    navigation.navigate('EmployeeDashboard');
+    navigation.navigate(adminReturn || 'EmployeeDashboard');
   }
 
   function confirmCancellation() {
@@ -57,11 +58,13 @@ export default function BookingManageScreen({ route, navigation }) {
   if (!record) {
     return (
       <ScreenLayout
-        caption="EMPLOYEE OPERATIONS / BOOKINGS"
+        caption={adminReturn ? 'ADMIN OPERATIONS / BOOKINGS' : 'EMPLOYEE OPERATIONS / BOOKINGS'}
         label="SHOW MANAGEMENT // BOOKING"
         title="Booking not found."
         secure
         showProgress={false}
+        onBack={backToDashboard}
+        backLabel={adminReturn ? 'Back to admin schedule' : 'Back to dashboard'}
         onAccount={() => navigation.navigate('AccountSettings')}
       >
         <View style={s.card} accessibilityRole="alert">
@@ -175,7 +178,7 @@ export default function BookingManageScreen({ route, navigation }) {
 
   return (
     <ScreenLayout
-      caption="EMPLOYEE OPERATIONS / BOOKINGS"
+      caption={adminReturn ? 'ADMIN OPERATIONS / BOOKINGS' : 'EMPLOYEE OPERATIONS / BOOKINGS'}
       label={`SHOW MANAGEMENT // ${record.reference || 'BOOKING'}`}
       title={cancelled ? undefined : completed ? 'Past show.' : 'Manage this show.'}
       badge={statusPill}
@@ -183,6 +186,8 @@ export default function BookingManageScreen({ route, navigation }) {
       secure
       showProgress={false}
       plainFooter
+      onBack={backToDashboard}
+      backLabel={adminReturn ? 'Back to admin schedule' : 'Back to dashboard'}
       onAccount={() => navigation.navigate('AccountSettings')}
       footer={
         <View
