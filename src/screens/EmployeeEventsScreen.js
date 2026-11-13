@@ -56,7 +56,7 @@ function alertDate(submission) {
   return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}`;
 }
 
-export default function EmployeeEventsScreen({ navigation, seedDemoData = true }) {
+export default function EmployeeEventsScreen({ navigation, seedDemoData = true, adminMode = false }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const [activeFilter, setActiveFilter] = useState('upcoming');
@@ -100,7 +100,10 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
     + `${requests.length} ${pluralize(requests.length, 'request', 'requests')} in review`;
 
   function openEvent(submission) {
-    navigation.navigate('BookingManage', { submission });
+    navigation.navigate('BookingManage', {
+      submission,
+      ...(adminMode ? { adminReturn: 'AdminSchedule' } : {}),
+    });
   }
 
   function openSchedule() {
@@ -177,11 +180,13 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
 
   return (
     <ScreenLayout
-      caption="CLIENT OPERATIONS / SCHEDULE"
-      label="CLIENT SCHEDULE // 2026"
-      title="Your events"
-      onLogoPress={() => navigation.navigate('Welcome')}
-      headerAction={(
+      caption={adminMode ? 'ADMIN OPERATIONS / SCHEDULE' : 'CLIENT OPERATIONS / SCHEDULE'}
+      label={adminMode ? 'ADMIN SHOW SCHEDULE' : 'CLIENT SCHEDULE // 2026'}
+      title={adminMode ? 'Show schedule' : 'Your events'}
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'Welcome')}
+      onBack={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      backLabel="Back to admin dashboard"
+      headerAction={!adminMode ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Credits"
@@ -190,10 +195,10 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
         >
           <Text style={styles.creditsText}>Credits</Text>
         </Pressable>
-      )}
+      ) : null}
       showProgress={false}
-      plainFooter
-      footer={(
+      plainFooter={!adminMode}
+      footer={!adminMode ? (
         <EmployeeBottomNav
           active="EVENTS"
           onHome={() => navigation.navigate('EmployeeDashboard')}
@@ -201,7 +206,7 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
           onEvents={() => navigation.navigate('EmployeeEvents')}
           onAccount={() => navigation.navigate('Dashboard')}
         />
-      )}
+      ) : null}
     >
       <View style={styles.list}>
         <Text testID="events-summary" accessibilityLiveRegion="polite" style={[s.body, styles.summary]}>
@@ -251,6 +256,16 @@ export default function EmployeeEventsScreen({ navigation, seedDemoData = true }
 
       </View>
     </ScreenLayout>
+  );
+}
+
+export function AdminScheduleScreen({ navigation }) {
+  return (
+    <EmployeeEventsScreen
+      navigation={navigation}
+      seedDemoData={false}
+      adminMode
+    />
   );
 }
 
