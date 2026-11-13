@@ -1,6 +1,6 @@
 # Orion Skys — drone show booking app
 
-A front-end prototype for **Orion Skys Drone Shows**, built with managed **Expo SDK 57**, React Native, React Navigation (native stack) and plain JavaScript. It covers employee and admin sign-in, a three-step drone-show booking request, a review-queue receipt, event management, account settings, an admin fleet manifest, and the earlier fee-review/checkout preview.
+A front-end prototype for **Orion Skys Drone Shows**, built with managed **Expo SDK 57**, React Native, React Navigation (native stack) and plain JavaScript. It covers employee and admin sign-in, a three-step drone-show booking request, a review-queue receipt, event management and event details, client sign-off, document review, QR check-in, account settings, an admin fleet manifest, and fee review/checkout.
 
 There is **no backend**. Authentication, bookings, date locking, settings, fees and the fleet list are in-memory mocks that reset when the app reloads. No payment is taken, no receipt email is actually sent, and the demo credentials are not production authentication.
 
@@ -12,7 +12,7 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 | Navigation | `@react-navigation/native-stack`, single stack in `App.js` |
 | Language | JavaScript (no TypeScript/typecheck) |
 | Styling | React Native `StyleSheet`, shared theme in `src/theme.js` |
-| Testing | Jest + `jest-expo`, 19 suites / 135 tests |
+| Testing | Jest + `jest-expo`, 22 suites |
 | Platforms | iOS, Android, web (Expo Go or simulator/emulator) |
 | Backend | None — all services are local mocks |
 
@@ -22,10 +22,14 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 - **Booking wizard:** a three-step request flow with a device-date calendar, past-slot disabling, postal-code time zones, draft preservation and conflict recovery.
 - **Review and receipt:** a final review with edit-in-place, then a review-queue receipt with the request reference, pending-review state and next steps.
 - **Show management:** pending, confirmed, completed and cancelled states, a cancellation confirmation that releases the date, and archive mode for past shows.
-- **Your events (OSPSA-68):** aggregate metrics, Upcoming / Requests / Past filters, reusable confirmed event cards, pending review alerts, a Credits workspace and deep links into management.
+- **Event details:** date/time, venue, fleet and client details per show, an uploadable show brief and routes into management and cancellation.
+- **Client sign-off:** a verified credential profile with drawn or typed signatures, validation and a session-stored signature record.
+- **Document review:** a show picker, dossier sections for agreements, waivers, receipts and flight plans, and a compiled test-PDF download.
+- **QR check-in:** a personal employee QR badge, a simulated staff/guest scanner and staff/guest verification result screens.
+- **Your events (OSPSA-68):** aggregate metrics, Requests / Upcoming / Past filters, reusable confirmed event cards, pending review alerts, a cancelled-show archive, a Credits workspace and deep links into management.
 - **Responsive redesign:** phone-first layouts plus tablet and desktop arrangements for the dashboard, events feed, date and venue step, review, receipt and manage screens, including equal-width footers and clearer phone headers.
-- **Supporting screens:** account settings, fee review, checkout placeholder and the admin fleet manifest.
-- **Verification:** 135 Jest tests across 19 suites, covering routing, booking state, services and every responsive breakpoint.
+- **Supporting screens:** account settings, fee review, checkout and the admin fleet manifest.
+- **Verification:** 22 Jest suites covering routing, booking state, payments, event details, sign-off, services and every responsive breakpoint.
 
 ## Install and run
 
@@ -72,11 +76,21 @@ All routes are registered in `App.js` with `headerShown: false`; each screen ren
 | `BookingConflict` | `BookingConflictScreen.js` | Recovery when the chosen date was just taken |
 | `BookingManage` | `BookingManageScreen.js` | View and cancel a show, releasing its date |
 | `BookingSubmitted` | `BookingSubmittedScreen.js` | Booking step 3 — review-queue receipt |
+| `EventDetails` | `EventDetailsScreen.js` | Show details, brief upload and event management |
+| `EventAction` | `EventActionScreen.js` | Placeholder detail for a secondary event action |
+| `ClientSignOff` | `ClientSignOffScreen.js` | Credential check and drawn or typed signature |
+| `DossierShowSelect` | `DossierShowSelectScreen.js` | Choose a show for document review |
+| `DocumentDossier` | `DocumentDossierScreen.js` | Dossier sections and test-PDF generation |
+| `QRCodeScanner` | `QRCodeScannerScreen.js` | Simulated staff/guest check-in scanner |
+| `EmployeeQRCode` | `EmployeeQRCode.js` | Personal employee QR badge |
+| `EmployeeSuccessfulScan` | `EmployeeSuccessfulScanScreen.js` | Staff check-in verification result |
+| `CustomerSuccessfulScan` | `CustomerSuccessfulScanScreen.js` | Guest check-in verification result |
+| `PaymentStatus` | `PaymentResultScreen.js` | Authorized, partial or declined payment result |
 | `DroneManifest` | `SerializedDroneManifestScreen.js` | Admin fleet registry with search |
-| `Dashboard` | `DashboardScreen.js` | Client account shortcuts (booking, fees, settings) |
+| `Dashboard` | `DashboardScreen.js` | My Account shortcuts: booking, fees, settings, documents, sign-off and QR |
 | `AccountSettings` | `AccountSettingsScreen.js` | Notification streams, language, time zone |
 | `FeeReview` | `FeeReviewScreen.js` | Coverage/policy fees (OSPSA-340 preview) |
-| `Checkout` | `PaymentCheckoutScreen.js` | Operations summary and Sprint 2 payment placeholder |
+| `Checkout` | `PaymentCheckoutScreen.js` | Operations summary and simulated payment submission |
 
 Flow overview:
 
@@ -88,8 +102,14 @@ Welcome
 │    │                                      └──── BookingConflict ┘  (date was taken)
 │    ├─ EVENTS → EmployeeEvents → BookingManage
 │    │    └─ Credits → Credits (balance, rules and activity)
-│    └─ ACCOUNT → Dashboard → FeeReview → Checkout
-│                          └→ AccountSettings
+│    ├─ Review your show brief (next show) → EventDetails → EventAction / BookingManage
+│    └─ ACCOUNT → Dashboard (My Account)
+│         ├→ FeeReview → Checkout → PaymentStatus
+│         ├→ AccountSettings
+│         ├→ DossierShowSelect → DocumentDossier
+│         ├→ ClientSignOff
+│         ├→ QRCodeScanner
+│         └→ EmployeeQRCode
 └─ Admin Sign In → AdminLogin → DroneManifest
 ```
 
@@ -163,19 +183,35 @@ On tablet and desktop the screen uses the same treatment as the review and recei
   - `src/services/eventFeedService.js` seeds four demo shows into the session ledger on the first visit (2 confirmed, 1 pending, 1 completed) so the feed is populated out of the box. Real submissions and cancellations update the same ledger.
   - Every filter has its own empty state. Tests can pass `seedDemoData={false}` to start from an empty ledger.
   - On desktop the confirmed cards and pending alerts use a two-column feed, so the dashboard fits one screen at 1366×768 and larger instead of leaving a narrow centered column and a long scroll.
-- The “show brief” and “contact coordinator” rows are visual placeholders.
+- **Review your show brief** opens `EventDetails`; the contact-coordinator row is still a visual placeholder.
 
 ### Credits workspace (`CreditsScreen`)
 
 The **Credits** button in the events header opens a dedicated workspace instead of the general account hub. It shows the available balance (`1,120 credits`, with `● ACTIVE`), a three-step “How credits work” card and a recent-activity ledger with top-ups and show reservations. Tablet and desktop use two columns; phones stack the balance, rules and activity. Both the back link and the footer action return to **Your events**; the footer action is full-width on phones, 240 px on iPad and 320 px on desktop. Credits are local mock data in `src/services/creditsService.js`; no top-up or payment is connected.
 
+### Event details (`EventDetailsScreen`)
+
+Reached from **Review your show brief** on the employee dashboard. It shows the event’s date, time zone, duration, venue, fleet size, choreography and client, plus a **Upload show brief** action backed by `expo-document-picker` (the picked filename is displayed; nothing is uploaded). The **Manage your event** rows open `EventAction`, a compact placeholder detail screen, and **Request cancellation** opens `BookingManage`.
+
+### Client sign-off (`ClientSignOffScreen`)
+
+Reached from **Client sign-off** in My Account. It shows a verified credential profile and accepts either a drawn signature (`SignaturePad`) or a typed legal name, validates the input, saves through a mock async call and confirms with a toast. Records stay in `src/services/signOffService.js`; nothing is transmitted.
+
+### Document review (`DossierShowSelectScreen` → `DocumentDossierScreen`)
+
+Reached from **Review documents** in My Account. Pick a mock show, review agreements, waivers, receipts and FAA flight plans, then press **Reconcile & Generate Complete PDF**. `dossierPdfService` writes a one-page test PDF locally and downloads it on web or shares it through `expo-sharing` on device; no server is involved.
+
+### QR check-in
+
+My Account links to the personal **Employee QR Code** (`EmployeeQRCode`, encoding `mockEmployee` with `react-native-qrcode-svg`) and **Scan QR codes** (`QRCodeScanner`). The scanner is a static simulation — framed viewfinder, target event, today’s scan count and a Back tab — with no camera or decoding. `EmployeeSuccessfulScan` and `CustomerSuccessfulScan` are registered verification-result screens but are not linked from the scanner.
+
 ### Admin fleet manifest
 
-`SerializedDroneManifestScreen` is a static sample of six airframes with an airframe/RFID search, status badges, battery telemetry and a five-tab fleet bottom bar. **This is the only screen that still uses cyan** (`colors.cyan`); the rest of the app uses lime, gold, green and red. The header is hard-coded to `TOTAL: 120 UNITS` while only six rows are mocked.
+`SerializedDroneManifestScreen` is a static sample of six airframes with an airframe/RFID search, status badges, battery telemetry and a five-tab fleet bottom bar. Cyan (`colors.cyan`) is still used here and by the drone launch animation; the rest of the app uses lime, gold, green and red. The header is hard-coded to `TOTAL: 120 UNITS` while only six rows are mocked.
 
 ### Client account and settings
 
-`DashboardScreen` (“My Account”) has three shortcuts: schedule a show, review booking fees, and account settings.
+`DashboardScreen` (“My Account”) has seven shortcuts: schedule a show, review booking fees, account settings, review documents, client sign-off, scan QR codes and the employee QR code.
 
 `AccountSettingsScreen` renders four notification streams — email (on), push (off), show updates (on), billing (on) — plus a security/contractual email footnote, language (`English` default) and time-zone pickers, and Save/Cancel. Save calls `saveNotificationSettings` (500 ms mock) and shows a `Preferences saved` toast; failure shows an inline error. Cancel and the `< ACCOUNT` breadcrumb return to `Dashboard`. The saved time zone becomes the fallback for bookings when a postal code cannot be resolved.
 
@@ -184,7 +220,7 @@ The **Credits** button in the events header opens a dedicated workspace instead 
 - `FeeReviewScreen` calls `getBookingFees(1)` and renders loading, a retryable error, or **Commercial Airspace Coverage** with a **$450.00** policy premium, coverage toggle, carrier and period.
 - **Proceed to Checkout** shows the Operations Summary. The five mock line items total **$4,674.00**; turning coverage off removes the $450 liability row and totals **$4,224.00**.
 - Promo codes and split payment are explicitly preview-only and do not change the amount; neither calls a backend.
-- **Continue to Payment Portal** shows “Payment screen coming in Sprint 2” via `Alert` (browser alert on web). No payment is processed.
+- **Continue to Payment Portal** creates a mock payment in `paymentService` and opens `PaymentStatus` — **Payment Authorized**, **Partial Settlement** or **Payment Declined** depending on the outcome. Use `?outcome=partial` or `?outcome=declined` on web (or a `paymentOutcome` route param) to preview those states; no real charge is made.
 - Money is handled as integer cents with `calculateTotalCents` / `formatUSD`.
 - The header progress divider is four segments for this flow (coverage = phase 3, checkout = phase 4). Booking screens hide it and use the three-step wizard header instead.
 
@@ -235,6 +271,10 @@ Everything is session state; a reload clears it. Replace these modules with real
 | `services/bookingDraftService.js` | `POST /api/bookings` + draft cache | `DEFAULT_BOOKING_DRAFT`, venue validation, trimmed session records |
 | `services/bookingConflictService.js` | Booking/date-lock API | One active show per date, references, conflict payloads, cancel releases the date |
 | `services/eventFeedService.js` | `GET /api/events` | Four demo shows seeded once into the booking ledger |
+| `services/eventDetailsService.js` | `GET /api/events/:id` | Show details merged with the selected submission |
+| `services/dossierPdfService.js` | `GET /api/dossiers/:id/pdf` | Builds a one-page test PDF and downloads or shares it |
+| `services/signOffService.js` | `GET/POST /api/authorizations/:id` | Credential profile, signature validation and session records |
+| `services/paymentService.js` | Payment API + Stripe webhook | Mock payment lifecycle and the normalized webhook contract |
 | `services/creditsService.js` | `GET /api/clients/me/credits` | In-memory balance and activity ledger shown in the Credits workspace |
 | `services/settingsService.js` | `GET/PUT /api/clients/me/settings` | In-memory store, 500 ms save, failure flag |
 | `services/feeService.js` | `GET /api/bookings/:id/fees` | 600 ms mock from `mockData.js`, failure flag |
@@ -274,11 +314,11 @@ npm run check
 npx expo export --platform all
 ```
 
-Current results on `OSPSA-68-events-dashboard` (8 November 2026):
+Current suite count (13 November 2026): **22 Jest suites**.
 
-- **135 tests across 19 suites pass** (`jest --runInBand`).
-- `expo install --check` reports **Dependencies are up to date**.
-- `expo export --platform all` succeeds and emits web, Android and iOS bundles.
+- Run `npm install` before `npm test`: the event-details, QR-code and sign-off screens add `expo-document-picker`, `react-native-qrcode-svg` and `react-native-svg`.
+- `npm test -- --runInBand` runs every suite once.
+- `expo export --platform all` builds the web, Android and iOS bundles from the same install.
 
 | Test file | Covers |
 | --- | --- |
@@ -290,10 +330,14 @@ Current results on `OSPSA-68-events-dashboard` (8 November 2026):
 | `responsive.test.js` | Phone/tablet/desktop breakpoints, short-window compaction, footer width, desktop booking three-column layout, tablet full-width Venue & Address, desktop and tablet receipt layouts, full-width receipt note, phone receipt compact action row and header, home-indicator clearance, manage two-column and compact footer layouts, cancelled status layout, footer action order, archived-note visibility |
 | `credits.test.js` | Balance/rules/activity content, back and booking routes, stacked phone vs two-column wide layout |
 | `eventCardsResponsive.test.js` | Confirmed card layout at 320, 390, 768 and 1440 px, including wrap and non-truncation rules |
+| `clientSignOff.test.js` | Credential profile, drawn vs keypad signatures, validation and the saved record |
+| `droneLaunch.test.js` | Launch overlay, sign-in transition and provider fallback |
+| `eventDetails.test.js` | Event details content, brief upload and management-row routing |
+| `paymentService.test.js` | Payment lifecycle and webhook verification |
 | `employeeLogin.test.js` | Demo credentials, invalid credentials, password visibility, logo home |
 | `adminLogin.test.js` | Five-attempt lockout and reset, inert SSO button |
 | `employeeDashboard.test.js` | Dashboard content, bottom nav, submitted show, events routing |
-| `employeeEvents.test.js` | Seeded metrics, status filters, empty states, clock/location logistics icons, card/arrow/alert routing, Credits routing and the absence of a feed schedule CTA |
+| `employeeEvents.test.js` | Seeded metrics, Requests/Upcoming/Past order, cancelled archive, empty states, clock/location logistics icons, card/arrow/alert routing, Credits routing and the absence of a feed schedule CTA |
 | `bookingWizard.test.js` | Same-day/Sundays, empty initial selection, past-slot disabling, late-night fallback, calendar paging, time zone from postal code, validation, draft save, review submission, conflict routing, booked-date blocking |
 | `bookingConflict.test.js` | Backend slot parsing, conflict screen restore/routing, fallback draft, whole-date ledger, receipt content |
 | `bookingCancellation.test.js` | Cancelling frees the date, confirmation flow, confirmed/completed statuses, dashboard routing |
@@ -322,6 +366,10 @@ src/
     bookingDraftService.js            Draft cache and venue validation
     bookingConflictService.js         Session booking ledger, date lock, conflicts, cancel
     eventFeedService.js               Demo schedule fixture seeded into the events ledger
+    eventDetailsService.js            Event detail defaults merged with a submission
+    dossierPdfService.js              Local one-page PDF and download/share
+    signOffService.js                 Credential profile, signatures and session records
+    paymentService.js                 Mock payment lifecycle and webhook contract
     settingsService.js                Preferences store and mock save
     feeService.js                     Mock fee fetch with failure flag
     employeeAuthService.js            Employee demo accounts
@@ -332,6 +380,11 @@ src/
     DropdownSelect.js                 Expanding picker overlay
     EmployeeBottomNav.js              HOME / SCHEDULE / EVENTS / ACCOUNT bar
     EmployeeIcon.js                   Inline SVG/View icons for the employee screens
+    DemoUnlock.js                     Demo-only lockout reset links
+    DroneGlyph.js                     SVG drone icon used by the launch animation
+    DroneLaunchTransition.js          Animated drone-launch overlay and provider
+    EventFeedCard.js                  Shared event card for every events filter
+    SignaturePad.js                   Drawn signature capture surface
     FeeRow.js                         Fee label/amount line
     PrimaryButton.js                  Lime button with icon/arrow/loading states
     ScreenLayout.js                   Safe area, header, scroll view, footer, keyboard handling
@@ -349,66 +402,39 @@ __tests__/                            Jest suites listed above
 - **Not production authentication.** Credentials are plain-text in the bundle, there is no session token, role enforcement or password reset. Client/employee/admin screens are all reachable in the same stack.
 - **No backend.** Bookings, date locks and settings live in memory and disappear on reload. Two devices cannot see each other's bookings, and receipt emails are not sent.
 - **Demo schedule fixture.** `eventFeedService.js` seeds four sample shows the first time the events screen opens. They live in the same ledger as real requests and block their dates until the app reloads.
-- **No payments.** Checkout stops at a Sprint 2 alert. Promo codes and split payment are visual only.
+- **Simulated payments.** Checkout runs through an in-memory `paymentService`; there is no Stripe key, network call or charge. Promo codes and split payment remain visual only.
 - **Static admin data.** The fleet manifest is six sample rows; the header total is hard-coded, and the fleet tabs do not navigate.
-- **Placeholder actions.** Admin Enterprise SSO, “Review your show brief” and “Contact your show coordinator” have no behavior.
+- **Placeholder actions.** Admin Enterprise SSO, the contact-coordinator row, the event management rows (`EventAction`) and the QR scanner have no real behavior.
+- **Mock event, sign-off and document data.** `eventDetailsService`, `signOffService` and `dossierPdfService` keep or generate local data; brief uploads, signatures and dossier PDFs never leave the device.
 - **Device QA outstanding.** The iOS keyboard-inset behavior and native rendering were implemented but not exercised on a physical device in this environment. Verify on an iPhone in Expo Go.
 - **Audit advisories.** `npm audit` reports **5 high-severity advisories** in the Expo CLI dependency chain (`node-forge`, `zod`). `npm audit fix --force` would downgrade Expo to 44, so it has deliberately not been applied; review upstream SDK-compatible fixes before release.
 - **Desktop/web visual QA** has been done in a browser at phone, tablet and desktop widths, but not exhaustively on every screen.
 
-## Git: branch structure and how to push
+## Git: branches and pull requests
 
 This checkout uses the remote `origin` → `https://github.com/JonathanDLee24/Orion-Skys-Smartphone-App.git`.
 
-| Branch | Base | Contents |
+Current state (13 November 2026):
+
+| Branch | Status | Contents |
 | --- | --- | --- |
-| `main` | `origin/main` | Published baseline |
-| `OSPSA-56-confirmation-receipt-page` | `main` | Review-queue receipt and lime/gold status theme |
-| `OSPSA-57-final-review-page` | `OSPSA-56` | Final review page, paper-plane submit icon, keyboard-safe form, docs and local connectivity/Expo fixes |
+| `main` | published | Baseline. Includes payments (PR #10), the QR scan page (PR #13), PDF dossier (PR #14), client sign-off (PR #15), the OSPSA-68 events dashboard (PR #16), event details (PR #17), the employee QR page (PR #18), splash/login (PR #19) and login protections (PR #20) |
+| `OSPSA-68-events-dashboard` | merged | Your events dashboard, cancelled-show archive and responsive layout pass (PR #16) |
+| `OSPSA-286-admin-dashboard` | open work | Admin dashboard destinations and admin-mode routing; it branched from the pre-merge OSPSA-68 tip, so merge `main` before opening its PR |
 
-Because OSPSA-57 is stacked on OSPSA-56, pushing 57 also uploads the OSPSA-56 commits. Push **56 first**, then 57, and keep the pull requests in that order.
-
-### Push both branches and open the PRs
+Push a feature branch and open its pull request into `main`:
 
 ```bash
-# 1. Confirm the current branch and a clean working tree.
 git status --short --branch
-git log --oneline --decorate -6
-
-# 2. Push the base branch first.
-git push -u origin OSPSA-56-confirmation-receipt-page
-
-# 3. Push the stacked branch.
-git push -u origin OSPSA-57-final-review-page
+git push -u origin <branch>
+gh pr create --base main --head <branch> --title "OSPSA-…" --body "…"
 ```
 
-No `git add -A` is needed at this point: the connectivity/Expo fix, this README and the paper-plane icon are already committed on `OSPSA-57`.
+Without `gh`, open `https://github.com/JonathanDLee24/Orion-Skys-Smartphone-App/compare/main...<branch>?expand=1`.
 
-If GitHub asks for credentials, authenticate first (the `gh` CLI is installed but was not logged in in this checkout):
+Pushing more commits updates an open PR automatically. After a PR merges, fast-forward local `main`:
 
 ```bash
-gh auth login
+git checkout main
+git pull --ff-only
 ```
-
-Create the pull requests (base matters because the branches are stacked):
-
-```bash
-gh pr create \
-  --base main \
-  --head OSPSA-56-confirmation-receipt-page \
-  --title "OSPSA-56: confirmation receipt page" \
-  --body "Rebuilds the booking confirmation as a review-queue receipt and replaces the cyan status styling with the lime/gold theme."
-
-gh pr create \
-  --base OSPSA-56-confirmation-receipt-page \
-  --head OSPSA-57-final-review-page \
-  --title "OSPSA-57: final review page" \
-  --body "Rebuilds the final review step, removes the back link, adds the paper-plane submit icon, and makes the form keyboard-safe."
-```
-
-Without `gh`, open the compare pages in the browser:
-
-- OSPSA-56 → `main`: `https://github.com/JonathanDLee24/Orion-Skys-Smartphone-App/compare/main...OSPSA-56-confirmation-receipt-page?expand=1`
-- OSPSA-57 → `OSPSA-56`: `https://github.com/JonathanDLee24/Orion-Skys-Smartphone-App/compare/OSPSA-56-confirmation-receipt-page...OSPSA-57-final-review-page?expand=1`
-
-Open PR 56 first, then PR 57 against the 56 branch. Do **not** target `main` with 57 before 56 merges, or the PR will show both tickets' commits. After 56 merges, retarget 57 to `main` if GitHub does not do it automatically.

@@ -26,14 +26,27 @@ export default function DashboardScreen({ navigation }) {
       onBack={() => navigation.navigate('EmployeeDashboard')}
       backLabel="Back to dashboard"
     >
-      <View testID="dashboard-links" style={[styles.links, layout.wide && styles.wideLinks]}>
+      <View
+        testID="dashboard-links"
+        style={[
+          styles.links,
+          layout.mode === 'tablet' && styles.tabletLinks,
+          layout.mode === 'desktop' && styles.desktopLinks,
+        ]}
+      >
         {QUICK_LINKS.map((link) => (
           <Pressable
             key={link.key}
             accessibilityRole="button"
             accessibilityLabel={link.label}
             onPress={() => navigation.navigate(link.route)}
-            style={({ pressed }) => [s.card, styles.link, layout.wide && styles.wideLink, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              s.card,
+              styles.link,
+              layout.mode === 'tablet' && styles.tabletLink,
+              layout.mode === 'desktop' && styles.desktopLink,
+              pressed && styles.pressed,
+            ]}
           >
             <View style={styles.linkCopy}>
               <Text style={styles.linkTitle}>{link.label}</Text>
@@ -48,9 +61,20 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  wideLinks: { flexDirection: 'row', gap: 24 },
-  link: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  wideLink: { flex: 1 },
+  links: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  tabletLinks: { maxWidth: 880, alignSelf: 'center', gap: 16 },
+  desktopLinks: { maxWidth: 1120, alignSelf: 'center', gap: 16 },
+  link: {
+    width: '100%',
+    minHeight: 76,
+    marginBottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  tabletLink: { width: '48%', minHeight: 118 },
+  desktopLink: { width: '23.5%', minHeight: 142 },
   linkCopy: { flex: 1 },
   linkTitle: { color: colors.text, fontSize: 13, fontWeight: '700', marginBottom: 2 },
   chevron: { color: colors.accent, fontSize: 16 },
