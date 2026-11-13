@@ -3,8 +3,13 @@ import { act, create } from 'react-test-renderer';
 import { Text } from 'react-native';
 import EmployeeDashboard from '../src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from '../src/screens/EmployeeEventsScreen';
-import { clearBookingSubmissions, requestBookingSlot } from '../src/services/bookingConflictService';
+import {
+  cancelBookingSubmission,
+  clearBookingSubmissions,
+  requestBookingSlot,
+} from '../src/services/bookingConflictService';
 import { clearBookingSession } from '../src/services/bookingDraftService';
+import { seedDemoEvents } from '../src/services/eventFeedService';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 jest.mock('@react-navigation/native', () => ({
@@ -118,6 +123,29 @@ test('switching filters swaps the feed and its time-zone helper without a reload
   expect(text).toContain('UPCOMING // VENUE LOCAL TIME • UTC+8');
   expect(text).toContain('Apex Global Summit');
   expect(text).toContain('Apex Partner Night');
+
+  await act(async () => tree.unmount());
+});
+
+test('a cancelled show is archived in the past feed with a cancelled status', async () => {
+  seedDemoEvents();
+  await act(async () => cancelBookingSubmission('demo-apex-partner-night'));
+
+  let tree;
+  await act(async () => { tree = create(<EmployeeEventsScreen navigation={{ navigate: jest.fn() }} />); });
+
+  const tabIDs = [...new Set(tree.root
+    .findAll((node) => typeof node.props.testID === 'string' && node.props.testID.startsWith('events-filter-'))
+    .map((node) => node.props.testID))];
+  expect(tabIDs).toEqual(['events-filter-requests', 'events-filter-upcoming', 'events-filter-past']);
+
+  // It is no longer upcoming, but the past archive still carries the record.
+  expect(textOf(tree)).not.toContain('Apex Partner Night');
+  await act(async () => findButton(tree, 'Past').props.onPress());
+  const text = textOf(tree);
+  expect(text).toContain('Apex Partner Night');
+  expect(text).toContain('CANCELLED');
+  expect(text).toContain('Sat, 12 Dec 2026 • 8:30 PM SGT');
 
   await act(async () => tree.unmount());
 });

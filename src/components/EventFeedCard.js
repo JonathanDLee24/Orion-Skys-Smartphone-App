@@ -10,6 +10,7 @@ import { formatTimeZoneName } from '../utils/timeZones';
 function statusLabel(status) {
   if (status === 'pending') return 'PENDING REVIEW';
   if (status === 'completed') return 'COMPLETED';
+  if (status === 'cancelled') return 'CANCELLED';
   return 'CONFIRMED';
 }
 
@@ -52,6 +53,7 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
   const name = submission.eventName || 'Untitled show';
   const confirmed = tone === 'confirmed';
   const pending = tone === 'pending';
+  const cancelled = submission.status === 'cancelled';
 
   return (
     <View
@@ -66,6 +68,7 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
             confirmed && styles.dateBlockConfirmed,
             pending && styles.dateBlockPending,
             tone === 'past' && styles.dateBlockPast,
+            cancelled && styles.dateBlockCancelled,
           ]}
         >
           <Text
@@ -74,11 +77,20 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
               confirmed && styles.dateMonthConfirmed,
               pending && styles.dateMonthPending,
               tone === 'past' && styles.dateMonthPast,
+              cancelled && styles.dateMonthCancelled,
             ]}
           >
             {MONTH_SHORT[date.getMonth()]}
           </Text>
-          <Text style={[styles.dateDay, tone === 'past' && styles.dateDayPast]}>{date.getDate()}</Text>
+          <Text
+            style={[
+              styles.dateDay,
+              tone === 'past' && styles.dateDayPast,
+              cancelled && styles.dateDayCancelled,
+            ]}
+          >
+            {date.getDate()}
+          </Text>
         </View>
 
         <View testID={`event-card-copy-${submission.id}`} style={styles.cardCopy}>
@@ -90,6 +102,7 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
                 confirmed && styles.confirmedBadge,
                 pending && styles.pendingBadge,
                 tone === 'past' && styles.pastBadge,
+                cancelled && styles.cancelledBadge,
               ]}
             >
               ● {statusLabel(submission.status)}
@@ -146,12 +159,15 @@ const styles = StyleSheet.create({
   dateBlockConfirmed: { backgroundColor: colors.accentTint, borderColor: colors.accent },
   dateBlockPending: { backgroundColor: '#171200', borderColor: colors.gold },
   dateBlockPast: { backgroundColor: colors.field, borderColor: colors.border },
+  dateBlockCancelled: { backgroundColor: '#240807', borderColor: colors.error },
   dateMonth: { fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 1, marginBottom: 2 },
   dateMonthConfirmed: { color: colors.accent },
   dateMonthPending: { color: colors.gold },
   dateMonthPast: { color: colors.muted },
+  dateMonthCancelled: { color: colors.error },
   dateDay: { color: colors.text, fontFamily: monoFont, fontSize: 24, fontWeight: '700', lineHeight: 28 },
   dateDayPast: { color: colors.muted },
+  dateDayCancelled: { color: colors.error },
   cardCopy: { flex: 1, minWidth: 0 },
   titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 6, marginBottom: 7 },
   eventName: { color: colors.text, fontSize: 16, fontWeight: '700', lineHeight: 21, flexShrink: 1 },
@@ -168,6 +184,7 @@ const styles = StyleSheet.create({
   confirmedBadge: { color: colors.green, backgroundColor: '#04241C' },
   pendingBadge: { color: colors.gold, backgroundColor: '#171200' },
   pastBadge: { color: colors.muted, backgroundColor: colors.field },
+  cancelledBadge: { color: colors.error, backgroundColor: '#240807' },
   logisticsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: 3 },
   schedule: { color: colors.text, fontFamily: monoFont, fontSize: 11, lineHeight: 17, flexShrink: 1, minWidth: 0 },
   venue: { color: colors.muted, fontFamily: monoFont, fontSize: 10, lineHeight: 15, flexShrink: 1, minWidth: 0 },

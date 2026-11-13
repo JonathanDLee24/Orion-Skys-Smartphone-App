@@ -144,7 +144,7 @@ When the chosen date was already claimed, the screen explains that shows run onc
 
 ### Manage or cancel (`BookingManageScreen`)
 
-Reached from the dashboard’s **Manage event** link or an events-list card. It shows reference, date, time, time zone, venue, address, fleet size and duration with the record’s real status (`● IN REVIEW`, `● CONFIRMED`, `● COMPLETED` or `● CANCELLED`). **Cancel booking** asks for confirmation, then cancels the submission. Cancelled shows disappear from the dashboard/events list because the ledger only returns active submissions. Completed shows open in archive mode with no cancel action.
+Reached from the dashboard’s **Manage event** link or an events-list card. It shows reference, date, time, time zone, venue, address, fleet size and duration with the record’s real status (`● IN REVIEW`, `● CONFIRMED`, `● COMPLETED` or `● CANCELLED`). **Cancel booking** asks for confirmation, then cancels the submission. Cancelled shows leave the dashboard and the Upcoming feed but stay in the events Past feed marked `● CANCELLED`, because the archive reads the full session ledger. Completed shows open in archive mode with no cancel action.
 
 On tablet and desktop the screen uses the same treatment as the review and receipt pages: event identity and timing on the left, venue and logistics on the right, then the full-width device note, all inside one frame at 1366×700 and 1024×768. Phones stack the same order. The cancelled state swaps into the same layout with a centered red double-ring **✕ BOOKING CANCELLED** status, a red-tinted event card, and the date-release note below; the old `// BOOKING CANCELLED` heading and in-card cancellation card are gone. There is no top back link on this screen — the footer button returns to the dashboard. Its full-bleed footer shows a **SHOW STATUS** note beside two aligned actions on desktop/iPad, and a compact one-row action pair with 11 px labels on phones; the two buttons stay equal width down to a 320 px screen. Cancelled and completed footers put **+ Schedule another show** first and **→ Back to dashboard** second. Phone footers keep the same 73 px height but show only the action buttons, vertically centred; the **SHOW STATUS** note is desktop/iPad only.
 
@@ -157,7 +157,7 @@ On tablet and desktop the screen uses the same treatment as the review and recei
 - **Your events** (`EmployeeEventsScreen`) is the schedule feed:
   - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to the dedicated `Credits` workspace) and the EVENTS tab lit.
   - The readout line is derived from the live ledger, e.g. `2 scheduled shows • 1 request in review`.
-  - The **Upcoming**, **Requests** and **Past** segmented tabs swap the feed immediately without a reload. Upcoming shows confirmed cards plus amber pending alerts; Requests lists open proposals; Past archives completed or dated shows. Each tab has its own helper line, e.g. `UPCOMING // VENUE LOCAL TIME • UTC+8`.
+  - The **Requests**, **Upcoming** and **Past** segmented tabs swap the feed immediately without a reload. Requests lists open proposals; Upcoming shows confirmed cards plus amber pending alerts; Past archives completed, dated or cancelled shows, with cancelled cards keeping their red `● CANCELLED` status. Each tab has its own helper line, e.g. `UPCOMING // VENUE LOCAL TIME • UTC+8`.
   - Cards render through the shared `src/components/EventFeedCard.js` node, so the Upcoming, Requests and Past feeds keep one layout. Confirmed cards use a lime date block, a green `● CONFIRMED` pill, and clock/location icons beside the schedule line (`Sat, 14 Nov 2026 • 8:00 PM SGT`) and `Venue • City`. **View event & manage** and the circular arrow both open `BookingManage`.
   - The amber pending alert (`Apex Product Launch • 5 Dec`, “Venue & airspace review pending.”) opens the same management screen. New shows start from the **SCHEDULE** tab; the feed itself has no schedule button.
   - `src/services/eventFeedService.js` seeds four demo shows into the session ledger on the first visit (2 confirmed, 1 pending, 1 completed) so the feed is populated out of the box. Real submissions and cancellations update the same ledger.
@@ -247,7 +247,7 @@ Other details:
 - A submission reference is `REQ-YYYYMMDD-HHMM` in 24-hour time (e.g. `REQ-20261121-2000`). If the time cannot be parsed, it falls back to `REQ-YYYYMMDD`.
 - Submitting the same draft twice is idempotent, so a double tap cannot lock the user out of their own request.
 - Dates are exclusive per active show; cancelling frees the date for another request.
-- `active` submissions are `pending`; cancelled records remain in memory but are hidden from lists.
+- `active` submissions are `pending`; cancelled records remain in memory, release their date, leave the dashboard and Upcoming feed, and stay visible in the events Past feed.
 
 ### Simulating service failures
 
