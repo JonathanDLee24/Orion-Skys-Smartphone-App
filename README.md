@@ -53,7 +53,7 @@ These are checked locally by `src/services/employeeAuthService.js` and `src/serv
 | Employee / client | `test` | `password1234` | Employee dashboard |
 | Admin | `admin` | `admin1234` | Drone fleet manifest |
 
-The admin account locks after **five** incorrect passwords and can only be reset in memory (`resetAdminLoginAttempts`) or by reloading the app. The **Enterprise SSO** button on the admin screen is a placeholder and does nothing.
+Both demo accounts lock after **five** incorrect passwords. The login screen offers a simulated email request and unlock link; **no email is sent**, and the in-memory lock disappears on app reload. This is not security: production requires server-side authentication, lockout enforcement and real email-token verification. The **Enterprise SSO** button on the admin screen is a placeholder and does nothing.
 
 ## Screen map
 

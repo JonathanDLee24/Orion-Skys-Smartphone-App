@@ -18,15 +18,20 @@ import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
 import DossierShowSelectScreen from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen from './src/screens/EmployeeEventsScreen';
+import EventActionScreen from './src/screens/EventActionScreen';
+import EventDetailsScreen from './src/screens/EventDetailsScreen';
 import EmployeeSuccessfulScanScreen from './src/screens/EmployeeSuccessfulScanScreen';
 import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
+import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
+import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -79,6 +84,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
+      <DroneLaunchProvider>
       <View style={styles.app}>
         <View style={styles.app}>
         <NavigationContainer theme={navigationTheme}>
@@ -88,8 +94,11 @@ export default function App() {
               <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
               <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
+              <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
               <Stack.Screen name="Credits" component={CreditsScreen} />
+              <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+              <Stack.Screen name="EventAction" component={EventActionScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
               <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
@@ -105,6 +114,7 @@ export default function App() {
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
               <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
               <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+              <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         {isOffline && (
@@ -117,6 +127,7 @@ export default function App() {
         )}
         </View>
       </View>
+      </DroneLaunchProvider>
     </SafeAreaProvider>
   );
 }

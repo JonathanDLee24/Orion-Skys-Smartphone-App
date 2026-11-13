@@ -38,6 +38,12 @@ export const mockRequestContact = {
   email: 'kenneth.elliott@csus.edu',
 };
 
+export const mockEmployee = {
+  id: "123-123-1234-1234",
+  name: 'John Doe',
+  role: 'Team Ciena',
+};
+
 export const mockBooking = {
   id: 1,
   name: 'Neon Lights Festival',

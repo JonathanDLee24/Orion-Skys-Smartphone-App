@@ -79,6 +79,7 @@ export default function EmployeeDashboard({ navigation }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Review your show brief for ${nextShow.eventName}`}
+        onPress={() => navigation.navigate('EventDetails', { submission: nextShow })}
         style={({ pressed }) => [s.card, styles.action, pressed && styles.pressed]}
       >
         <EmployeeIcon type="document" color={colors.accent} size={20} />
