@@ -27,6 +27,10 @@ export default function EmployeeIcon({ type, color, size = 22 }) {
         React.createElement('path', { key: 'lines', d: 'M14 2v6h6M16 13H8M16 17H8M10 9H8', ...stroke }),
       ],
       chat: [React.createElement('path', { key: 'bubble', d: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z', ...stroke })],
+      clock: [
+        React.createElement('circle', { key: 'dial', cx: 12, cy: 12, r: 9, ...stroke }),
+        React.createElement('path', { key: 'hands', d: 'M12 7v5l3 2', ...stroke }),
+      ],
     };
     return React.createElement('svg', { width: size, height: size, viewBox: '0 0 24 24', 'aria-hidden': true }, shape[type]);
   }
@@ -35,6 +39,14 @@ export default function EmployeeIcon({ type, color, size = 22 }) {
   if (type === 'pin') return <View style={[styles.pinIcon, { borderColor: color }]}><View style={[styles.pinDot, { borderColor: color }]} /></View>;
   if (type === 'document') return <View style={[styles.docIcon, { borderColor: color }]}>{[0, 1, 2].map((line) => <View key={line} style={[styles.docLine, { backgroundColor: color }]} />)}</View>;
   if (type === 'chat') return <View style={[styles.chatIcon, { borderColor: color }]} />;
+  if (type === 'clock') {
+    return (
+      <View style={[styles.clockIcon, { borderColor: color }]}>
+        <View style={[styles.clockHour, { backgroundColor: color }]} />
+        <View style={[styles.clockMinute, { backgroundColor: color }]} />
+      </View>
+    );
+  }
   return (
     <View style={[styles.calendarIcon, { borderColor: color }]}>
       <View style={[styles.calendarBar, { backgroundColor: color }]} />
@@ -57,4 +69,7 @@ const styles = StyleSheet.create({
   docIcon: { width: 16, height: 20, borderWidth: 2, borderRadius: 2, paddingHorizontal: 2, paddingTop: 4, gap: 2 },
   docLine: { height: 1.5 },
   chatIcon: { width: 17, height: 17, borderWidth: 2, borderRadius: 9, borderBottomLeftRadius: 2 },
+  clockIcon: { width: 18, height: 18, borderWidth: 2, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  clockHour: { position: 'absolute', width: 2, height: 5, top: 3, borderRadius: 1 },
+  clockMinute: { position: 'absolute', width: 5, height: 2, right: 3, borderRadius: 1 },
 });

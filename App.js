@@ -11,6 +11,7 @@ import BookingConflictScreen from './src/screens/BookingConflictScreen';
 import BookingManageScreen from './src/screens/BookingManageScreen';
 import BookingReviewScreen from './src/screens/BookingReviewScreen';
 import BookingSubmittedScreen from './src/screens/BookingSubmittedScreen';
+import CreditsScreen from './src/screens/CreditsScreen';
 import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
@@ -95,6 +96,7 @@ export default function App() {
               <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
               <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
+              <Stack.Screen name="Credits" component={CreditsScreen} />
               <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
               <Stack.Screen name="EventAction" component={EventActionScreen} />
               <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />

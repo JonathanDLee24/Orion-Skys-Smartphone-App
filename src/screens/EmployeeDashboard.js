@@ -10,6 +10,7 @@ import {
   getScheduledSubmissions,
 } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
+import { toDateKey } from '../utils/bookingCalendar';
 
 // Show data comes from the booking ledger; Schedule and the show actions route
 // to the booking wizard and management screens.
@@ -35,6 +36,9 @@ function showLocation(submission) {
 export default function EmployeeDashboard({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  // Only desktop uses the wide split; iPad/tablet and phone keep the original
+  // centered single-column portal.
+  const splitLayout = layout.mode === 'desktop';
   const [submissions, setSubmissions] = useState(getScheduledSubmissions);
 
   // Submissions are kept in a session ledger, so refresh when the dashboard
@@ -47,15 +51,46 @@ export default function EmployeeDashboard({ navigation }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const nextShow = getNextScheduledSubmission() || submissions[0] || null;
+  const todayKey = toDateKey(new Date());
+  const scheduled = submissions.filter(
+    (submission) => submission.status === 'confirmed' && submission.date >= todayKey
+  );
+  const review = submissions.filter((submission) => submission.status === 'pending');
+  const nextShow = getNextScheduledSubmission() || scheduled[0] || null;
   const stats = [
-    { key: 'scheduled', value: String(submissions.length).padStart(2, '0'), label: 'SCHEDULED SHOWS' },
-    {
-      key: 'review',
-      value: String(submissions.filter((submission) => submission.status === 'pending').length).padStart(2, '0'),
-      label: 'IN REVIEW',
-    },
+    { key: 'scheduled', value: String(scheduled.length).padStart(2, '0'), label: 'SCHEDULED SHOWS' },
+    { key: 'review', value: String(review.length).padStart(2, '0'), label: 'IN REVIEW' },
   ];
+
+  const helpRow = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Contact your show coordinator"
+      style={({ pressed }) => [styles.help, splitLayout && styles.wideHelp, pressed && styles.pressed]}
+    >
+      <EmployeeIcon type="chat" color={colors.accent} size={18} />
+      <Text style={[s.body, styles.helpText]}>Need help? Contact your show coordinator</Text>
+    </Pressable>
+  );
+
+  const nextAction = nextShow ? (
+    <>
+      <Text style={[s.label, styles.sectionLabel]}>// YOUR NEXT ACTION</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Review your show brief for ${nextShow.eventName}`}
+        onPress={() => navigation.navigate('EventDetails', { submission: nextShow })}
+        style={({ pressed }) => [s.card, styles.action, pressed && styles.pressed]}
+      >
+        <EmployeeIcon type="document" color={colors.accent} size={20} />
+        <View style={styles.detailCopy}>
+          <Text style={styles.detailTitle}>Review your show brief</Text>
+          <Text style={s.body}>{nextShow.eventName} · {nextShow.reference}</Text>
+        </View>
+        <Text style={styles.chevron}>›</Text>
+      </Pressable>
+    </>
+  ) : null;
 
   return (
     <ScreenLayout
@@ -76,33 +111,40 @@ export default function EmployeeDashboard({ navigation }) {
         />
       )}
     >
-      <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
+      <View style={[styles.dashboard, layout.wide && styles.wideDashboard, splitLayout && styles.desktopDashboard]}>
         <Text style={[s.body, styles.intro]}>Plan your next show. Keep every detail in view.</Text>
 
-        <View style={styles.stats}>
-          {stats.map((stat) => (
-            <View key={stat.key} style={[s.card, styles.stat]}>
-              <Text testID={`stat-${stat.key}`} style={[styles.statValue, layout.wide && styles.wideStatValue]}>{stat.value}</Text>
-              <Text style={s.label}>{stat.label}</Text>
+        <View testID="dashboard-columns" style={[styles.content, splitLayout && styles.wideContent]}>
+          <View style={[styles.leftColumn, splitLayout && styles.wideLeftColumn]}>
+            <View style={styles.stats}>
+              {stats.map((stat) => (
+                <View key={stat.key} style={[s.card, styles.stat]}>
+                  <Text testID={`stat-${stat.key}`} style={[styles.statValue, layout.wide && styles.wideStatValue]}>{stat.value}</Text>
+                  <Text style={s.label}>{stat.label}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
 
-        <PrimaryButton title="+ Schedule a show" onPress={() => navigation.navigate('BookingDateVenue')} />
+            <PrimaryButton title="+ Schedule a show" onPress={() => navigation.navigate('BookingDateVenue')} />
 
-        <View style={styles.sectionHeading}>
-          <Text style={s.label}>// NEXT SCHEDULED SHOW</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="View all shows"
-            onPress={() => navigation.navigate('EmployeeEvents')}
-            style={({ pressed }) => [styles.inlineLink, pressed && styles.pressed]}
-          >
-            <Text style={styles.linkText}>View all →</Text>
-          </Pressable>
-        </View>
+            {splitLayout && nextAction}
+            {splitLayout && helpRow}
+          </View>
 
-        {nextShow ? (
+          <View style={[styles.rightColumn, splitLayout && styles.wideRightColumn]}>
+            <View style={[styles.sectionHeading, splitLayout && styles.wideSectionHeading]}>
+              <Text style={s.label}>// NEXT SCHEDULED SHOW</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View all shows"
+                onPress={() => navigation.navigate('EmployeeEvents')}
+                style={({ pressed }) => [styles.inlineLink, pressed && styles.pressed]}
+              >
+                <Text style={styles.linkText}>View all →</Text>
+              </Pressable>
+            </View>
+
+            {nextShow ? (
           <View testID="next-show" style={[s.card, styles.showCard]}>
             <View style={styles.showTop}>
               <Text style={s.label}>{nextShow.reference || nextShow.id}</Text>
@@ -144,29 +186,11 @@ export default function EmployeeDashboard({ navigation }) {
           </View>
         )}
 
-        {nextShow && (
-          <>
-            <Text style={[s.label, styles.sectionLabel]}>// YOUR NEXT ACTION</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Review your show brief for ${nextShow.eventName}`}
-              onPress={() => navigation.navigate('EventDetails', { submission: nextShow })}
-              style={({ pressed }) => [s.card, styles.action, pressed && styles.pressed]}
-            >
-              <EmployeeIcon type="document" color={colors.accent} size={20} />
-              <View style={styles.detailCopy}>
-                <Text style={styles.detailTitle}>Review your show brief</Text>
-                <Text style={s.body}>{nextShow.eventName} · {nextShow.reference}</Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </Pressable>
-          </>
-        )}
+          </View>
+        </View>
 
-        <Pressable accessibilityRole="button" accessibilityLabel="Contact your show coordinator" style={({ pressed }) => [styles.help, pressed && styles.pressed]}>
-          <EmployeeIcon type="chat" color={colors.accent} size={18} />
-          <Text style={[s.body, styles.helpText]}>Need help? Contact your show coordinator</Text>
-        </Pressable>
+        {!splitLayout && nextAction}
+        {!splitLayout && helpRow}
       </View>
     </ScreenLayout>
   );
@@ -175,7 +199,18 @@ export default function EmployeeDashboard({ navigation }) {
 const styles = StyleSheet.create({
   dashboard: { flex: 1 },
   wideDashboard: { maxWidth: 720, alignSelf: 'center', width: '100%' },
+  // Desktop uses the available width: stats, schedule action, next action and
+  // help on the left, the next show on the right, so the portal fits one page.
+  desktopDashboard: { maxWidth: 1120 },
   intro: { marginTop: -8, marginBottom: 16 },
+  content: { width: '100%' },
+  wideContent: { flexDirection: 'row', alignItems: 'flex-start', gap: 32 },
+  leftColumn: { width: '100%' },
+  wideLeftColumn: { flexBasis: '36%', flexGrow: 0, flexShrink: 0 },
+  rightColumn: { width: '100%' },
+  wideRightColumn: { flex: 1, minWidth: 0 },
+  wideSectionHeading: { marginTop: 0 },
+  wideHelp: { marginTop: 16 },
   stats: { flexDirection: 'row', gap: 12 },
   stat: { flex: 1 },
   statValue: { color: colors.accent, fontFamily: monoFont, fontSize: 26, fontWeight: '700', marginBottom: 6 },

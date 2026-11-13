@@ -13,8 +13,9 @@ const WEEKS_PER_GRID = 6;
 const DAYS_PER_WEEK = 7;
 const HOURS_PER_DAY = 24;
 
-// FAA registration and airspace review require a one-week lead time.
-export const MIN_BOOKING_LEAD_DAYS = 7;
+// Bookings can start on the device's current date. The booking screen disables
+// elapsed hourly slots once a user picks today.
+export const MIN_BOOKING_LEAD_DAYS = 0;
 
 
 export function startOfDay(value = new Date()) {
@@ -29,7 +30,8 @@ export function isSameDay(first, second) {
     && first.getDate() === second.getDate();
 }
 
-// Shows run all week, including Sundays, and need at least a one-week lead.
+// Shows run all week, including Sundays. The first bookable day is the device's
+// current day; same-day shows are allowed if a future time slot is selected.
 export function getEarliestBookableDate(today = new Date()) {
   const earliest = startOfDay(today);
   earliest.setDate(earliest.getDate() + MIN_BOOKING_LEAD_DAYS);
@@ -39,6 +41,13 @@ export function getEarliestBookableDate(today = new Date()) {
 export function isDateBookable(date, today = new Date()) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
   return startOfDay(date).getTime() >= getEarliestBookableDate(today).getTime();
+}
+
+// Hourly slots are local to the device. The current hour is treated as elapsed
+// so a show cannot be submitted at the exact time it was meant to start.
+export function isTimeSlotPast(slotHour, date, now = new Date()) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
+  return isSameDay(date, now) && slotHour <= now.getHours();
 }
 
 export function buildMonthGrid(year, month, today = new Date()) {

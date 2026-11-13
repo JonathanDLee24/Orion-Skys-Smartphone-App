@@ -19,7 +19,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, headerAction, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, compactHeader = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
   const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
@@ -35,19 +35,30 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
           </Pressable>
           <Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text>
         </View>}
-        <View style={[styles.header, { paddingHorizontal: layout.padding }, layout.wide && styles.wideHeader]}>
-          <View style={styles.labelRow}>
+        <View
+          testID="screen-header"
+          style={[
+            styles.header,
+            { paddingHorizontal: layout.padding },
+            layout.wide && styles.wideHeader,
+            !layout.wide && compactHeader && styles.phoneCompactHeader,
+          ]}
+        >
+          <View style={[styles.labelRow, !layout.wide && compactHeader && styles.phoneCompactLabelRow]}>
             {label ? <Text style={[styles.label, layout.wide && styles.wideLabel, headerTone === 'success' && styles.successLabel, headerTone === 'danger' && styles.dangerLabel, headerTone === 'gold' && styles.goldLabel]}>// {label}</Text> : <View />}
             <View style={styles.headerActions}>
+              {headerAction}
               {!!onAccount && (
-                <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, pressed && styles.backPressed]}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, !layout.wide && compactHeader && styles.phoneCompactAccount, pressed && styles.backPressed]}>
                   <Text style={styles.accountText}>◈ ACCOUNT</Text>
                 </Pressable>
               )}
               {!!badgeText && <Text style={[styles.badge, layout.wide && styles.wideLabel, secure && styles.secure, headerTone === 'success' && styles.successBadge, headerTone === 'danger' && styles.dangerBadge, headerTone === 'gold' && styles.goldBadge]}>{badgeText}</Text>}
             </View>
           </View>
-          <Text accessibilityRole="header" style={[styles.title, layout.wide && styles.wideTitle]}>{title}</Text>
+          {title ? (
+            <Text accessibilityRole="header" style={[styles.title, layout.wide && styles.wideTitle]}>{title}</Text>
+          ) : null}
         </View>
         {shouldShowProgress && (
           <View accessibilityRole="progressbar" accessibilityLabel="Booking progress" accessibilityValue={{ min: 1, max: 4, now: phase, text: `Phase ${phase} of 4` }} style={styles.progress}>
@@ -58,20 +69,23 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
         )}
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[styles.content, { padding: layout.padding }]}
+          contentContainerStyle={[styles.content, {
+            paddingHorizontal: layout.padding,
+            paddingVertical: layout.tight ? 12 : layout.wide ? 24 : layout.padding,
+          }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           keyboardDismissMode="on-drag"
         >
           {onBack && (
-            <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.backPressed]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, layout.wide && styles.wideBack, layout.tight && styles.tightBack, pressed && styles.backPressed]}>
               <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
             </Pressable>
           )}
           {children}
         </ScrollView>
-        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && { paddingHorizontal: layout.padding, paddingVertical: 24 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
+        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && !flushFooter && !plainFooter && { paddingHorizontal: layout.padding, paddingVertical: layout.tight ? 6 : 12 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
           <View testID="footer-actions" style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
         </View>}
       </View>
@@ -101,14 +115,14 @@ export const screenStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   frame: { flex: 1, width: '100%', alignSelf: 'center', backgroundColor: colors.background },
-  brand: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 24, borderBottomWidth: 1, borderColor: colors.border },
+  brand: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderColor: colors.border },
   phoneBrand: { paddingVertical: 14 },
-  brandLogo: { width: 230, height: 46 },
+  brandLogo: { width: 200, height: 36 },
   phoneBrandLogo: { width: 170, height: 34 },
   brandCaption: { color: colors.muted, fontFamily: monoFont, fontSize: 11, letterSpacing: 1 },
   phoneBrandCaption: { fontSize: 9, letterSpacing: 0.5 },
-  wideHeader: { paddingTop: 28, paddingBottom: 24 },
-  wideTitle: { fontSize: 32, lineHeight: 42 },
+  wideHeader: { paddingTop: 14, paddingBottom: 10 },
+  wideTitle: { fontSize: 28, lineHeight: 34 },
   wideLabel: { fontSize: 12 },
   wideBackText: { fontSize: 14 },
   footerInner: { width: '100%' },
@@ -126,6 +140,9 @@ const styles = StyleSheet.create({
   batteryFill: { flex: 1, backgroundColor: colors.text, borderRadius: 1 },
   batteryTip: { width: 2, height: 4, backgroundColor: colors.text, marginLeft: -4 },
   header: { paddingHorizontal: 18, paddingTop: 8, paddingBottom: 12 },
+  phoneCompactHeader: { paddingTop: 2, paddingBottom: 6 },
+  phoneCompactLabelRow: { marginBottom: 0 },
+  phoneCompactAccount: { minHeight: 24 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 7 },
   label: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
   successLabel: { color: '#10B981' },
@@ -142,6 +159,8 @@ const styles = StyleSheet.create({
   onlineBadge: { color: colors.cyan, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0 },
   title: { color: colors.text, fontFamily: monoFont, fontSize: 17, fontWeight: '700', letterSpacing: 0.2, lineHeight: 24 },
   back: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center', marginTop: -10, marginBottom: 8 },
+  wideBack: { minHeight: 36, marginBottom: 0 },
+  tightBack: { minHeight: 32, marginTop: 0 },
   backText: { color: colors.accent, fontSize: 12 },
   backPressed: { opacity: 0.7 },
   progress: { flexDirection: 'row', gap: 4 },

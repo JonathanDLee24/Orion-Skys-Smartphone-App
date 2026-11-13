@@ -15,23 +15,30 @@ export const colors = {
   green: '#00C795',
 };
 
-export function getResponsiveLayout(width) {
+export function getResponsiveLayout(width, height = 900) {
   const tablet = width >= 768;
   const desktop = width >= 1200;
   return {
+    width,
+    height,
     mode: desktop ? 'desktop' : tablet ? 'tablet' : 'phone',
+    // Short laptop windows need tighter vertical chrome so a full step still
+    // fits without a scrollbar.
+    tight: tablet && height < 800,
     wide: tablet,
     padding: desktop ? 48 : tablet ? 32 : 18,
     gap: desktop ? 32 : tablet ? 24 : 14,
-    maxWidth: desktop ? 1280 : tablet ? 1100 : 767,
+    // Fill the viewport at each breakpoint instead of leaving fixed gutters on
+    // ordinary laptop screens. The cap only matters on very wide monitors.
+    maxWidth: desktop ? 1440 : tablet ? 1200 : 767,
     bodySize: tablet ? 15 : 11,
     labelSize: tablet ? 12 : 10,
   };
 }
 
 export function useResponsiveLayout() {
-  const { width } = useWindowDimensions();
-  return getResponsiveLayout(width);
+  const { width, height } = useWindowDimensions();
+  return getResponsiveLayout(width, height);
 }
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 };
