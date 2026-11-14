@@ -6,7 +6,7 @@ import { getShowKey, useLiabilityAccepted } from '../services/liabilityClausesSe
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 // Entry point for a show's authorization paperwork, opened from Show
-// Management. Pending Signatures has no screen yet, so it has no route.
+// Management.
 const SECTIONS = [
   {
     key: 'liability',
@@ -18,6 +18,7 @@ const SECTIONS = [
     key: 'signatures',
     title: 'Pending Signatures',
     description: 'See which authorization documents still need signing.',
+    route: 'PendingSignatures',
   },
 ];
 
