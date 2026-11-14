@@ -180,29 +180,32 @@ export default function PendingSignaturesScreen({ route, navigation }) {
             const isSelected = signer.id === selectedId;
             const overdue = signer.status === SIGNATURE_STATUS.OVERDUE;
             const sent = Boolean(reminded[signer.id]);
+            // The card is a plain View so the reminder button is a sibling of the
+            // select button, not nested inside it (nested <button>s are invalid on web).
             return (
-              <Pressable
+              <View
                 key={signer.id}
-                testID={`signer-${signer.id}`}
-                accessibilityRole="button"
-                accessibilityLabel={`${signer.name}, ${signer.role} (${signer.organization}), ${theme.label}`}
-                accessibilityState={{ selected: isSelected }}
-                onPress={() => toggleSelected(signer.id)}
-                style={({ pressed }) => [
+                style={[
                   s.card,
                   styles.signer,
                   overdue && { borderColor: colors.error },
                   isSelected && { borderColor: theme.color, borderWidth: 2 },
-                  pressed && styles.pressed,
                 ]}
               >
-                <View style={styles.signerTop}>
+                <Pressable
+                  testID={`signer-${signer.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${signer.name}, ${signer.role} (${signer.organization}), ${theme.label}`}
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => toggleSelected(signer.id)}
+                  style={({ pressed }) => [styles.signerTop, pressed && styles.pressed]}
+                >
                   <View style={styles.signerCopy}>
                     <Text style={styles.signerName}>{signer.name}</Text>
                     <Text style={s.body}>{`${signer.role} (${signer.organization})`}</Text>
                   </View>
                   <StatusBadge status={signer.status} testID={`status-${signer.id}`} />
-                </View>
+                </Pressable>
 
                 {needsReminder(signer) ? (
                   <>
@@ -223,7 +226,7 @@ export default function PendingSignaturesScreen({ route, navigation }) {
                     </View>
                   </>
                 ) : null}
-              </Pressable>
+              </View>
             );
           })}
         </View>
