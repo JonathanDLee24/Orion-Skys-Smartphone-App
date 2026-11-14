@@ -41,7 +41,7 @@ test('welcome admin option opens the admin sign in screen', async () => {
 
 test('employee dashboard renders its content and bottom navigation', async () => {
   let tree;
-  await act(async () => { tree = create(<EmployeeDashboard navigation={{ navigate: jest.fn() }} />); });
+  await act(async () => { tree = create(<EmployeeDashboard seedDemoData={false} navigation={{ navigate: jest.fn() }} />); });
 
   const text = textOf(tree);
   expect(text).toContain('Welcome back, Kenneth');
@@ -71,7 +71,7 @@ test('employee dashboard shows the show that was actually submitted', async () =
   });
 
   let tree;
-  await act(async () => { tree = create(<EmployeeDashboard navigation={{ navigate: jest.fn() }} />); });
+  await act(async () => { tree = create(<EmployeeDashboard seedDemoData={false} navigation={{ navigate: jest.fn() }} />); });
 
   const text = textOf(tree);
   expect(text).toContain('Harbour Night Market');
@@ -83,6 +83,23 @@ test('employee dashboard shows the show that was actually submitted', async () =
   expect(text).toContain('Singapore · 200 drones');
   expect(text).not.toContain('Apex Global Summit');
   expect(tree.root.findAll((node) => node.props.testID === 'next-show-empty')).toHaveLength(0);
+
+  await act(async () => tree.unmount());
+});
+
+test('employee dashboard features the Apex Global Summit as the next scheduled show', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => { tree = create(<EmployeeDashboard navigation={navigation} />); });
+
+  const showName = tree.root.find((node) => node.props.testID === 'next-show-name');
+  expect(showName.props.children).toBe('Apex Global Summit');
+
+  const manage = tree.root.find((node) => node.props.accessibilityLabel === 'Manage event for Apex Global Summit');
+  await act(async () => manage.props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('BookingManage', {
+    submission: expect.objectContaining({ id: 'demo-apex-summit', eventName: 'Apex Global Summit' }),
+  });
 
   await act(async () => tree.unmount());
 });

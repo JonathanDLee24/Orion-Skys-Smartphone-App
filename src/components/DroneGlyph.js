@@ -1,6 +1,13 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import Svg, { Circle, G, Line, Rect } from 'react-native-svg';
 import { colors } from '../theme';
+
+// Decorative icon: hide it from screen readers. On web, react-native-svg passes props
+// straight to the DOM <svg>, where `accessible`/`focusable={false}` are invalid attributes.
+const HIDDEN_PROPS = Platform.OS === 'web'
+  ? { 'aria-hidden': true }
+  : { accessible: false, focusable: false };
 
 const ROTORS = [
   { cx: 16, cy: 16 },
@@ -11,7 +18,7 @@ const ROTORS = [
 
 export default function DroneGlyph({ size = 64, color = colors.accent, bodyColor = colors.background }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 64 64" accessible={false} focusable={false}>
+    <Svg width={size} height={size} viewBox="0 0 64 64" {...HIDDEN_PROPS}>
       <G opacity={0.5}>
         {ROTORS.map(({ cx, cy }) => (
           <G key={`${cx}-${cy}`}>
