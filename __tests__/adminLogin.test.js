@@ -35,15 +35,16 @@ test('admin account locks after five incorrect passwords and can be explicitly r
 
   expect(isAdminAccountLocked('admin')).toBe(true);
   expect(tree.root.findAllByType(Text).some(
-    (node) => node.props.children === 'Account locked after 5 incorrect password attempts. Contact an administrator to reset access.',
+    (node) => node.props.children === 'Account locked after 5 incorrect password attempts. Use the demo unlock flow below.',
   )).toBe(true);
   expect(navigation.navigate).not.toHaveBeenCalled();
 
-  resetAdminLoginAttempts('admin');
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Request demo unlock email').props.onPress());
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Open simulated unlock link').props.onPress());
   expect(isAdminAccountLocked('admin')).toBe(false);
   await act(async () => inputs[1].props.onChangeText('admin1234'));
   await act(async () => submit.props.onPress());
-  expect(navigation.navigate).toHaveBeenCalledWith('DroneManifest');
+  expect(navigation.navigate).toHaveBeenCalledWith('AdminDashboard');
   await act(async () => tree.unmount());
 });
 

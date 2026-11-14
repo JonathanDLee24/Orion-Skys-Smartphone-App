@@ -2,172 +2,350 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import EmployeeBottomNav from '../components/EmployeeBottomNav';
 import EmployeeIcon from '../components/EmployeeIcon';
-import PrimaryButton from '../components/PrimaryButton';
+import EventFeedCard from '../components/EventFeedCard';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { formatUnavailableSlot, getScheduledSubmissions } from '../services/bookingConflictService';
+import { getSubmissionHistory } from '../services/bookingConflictService';
+import { seedDemoEvents } from '../services/eventFeedService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
+import { MONTH_NAMES, parseDateKey, toDateKey } from '../utils/bookingCalendar';
+import { formatTimeZoneName } from '../utils/timeZones';
 
-function statusLabel(submission) {
-  return String(submission.status || 'pending').replace(/_/g, ' ').toUpperCase();
+const FILTERS = [
+  { key: 'requests', label: 'Requests' },
+  { key: 'upcoming', label: 'Upcoming' },
+  { key: 'past', label: 'Past' },
+];
+
+const FILTER_HELPERS = {
+  upcoming: 'UPCOMING',
+  requests: 'REQUESTS',
+  past: 'PAST',
+};
+
+const EMPTY_STATES = {
+  upcoming: {
+    title: 'No upcoming shows.',
+    body: 'Confirmed shows and pending venue reviews appear here as soon as they are on your schedule.',
+  },
+  requests: {
+    title: 'No open requests.',
+    body: 'New booking requests appear here while venue and airspace review is in progress.',
+  },
+  past: {
+    title: 'No past shows.',
+    body: 'Completed and cancelled shows move here so you can look back at the archive.',
+  },
+};
+
+function pluralize(count, singular, plural) {
+  return count === 1 ? singular : plural;
 }
 
-function timing(submission) {
-  return [
-    submission.timeZoneLabel || submission.timeZone,
-    submission.durationMinutes ? `${submission.durationMinutes}-minute show` : null,
-  ].filter(Boolean).join(' · ');
+function offsetLabel(submission) {
+  if (!submission) return 'UTC+8';
+  const formatted = submission.timeZone
+    ? formatTimeZoneName(parseDateKey(submission.date), submission.timeZone)
+    : '';
+  const match = formatted.match(/UTC[+-]\d{1,2}(?::\d{2})?/)
+    || String(submission.timeZoneLabel || '').match(/UTC[+-]\d{1,2}(?::\d{2})?/);
+  return match ? match[0] : 'UTC+8';
 }
 
-function location(submission) {
-  const address = [submission.city, submission.postalCode ? submission.postalCode : null]
-    .filter(Boolean)
-    .join(' ');
-  return [
-    address,
-    submission.droneCount ? `${submission.droneCount} drones` : null,
-  ].filter(Boolean).join(' · ');
+function alertDate(submission) {
+  const date = parseDateKey(submission.date);
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}`;
 }
 
-export default function EmployeeEventsScreen({ navigation }) {
+export default function EmployeeEventsScreen({ navigation, seedDemoData = true, adminMode = false }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
-  const [submissions, setSubmissions] = useState(getScheduledSubmissions);
+  const [activeFilter, setActiveFilter] = useState('upcoming');
+  const [submissions, setSubmissions] = useState(() => {
+    if (seedDemoData) seedDemoEvents();
+    return getSubmissionHistory();
+  });
 
   // The ledger lives for the session, so pick up bookings and cancellations
   // when the user comes back to this tab.
   useEffect(() => {
-    const refreshSubmissions = () => setSubmissions(getScheduledSubmissions());
+    const refreshSubmissions = () => setSubmissions(getSubmissionHistory());
     refreshSubmissions();
     const unsubscribe = navigation?.addListener?.('focus', refreshSubmissions);
     return typeof unsubscribe === 'function' ? unsubscribe : undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const count = submissions.length;
+  const todayKey = toDateKey(new Date());
+  const upcoming = submissions.filter(
+    (submission) => submission.status === 'confirmed' && submission.date >= todayKey
+  );
+  const requests = submissions.filter((submission) => submission.status === 'pending');
+  // Cancelled shows keep their record here so a cancellation is archived rather
+  // than lost, even when the show date was still in the future.
+  const past = submissions.filter(
+    (submission) => submission.status === 'completed'
+      || submission.status === 'cancelled'
+      || (submission.date < todayKey && submission.status !== 'pending')
+  );
+  const futureRequests = requests.filter((submission) => submission.date >= todayKey);
+
+  const activeItems = activeFilter === 'upcoming'
+    ? [...upcoming, ...futureRequests]
+    : activeFilter === 'requests'
+      ? requests
+      : past;
+  const timezoneHelper = `${FILTER_HELPERS[activeFilter]} // VENUE LOCAL TIME • ${offsetLabel(activeItems[0] || submissions[0])}`;
+
+  const summary = `${upcoming.length} scheduled ${pluralize(upcoming.length, 'show', 'shows')} • `
+    + `${requests.length} ${pluralize(requests.length, 'request', 'requests')} in review`;
+
+  function openEvent(submission) {
+    navigation.navigate('BookingManage', {
+      submission,
+      ...(adminMode ? { adminReturn: 'AdminSchedule' } : {}),
+    });
+  }
+
+  function openSchedule() {
+    navigation.navigate('BookingDateVenue');
+  }
+
+  function renderPendingAlert(submission) {
+    const name = submission.eventName || 'Untitled show';
+    return (
+      <Pressable
+        key={`pending-${submission.id}`}
+        testID={`event-pending-${submission.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`Review request for ${name}`}
+        onPress={() => openEvent(submission)}
+        style={({ pressed }) => [
+          s.card,
+          styles.alertCard,
+          layout.mode === 'desktop' && styles.desktopFeedCard,
+          pressed && styles.pressed,
+        ]}
+      >
+        <View style={styles.alertIcon}>
+          <EmployeeIcon type="clock" color={colors.gold} size={18} />
+        </View>
+        <View style={styles.alertCopy}>
+          <Text style={styles.alertTitle}>{`${name} • ${alertDate(submission)}`}</Text>
+          <Text style={[s.body, styles.alertBody]}>Venue &amp; airspace review pending.</Text>
+        </View>
+        <Text style={styles.alertChevron}>›</Text>
+      </Pressable>
+    );
+  }
+
+  function renderEmptyState() {
+    const copy = EMPTY_STATES[activeFilter];
+    return (
+      <View testID="events-empty" style={[s.card, styles.emptyCard]}>
+        <Text style={styles.emptyTitle}>{copy.title}</Text>
+        <Text style={[s.body, styles.emptyCopy]}>{copy.body}</Text>
+      </View>
+    );
+  }
+
+  function renderFeed() {
+    if (activeFilter === 'upcoming') {
+      if (upcoming.length === 0 && futureRequests.length === 0) return renderEmptyState();
+      return (
+        <>
+          {upcoming.map((submission) => (
+            <EventFeedCard
+              key={submission.id}
+              submission={submission}
+              tone="confirmed"
+              onOpen={openEvent}
+            />
+          ))}
+          {futureRequests.map(renderPendingAlert)}
+        </>
+      );
+    }
+
+    const items = activeFilter === 'requests' ? requests : past;
+    if (items.length === 0) return renderEmptyState();
+    return items.map((submission) => (
+      <EventFeedCard
+        key={submission.id}
+        submission={submission}
+        tone={activeFilter === 'past' ? 'past' : 'pending'}
+        onOpen={openEvent}
+      />
+    ));
+  }
 
   return (
     <ScreenLayout
-      label="EMPLOYEE PORTAL // EVENTS"
-      caption="EMPLOYEE OPERATIONS / SCHEDULING"
-      onLogoPress={() => navigation.navigate('Welcome')}
-      title="All scheduled events"
-      secure
+      caption={adminMode ? 'ADMIN OPERATIONS / SCHEDULE' : 'CLIENT OPERATIONS / SCHEDULE'}
+      label={adminMode ? 'ADMIN SHOW SCHEDULE' : 'CLIENT SCHEDULE // 2026'}
+      title={adminMode ? 'Show schedule' : 'Your events'}
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'Welcome')}
+      onBack={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      backLabel="Back to admin dashboard"
+      headerAction={!adminMode ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Credits"
+          onPress={() => navigation.navigate('Credits')}
+          style={({ pressed }) => [styles.credits, pressed && styles.pressed]}
+        >
+          <Text style={styles.creditsText}>Credits</Text>
+        </Pressable>
+      ) : null}
       showProgress={false}
-      plainFooter
-      footer={(
+      plainFooter={!adminMode}
+      footer={!adminMode ? (
         <EmployeeBottomNav
           active="EVENTS"
           onHome={() => navigation.navigate('EmployeeDashboard')}
-          onSchedule={() => navigation.navigate('BookingDateVenue')}
+          onSchedule={openSchedule}
           onEvents={() => navigation.navigate('EmployeeEvents')}
           onAccount={() => navigation.navigate('Dashboard')}
         />
-      )}
+      ) : null}
     >
-      <View style={[styles.list, layout.wide && styles.wideList]}>
-        <View style={styles.heading}>
-          <Text style={[s.body, styles.intro]}>
-            {count === 0
-              ? 'Nothing on the schedule yet.'
-              : `${String(count).padStart(2, '0')} ${count === 1 ? 'event' : 'events'} on the schedule.`}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Schedule a show"
-            onPress={() => navigation.navigate('BookingDateVenue')}
-            style={({ pressed }) => [styles.inlineLink, pressed && styles.pressed]}
-          >
-            <Text style={styles.linkText}>+ New</Text>
-          </Pressable>
+      <View style={styles.list}>
+        <Text testID="events-summary" accessibilityLiveRegion="polite" style={[s.body, styles.summary]}>
+          {summary}
+        </Text>
+
+        <View accessibilityRole="tablist" style={styles.tabs}>
+          {FILTERS.map((filter) => {
+            const selected = activeFilter === filter.key;
+            const count = filter.key === 'upcoming'
+              ? upcoming.length
+              : filter.key === 'requests'
+                ? requests.length
+                : null;
+            const label = count == null ? filter.label : `${filter.label} (${count})`;
+            return (
+              <Pressable
+                key={filter.key}
+                testID={`events-filter-${filter.key}`}
+                accessibilityRole="tab"
+                accessibilityLabel={label}
+                accessibilityState={{ selected }}
+                onPress={() => setActiveFilter(filter.key)}
+                style={({ pressed }) => [
+                  styles.tab,
+                  selected && styles.tabActive,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={[styles.tabText, selected && styles.tabTextActive]}>{label}</Text>
+                {selected ? <View style={styles.tabUnderline} /> : null}
+              </Pressable>
+            );
+          })}
         </View>
 
-        {count === 0 ? (
-          <View testID="events-empty" style={[s.card, styles.emptyCard]}>
-            <Text style={styles.emptyTitle}>No shows booked yet.</Text>
-            <Text style={[s.body, styles.emptyCopy]}>
-              Submitted booking requests appear here, and you can manage or cancel any show from this list.
-            </Text>
-            <PrimaryButton title="+ Schedule a show" onPress={() => navigation.navigate('BookingDateVenue')} />
-          </View>
-        ) : (
-          <View testID="events-list">
-            {submissions.map((submission) => (
-              <View key={submission.id} testID={`event-card-${submission.id}`} style={[s.card, styles.eventCard]}>
-                <View style={styles.eventTop}>
-                  <Text style={s.label}>{submission.reference || submission.id}</Text>
-                  <Text style={[styles.statusBadge, submission.status === 'pending' ? styles.pendingBadge : styles.confirmedBadge]}>
-                    ● {statusLabel(submission)}
-                  </Text>
-                </View>
-                <Text style={[styles.eventName, layout.wide && styles.wideEventName]}>
-                  {submission.eventName || 'Untitled show'}
-                </Text>
+        <Text testID="events-timezone-helper" style={styles.helper}>
+          {timezoneHelper}
+        </Text>
 
-                <View style={styles.detail}>
-                  <EmployeeIcon type="calendar" color={colors.accent} size={20} />
-                  <View style={styles.detailCopy}>
-                    <Text style={styles.detailTitle}>
-                      {formatUnavailableSlot({ date: submission.date, timeSlot: submission.timeSlot })}
-                    </Text>
-                    {!!timing(submission) && <Text style={s.body}>{timing(submission)}</Text>}
-                  </View>
-                </View>
+        <View
+          testID="events-list"
+          style={[styles.feed, layout.mode === 'desktop' && styles.desktopFeed]}
+        >
+          {renderFeed()}
+        </View>
 
-                <View style={styles.detail}>
-                  <EmployeeIcon type="pin" color={colors.accent} size={20} />
-                  <View style={styles.detailCopy}>
-                    <Text style={styles.detailTitle}>{submission.venueName || 'Venue to be confirmed'}</Text>
-                    {!!location(submission) && <Text style={s.body}>{location(submission)}</Text>}
-                  </View>
-                </View>
-
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Manage event for ${submission.eventName || 'show'}`}
-                  onPress={() => navigation.navigate('BookingManage', { submission })}
-                  style={({ pressed }) => [styles.manage, pressed && styles.pressed]}
-                >
-                  <Text style={styles.linkText}>Manage event</Text>
-                  <Text style={styles.chevron}>→</Text>
-                </Pressable>
-              </View>
-            ))}
-          </View>
-        )}
       </View>
     </ScreenLayout>
   );
 }
 
+export function AdminScheduleScreen({ navigation }) {
+  return (
+    <EmployeeEventsScreen
+      navigation={navigation}
+      seedDemoData={false}
+      adminMode
+    />
+  );
+}
+
 const styles = StyleSheet.create({
-  list: { flex: 1 },
-  wideList: { maxWidth: 720, alignSelf: 'center', width: '100%' },
-  heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: -8, marginBottom: 12 },
-  intro: { flex: 1 },
-  inlineLink: { minHeight: 44, justifyContent: 'center' },
-  linkText: { color: colors.accent, fontSize: 13, fontWeight: '600' },
-  eventCard: { borderColor: colors.border },
-  eventTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 },
-  statusBadge: { borderRadius: 10, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 3, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
-  pendingBadge: { color: colors.gold, backgroundColor: '#171200' },
-  confirmedBadge: { color: colors.green, backgroundColor: '#04241C' },
-  eventName: { color: colors.text, fontSize: 17, fontWeight: '600', marginBottom: 12 },
-  wideEventName: { fontSize: 21 },
-  detail: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 },
-  detailCopy: { flex: 1 },
-  detailTitle: { color: colors.text, fontSize: 14, fontWeight: '500', marginBottom: 2 },
-  manage: {
+  list: { width: '100%' },
+  feed: { width: '100%' },
+  desktopFeed: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  desktopFeedCard: { flexBasis: '48%', flexGrow: 1, marginBottom: 0 },
+  summary: { marginTop: -6, marginBottom: 12, color: colors.text },
+  tabs: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: 44,
-    borderTopWidth: 1,
+    alignItems: 'stretch',
+    borderBottomWidth: 1,
     borderColor: colors.border,
-    paddingTop: 6,
+    marginBottom: 10,
   },
-  chevron: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  tab: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+    paddingTop: 5,
+    paddingBottom: 10,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  tabActive: { backgroundColor: colors.accentTint },
+  tabText: { color: colors.muted, fontFamily: monoFont, fontSize: 10, fontWeight: '700', letterSpacing: 0.2 },
+  tabTextActive: { color: colors.accent },
+  tabUnderline: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: -1,
+    height: 2,
+    backgroundColor: colors.accent,
+  },
+  helper: {
+    color: colors.muted,
+    fontFamily: monoFont,
+    fontSize: 9,
+    lineHeight: 14,
+    letterSpacing: 0.4,
+    marginBottom: 12,
+  },
+  credits: {
+    minHeight: 32,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  creditsText: { color: colors.text, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 0.4 },
+  alertCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#171200',
+    borderColor: colors.gold,
+  },
+  alertIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alertCopy: { flex: 1, minWidth: 0 },
+  alertTitle: { color: colors.text, fontSize: 13, fontWeight: '700', lineHeight: 18, marginBottom: 3 },
+  alertBody: { lineHeight: 16 },
+  alertChevron: { color: colors.gold, fontSize: 20, fontWeight: '700' },
   emptyCard: { borderStyle: 'dashed' },
   emptyTitle: { color: colors.text, fontSize: 15, fontWeight: '600', marginBottom: 6 },
-  emptyCopy: { marginBottom: 14 },
+  emptyCopy: { lineHeight: 17 },
   pressed: { opacity: 0.72 },
 });

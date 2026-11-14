@@ -54,7 +54,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
 
   return (
     <View testID="booking-calendar" style={styles.wrapper}>
-      <View style={styles.header}>
+      <View style={[styles.header, layout.tight && styles.tightHeader]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Previous month"
@@ -145,7 +145,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
         </View>
       )}
 
-      <View testID="calendar-legend" style={styles.legend}>
+      <View testID="calendar-legend" style={[styles.legend, layout.tight && styles.tightLegend]}>
         <View style={styles.legendItem}>
           <View style={[styles.legendSwatch, styles.legendAvailable]} />
           <Text style={styles.legendText}>AVAILABLE</Text>
@@ -188,6 +188,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                     onPress={() => onChange(new Date(cell.date))}
                     style={({ pressed }) => [
                       styles.cell,
+                      layout.wide ? (layout.tight ? styles.tightCell : styles.wideCell) : styles.squareCell,
                       cell.inMonth && !disabled && styles.availableCell,
                       booked && !selected && styles.bookedCell,
                       selected && styles.selectedCell,
@@ -214,21 +215,22 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
         ))}
       </View>
 
-      <Text testID="calendar-footnote" style={styles.footnote}>
-        • One show per day. Red days are already booked. Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
+      <Text testID="calendar-footnote" style={[styles.footnote, layout.tight && styles.tightFootnote]}>
+        • One show per day. Red days are already booked. Same-day booking is available; past times are disabled. Sample availability · not live inventory.
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { width: '100%', maxWidth: 520, alignSelf: 'center' },
+  wrapper: { width: '100%', maxWidth: 340, alignSelf: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 },
+  tightHeader: { marginBottom: 6 },
   caret: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   caretText: { color: colors.accent, fontFamily: monoFont, fontSize: 24, lineHeight: 28 },
   monthTrigger: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   month: { color: colors.text, fontFamily: monoFont, fontSize: 15, fontWeight: '700', textAlign: 'center' },
-  wideMonth: { fontSize: 18 },
+  wideMonth: { fontSize: 16 },
   triggerChevron: { color: colors.accent, fontFamily: monoFont, fontSize: 12 },
   pickerPanel: { borderWidth: 1, borderColor: colors.accent, borderRadius: 6, backgroundColor: colors.field, padding: 10, marginBottom: 12 },
   pickerLabel: { color: colors.accent, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.5, marginBottom: 8 },
@@ -244,20 +246,26 @@ const styles = StyleSheet.create({
   yearText: { color: colors.text, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', marginBottom: 4 },
   weekday: { flex: 1, color: colors.muted, fontFamily: monoFont, fontSize: 8, textAlign: 'center', letterSpacing: 0.3 },
-  wideWeekday: { fontSize: 10 },
+  wideWeekday: { fontSize: 9 },
   grid: { width: '100%' },
   week: { flexDirection: 'row' },
   cellWrap: { flex: 1, minWidth: 0, padding: 2 },
-  cell: { aspectRatio: 1, minHeight: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: 'transparent' },
+  cell: { minHeight: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: 'transparent' },
+  // Phones keep square day cells; wide layouts use a fixed height so six week
+  // rows stay short enough for the whole booking step to fit without scrolling.
+  squareCell: { aspectRatio: 1 },
+  wideCell: { height: 38 },
+  tightCell: { height: 32 },
   availableCell: { backgroundColor: colors.field, borderColor: colors.border },
   selectedCell: { backgroundColor: colors.accent, borderColor: colors.accent },
   day: { color: colors.muted, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
-  wideDay: { fontSize: 13 },
+  wideDay: { fontSize: 12 },
   outsideDay: { color: colors.border },
   disabledDay: { color: colors.border },
   bookedCell: { backgroundColor: colors.error, borderColor: colors.error },
   bookedDay: { color: colors.text },
   legend: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 8 },
+  tightLegend: { marginBottom: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2, borderWidth: 1 },
   legendAvailable: { backgroundColor: colors.field, borderColor: colors.border },
@@ -267,5 +275,6 @@ const styles = StyleSheet.create({
   legendBookedText: { color: colors.error, fontWeight: '700' },
   selectedDay: { color: colors.background },
   footnote: { color: colors.muted, fontSize: 10, lineHeight: 15, marginTop: 12 },
+  tightFootnote: { fontSize: 9, lineHeight: 13, marginTop: 6 },
   pressed: { opacity: 0.7 },
 });

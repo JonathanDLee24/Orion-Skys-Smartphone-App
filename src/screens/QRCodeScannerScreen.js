@@ -25,7 +25,7 @@ function TabIcon({ icon, color }) {
   return <Text style={[styles.backIcon, { color }]} accessibilityElementsHidden>←</Text>;
 }
 
-export default function QRCodeScannerScreen({ navigation }) {
+export default function QRCodeScannerScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -34,11 +34,23 @@ export default function QRCodeScannerScreen({ navigation }) {
     setScanned(true); // Prevent repeated detections while processing.
     navigation.navigate('EmployeeSuccessfulScan', { qrData: data });
   };
+  const adminMode = route?.params?.adminMode === true;
+  const returnToDashboard = () => navigation?.navigate(adminMode ? 'AdminDashboard' : 'EmployeeDashboard');
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
       <View style={[styles.screen, layout.wide && styles.wideScreen]}>
         <View style={styles.header}>
+          {adminMode ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back to admin dashboard"
+              onPress={returnToDashboard}
+              style={({ pressed }) => [styles.adminBack, pressed && styles.pressed]}
+            >
+              <Text style={styles.adminBackText}>← Dashboard</Text>
+            </Pressable>
+          ) : null}
           <Text accessibilityRole="header" style={styles.title}>Staff QR Scanner</Text>
         </View>
 
@@ -108,7 +120,7 @@ export default function QRCodeScannerScreen({ navigation }) {
                   accessibilityRole={isBack ? 'button' : 'tab'}
                   accessibilityLabel={tab.label}
                   accessibilityState={isBack ? undefined : { selected }}
-                  onPress={isBack ? () => navigation?.navigate('EmployeeDashboard') : undefined}
+                  onPress={isBack ? returnToDashboard : undefined}
                   style={({ pressed }) => [
                     styles.tab,
                     selected && styles.selectedTab,
@@ -151,6 +163,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  adminBack: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 10 },
+  adminBackText: { color: colors.accent, fontSize: 13, fontWeight: '600' },
   title: {
     color: '#F5F7FC',
     fontSize: 20,
