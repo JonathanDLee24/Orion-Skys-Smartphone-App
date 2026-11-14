@@ -183,14 +183,20 @@ test('the manage screen offers Show Authorization until the booking is cancelled
   seedDemoEvents();
   const findAuthorization = (tree) => tree.root.findAll((node) => node.props.testID === 'show-authorization');
 
+  const navigation = { navigate: jest.fn() };
   let tree;
   await act(async () => {
     tree = create(
-      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={{ navigate: jest.fn() }} />
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={navigation} />
     );
   });
   expect(findAuthorization(tree).length).toBeGreaterThan(0);
   expect(textOf(tree)).toContain('Show Authorization');
+
+  await act(async () => findButton(tree, 'Show Authorization').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('ShowAuthorization', {
+    submission: expect.objectContaining({ id: 'demo-apex-summit' }),
+  });
 
   await act(async () => findButton(tree, 'Cancel booking').props.onPress());
   expect(findAuthorization(tree)).toHaveLength(0);

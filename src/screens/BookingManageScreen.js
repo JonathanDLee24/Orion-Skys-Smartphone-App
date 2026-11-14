@@ -389,11 +389,14 @@ export default function BookingManageScreen({ route, navigation }) {
       )}
 
       {!cancelled && !confirming ? (
-        // Not wired to a screen yet; the Show Authorization page is built next.
         <Pressable
           testID="show-authorization"
           accessibilityRole="button"
           accessibilityLabel="Show Authorization"
+          onPress={() => navigation.navigate('ShowAuthorization', {
+            submission: record,
+            ...(adminReturn ? { adminReturn } : {}),
+          })}
           style={({ pressed }) => [
             styles.authorization,
             tablet && styles.authorizationTablet,
