@@ -387,6 +387,26 @@ export default function BookingManageScreen({ route, navigation }) {
           </Text>
         </View>
       )}
+
+      {!cancelled && !confirming ? (
+        <Pressable
+          testID="show-authorization"
+          accessibilityRole="button"
+          accessibilityLabel="Show Authorization"
+          onPress={() => navigation.navigate('ShowAuthorization', {
+            submission: record,
+            ...(adminReturn ? { adminReturn } : {}),
+          })}
+          style={({ pressed }) => [
+            styles.authorization,
+            tablet && styles.authorizationTablet,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.authorizationText}>Show Authorization</Text>
+          <Text style={styles.authorizationChevron}>→</Text>
+        </Pressable>
+      ) : null}
     </ScreenLayout>
   );
 }
@@ -590,5 +610,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   secondaryText: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  authorization: {
+    width: '100%',
+    minHeight: 52,
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: 4,
+    backgroundColor: colors.accentTint,
+    paddingHorizontal: 16,
+  },
+  authorizationTablet: { minHeight: 44, marginTop: 8 },
+  authorizationText: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  authorizationChevron: { color: colors.accent, fontSize: 18, fontWeight: '700' },
   pressed: { opacity: 0.72 },
 });

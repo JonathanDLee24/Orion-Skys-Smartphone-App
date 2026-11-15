@@ -160,7 +160,7 @@ test('the dashboard routes the booked show into the manage screen', async () => 
 
   let tree;
   await act(async () => {
-    tree = create(<EmployeeDashboard navigation={navigation} />);
+    tree = create(<EmployeeDashboard seedDemoData={false} navigation={navigation} />);
   });
 
   await act(async () => findButton(tree, 'Manage event for Harbour Night Market').props.onPress());
@@ -173,8 +173,36 @@ test('the dashboard routes the booked show into the manage screen', async () => 
   // A cancelled show drops out of the dashboard's upcoming list.
   cancelBookingSubmission(submission.id);
   await act(async () => {
-    tree = create(<EmployeeDashboard navigation={{ navigate: jest.fn() }} />);
+    tree = create(<EmployeeDashboard seedDemoData={false} navigation={{ navigate: jest.fn() }} />);
   });
   expect(textOf(tree)).toContain('No shows booked yet.');
+  await act(async () => tree.unmount());
+});
+
+test('the manage screen offers Show Authorization until the booking is cancelled', async () => {
+  seedDemoEvents();
+  const findAuthorization = (tree) => tree.root.findAll((node) => node.props.testID === 'show-authorization');
+
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={navigation} />
+    );
+  });
+  expect(findAuthorization(tree).length).toBeGreaterThan(0);
+  expect(textOf(tree)).toContain('Show Authorization');
+
+  await act(async () => findButton(tree, 'Show Authorization').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('ShowAuthorization', {
+    submission: expect.objectContaining({ id: 'demo-apex-summit' }),
+  });
+
+  await act(async () => findButton(tree, 'Cancel booking').props.onPress());
+  expect(findAuthorization(tree)).toHaveLength(0);
+
+  await act(async () => findButton(tree, 'Yes, cancel booking').props.onPress());
+  expect(findAuthorization(tree)).toHaveLength(0);
+
   await act(async () => tree.unmount());
 });

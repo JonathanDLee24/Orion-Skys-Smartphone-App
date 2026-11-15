@@ -1,5 +1,6 @@
 import {
   bookingSubmissions,
+  CANCELLED_STATUS,
   getSubmissionById,
   getSubmissionForDate,
 } from './bookingConflictService';
@@ -83,6 +84,16 @@ export const DEMO_EVENTS = [
     ...SINGAPORE_TIME_ZONE,
   },
 ];
+
+// The employee portal features this show as the next scheduled show.
+export const FEATURED_DEMO_EVENT_ID = 'demo-apex-summit';
+
+// The featured show from the session ledger, unless it was never seeded or has
+// since been cancelled.
+export function getFeaturedDemoEvent() {
+  const event = getSubmissionById(FEATURED_DEMO_EVENT_ID);
+  return event && event.status !== CANCELLED_STATUS ? event : null;
+}
 
 // One show per day: a demo record never replaces a real booking that already
 // claimed its date, and re-mounting the feed cannot add duplicates.

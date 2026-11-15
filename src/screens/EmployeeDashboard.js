@@ -9,6 +9,7 @@ import {
   getNextScheduledSubmission,
   getScheduledSubmissions,
 } from '../services/bookingConflictService';
+import { getFeaturedDemoEvent, seedDemoEvents } from '../services/eventFeedService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { toDateKey } from '../utils/bookingCalendar';
 
@@ -33,13 +34,18 @@ function showLocation(submission) {
   ].filter(Boolean).join(' · ');
 }
 
-export default function EmployeeDashboard({ navigation }) {
+export default function EmployeeDashboard({ navigation, seedDemoData = true }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   // Only desktop uses the wide split; iPad/tablet and phone keep the original
   // centered single-column portal.
   const splitLayout = layout.mode === 'desktop';
-  const [submissions, setSubmissions] = useState(getScheduledSubmissions);
+  // Seed the demo shows here as well as on the Events tab so the portal opens
+  // with the Apex Global Summit as the next scheduled show.
+  const [submissions, setSubmissions] = useState(() => {
+    if (seedDemoData) seedDemoEvents();
+    return getScheduledSubmissions();
+  });
 
   // Submissions are kept in a session ledger, so refresh when the dashboard
   // regains focus after a booking is sent from the review step.
@@ -56,7 +62,8 @@ export default function EmployeeDashboard({ navigation }) {
     (submission) => submission.status === 'confirmed' && submission.date >= todayKey
   );
   const review = submissions.filter((submission) => submission.status === 'pending');
-  const nextShow = getNextScheduledSubmission() || scheduled[0] || null;
+  const featuredShow = seedDemoData ? getFeaturedDemoEvent() : null;
+  const nextShow = featuredShow || getNextScheduledSubmission() || scheduled[0] || null;
   const stats = [
     { key: 'scheduled', value: String(scheduled.length).padStart(2, '0'), label: 'SCHEDULED SHOWS' },
     { key: 'review', value: String(review.length).padStart(2, '0'), label: 'IN REVIEW' },
