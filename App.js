@@ -30,6 +30,7 @@ import WelcomeScreen from './src/screens/WelcomeScreen';
 import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import ShowAuthorizationScreen from './src/screens/ShowAuthorizationScreen';
 import LiabilityClausesScreen from './src/screens/LiabilityClausesScreen';
+import PendingSignaturesScreen from './src/screens/PendingSignaturesScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
@@ -114,6 +115,7 @@ export default function App() {
             <Stack.Screen name="BookingManage" component={BookingManageScreen} />
             <Stack.Screen name="ShowAuthorization" component={ShowAuthorizationScreen} />
             <Stack.Screen name="LiabilityClauses" component={LiabilityClausesScreen} />
+            <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
               <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
               <Stack.Screen name="FeeReview" component={FeeReviewScreen} />

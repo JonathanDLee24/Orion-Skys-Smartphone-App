@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, monoFont } from '../theme';
 
@@ -8,26 +8,43 @@ const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 // A small centered confirmation with a checkmark. It fades in, closes itself
 // after `duration`, and a tap anywhere on screen closes it early. `showKey` replays it
 // when the same message is confirmed again.
-export default function ConfirmationPopup({ message, showKey, onHide, duration = 2200, testID = 'confirmation-popup' }) {
+export default function ConfirmationPopup({
+  message,
+  showKey,
+  onHide,
+  duration = 2200,
+  testID = 'confirmation-popup',
+  useNativeDriver = USE_NATIVE_DRIVER,
+}) {
+  // Opacity is always back at 0 whenever the popup is hidden, so a new popup
+  // never paints a frame at a stale opacity before fading in.
   const opacity = useRef(new Animated.Value(0)).current;
   const onHideRef = useRef(onHide);
   onHideRef.current = onHide;
 
-  useEffect(() => {
-    if (!message) return undefined;
+  const hide = () => {
+    opacity.stopAnimation();
     opacity.setValue(0);
-    Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: USE_NATIVE_DRIVER }).start();
+    if (onHideRef.current) onHideRef.current();
+  };
+
+  // Layout effect: starts before the first paint, so there is no frame
+  // between mounting and the fade beginning. A replay (new showKey) while the
+  // popup is up fades from wherever it is instead of snapping back to 0.
+  useLayoutEffect(() => {
+    if (!message) return undefined;
+    opacity.stopAnimation();
+    Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver }).start();
     const timer = setTimeout(() => {
-      Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: USE_NATIVE_DRIVER }).start(({ finished }) => {
-        if (finished && onHideRef.current) onHideRef.current();
+      Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver }).start(({ finished }) => {
+        if (finished) hide();
       });
     }, duration);
     return () => clearTimeout(timer);
-  }, [message, showKey, duration, opacity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message, showKey, duration, opacity, useNativeDriver]);
 
   if (!message) return null;
-
-  const hide = () => onHideRef.current && onHideRef.current();
 
   // The whole screen is the tap target: a tap or click anywhere closes the
   // popup, and that tap is not passed on to whatever sits underneath.
