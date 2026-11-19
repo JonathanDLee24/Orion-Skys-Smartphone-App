@@ -201,6 +201,8 @@ Reached from **Client sign-off** in My Account. It shows a verified credential p
 
 Reached from **Review documents** in My Account. Pick a mock show, review agreements, waivers, receipts and FAA flight plans, then press **Reconcile & Generate Complete PDF**. `dossierPdfService` writes a one-page test PDF locally and downloads it on web or shares it through `expo-sharing` on device; no server is involved.
 
+Admins can open **Preview delivery status** from a dossier to inspect a simulated confirmation, per-recipient To/CC/BCC statuses, and that event's sent log. The preview does not send email or query a mail provider. Its event-scoped records exist only in memory for the current app session; production delivery and open/bounce updates require a backend, provider integration and durable storage.
+
 ### QR check-in
 
 My Account links to the personal **Employee QR Code** (`EmployeeQRCode`, encoding `mockEmployee` with `react-native-qrcode-svg`) and **Scan QR codes** (`QRCodeScanner`). The scanner is a static simulation — framed viewfinder, target event, today’s scan count and a Back tab — with no camera or decoding. `EmployeeSuccessfulScan` and `CustomerSuccessfulScan` are registered verification-result screens but are not linked from the scanner.

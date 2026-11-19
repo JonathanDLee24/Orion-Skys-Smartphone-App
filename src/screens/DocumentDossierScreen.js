@@ -3,6 +3,7 @@ import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { downloadDossierPdf } from '../services/dossierPdfService';
+import { createPreviewDelivery } from '../services/dossierDeliveryService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 // Mock content for now; the dossier will load from the booking once the document service exists.
@@ -69,12 +70,20 @@ export default function DocumentDossierScreen({ navigation, route }) {
           );
         })}
       </View>
+      {adminMode && <View style={styles.previewAction}>
+        <Text style={s.body}>Email delivery is not configured. Preview the delivery confirmation using simulated data.</Text>
+        <PrimaryButton title="Preview delivery status" testID="preview-delivery" onPress={() => {
+          const delivery = createPreviewDelivery(activeDossier.id);
+          navigation.navigate('DossierDelivery', { dossier: activeDossier, deliveryId: delivery.id });
+        }} />
+      </View>}
     </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
   sectionLabel: { marginBottom: 12 },
+  previewAction: { gap: 12, marginTop: 16 },
   groups: {},
   wideGroups: { flexDirection: 'row', flexWrap: 'wrap', gap: 24 },
   wideGroup: { flexBasis: '45%', flexGrow: 1 },
