@@ -29,7 +29,8 @@ There is **no backend**. Authentication, bookings, date locking, settings, fees 
 - **Your events (OSPSA-68):** aggregate metrics, Requests / Upcoming / Past filters, reusable confirmed event cards, pending review alerts, a cancelled-show archive, a Credits workspace and deep links into management.
 - **Responsive redesign:** phone-first layouts plus tablet and desktop arrangements for the dashboard, events feed, date and venue step, review, receipt and manage screens, including equal-width footers and clearer phone headers.
 - **Supporting screens:** account settings, fee review, checkout and the admin fleet manifest.
-- **Verification:** 22 Jest suites covering routing, booking state, payments, event details, sign-off, services and every responsive breakpoint.
+- **Accessibility (OSPSA-457):** an **Accessibility mode** master toggle plus text size, high-contrast colours, large touch targets and reduced motion that adapt every screen, with built-in image and control descriptions for screen readers.
+- **Verification:** 28 Jest suites covering routing, booking state, payments, event details, sign-off, accessibility, services and every responsive breakpoint.
 
 ## Install and run
 
@@ -89,6 +90,7 @@ All routes are registered in `App.js` with `headerShown: false`; each screen ren
 | `DroneManifest` | `SerializedDroneManifestScreen.js` | Admin fleet registry with search |
 | `Dashboard` | `DashboardScreen.js` | My Account shortcuts: booking, fees, settings, documents, sign-off and QR |
 | `AccountSettings` | `AccountSettingsScreen.js` | Notification streams, language, time zone |
+| `AccessibilitySettings` | `AccessibilitySettingsScreen.js` | Accessibility mode master toggle, text size, contrast, targets, motion |
 | `FeeReview` | `FeeReviewScreen.js` | Coverage/policy fees (OSPSA-340 preview) |
 | `Checkout` | `PaymentCheckoutScreen.js` | Operations summary and simulated payment submission |
 
@@ -105,7 +107,8 @@ Welcome
 │    ├─ Review your show brief (next show) → EventDetails → EventAction / BookingManage
 │    └─ ACCOUNT → Dashboard (My Account)
 │         ├→ FeeReview → Checkout → PaymentStatus
-│         ├→ AccountSettings
+│         ├→ AccountSettings → AccessibilitySettings
+│         ├→ AccessibilitySettings
 │         ├→ DossierShowSelect → DocumentDossier
 │         ├→ ClientSignOff
 │         ├→ QRCodeScanner
@@ -213,7 +216,20 @@ My Account links to the personal **Employee QR Code** (`EmployeeQRCode`, encodin
 
 `DashboardScreen` (“My Account”) has seven shortcuts: schedule a show, review booking fees, account settings, review documents, client sign-off, scan QR codes and the employee QR code.
 
-`AccountSettingsScreen` renders four notification streams — email (on), push (off), show updates (on), billing (on) — plus a security/contractual email footnote, language (`English` default) and time-zone pickers, and Save/Cancel. Save calls `saveNotificationSettings` (500 ms mock) and shows a `Preferences saved` toast; failure shows an inline error. Cancel and the `< ACCOUNT` breadcrumb return to `Dashboard`. The saved time zone becomes the fallback for bookings when a postal code cannot be resolved.
+`AccountSettingsScreen` renders four notification streams — email (on), push (off), show updates (on), billing (on) — plus a security/contractual email footnote, language (`English` default) and time-zone pickers, and Save/Cancel. Save calls `saveNotificationSettings` (500 ms mock) and shows a `Preferences saved` toast; failure shows an inline error. Cancel and the `< ACCOUNT` breadcrumb return to `Dashboard`. The saved time zone becomes the fallback for bookings when a postal code cannot be resolved. An `// ACCESSIBILITY` card links to the accessibility screen.
+
+### Accessibility (OSPSA-457)
+
+A single **Accessibility mode** toggle gates every aid, so the app can be switched back to its standard layout at any time without losing the chosen options.
+
+- **Where to find it:** `Dashboard` → **Accessibility options**, the `// ACCESSIBILITY` card in Account Settings, and **Accessibility** in the admin destinations list. All three open the `AccessibilitySettings` route, which also offers **Reset accessibility options**.
+- **Text size:** Normal (100%), Large (125%) and Largest (150%). Every screen imports `Text` and `TextInput` from `src/components/AppText.js` / `AppTextInput.js` rather than `react-native`, so the factor scales every `fontSize` and `lineHeight` in the app, including inline styles. The device's own font-scale setting still applies on top.
+- **High contrast:** brightens muted copy (`#8C8C8C` → `#E6E6E6`), error, gold, green and cyan tokens, and strengthens borders and dividers (`#262626` → `#8A8A8A`). Text colours are remapped inside `AppText`; shared chrome (frame, header, footer, cards, switches, calendar, dialogs, toasts and the bottom navigation) reads the same palette through `useAccessibilityColors()`.
+- **Large touch targets:** lifts every shared control to at least 56 × 56 px — primary buttons (60 px), switch touch areas, dropdown fields and options, calendar days, year and month chips, event-card actions, bottom-nav tabs and the back/account links — and adds 8 px `hitSlop` around them.
+- **Reduce motion:** removes the switch slide, toast and confirmation fades, the drone launch overlay and stack screen transitions, replacing fades with an instant show/hide.
+- **Screen readers:** the logo (welcome, header and on-screen) and every image carry spoken labels, so VoiceOver and TalkBack read a description instead of “image”. Every button, tab, switch, radio and dialog announces its role, label and state (checked, selected, expanded, disabled). Switch-style rows expose `accessibilityRole="switch"` with `accessibilityState.checked`, so switch control and a Bluetooth keyboard can operate them.
+- **Status:** changes apply immediately and live in `src/services/accessibilityService.js` as session memory, like the other mocks in this prototype; they reset on reload. Layouts scroll, so enlarged text never clips.
+- **Limitation:** the prototype ships one dark theme. High contrast strengthens that theme rather than adding a separate light theme, because the screens' `StyleSheet` colours are resolved when their modules load.
 
 ### Fee review and checkout (OSPSA-340 preview)
 
@@ -277,6 +293,7 @@ Everything is session state; a reload clears it. Replace these modules with real
 | `services/paymentService.js` | Payment API + Stripe webhook | Mock payment lifecycle and the normalized webhook contract |
 | `services/creditsService.js` | `GET /api/clients/me/credits` | In-memory balance and activity ledger shown in the Credits workspace |
 | `services/settingsService.js` | `GET/PUT /api/clients/me/settings` | In-memory store, 500 ms save, failure flag |
+| `services/accessibilityService.js` | `GET/PUT /api/clients/me/accessibility` | In-memory accessibility preferences, master-toggle gating, text-size factors |
 | `services/feeService.js` | `GET /api/bookings/:id/fees` | 600 ms mock from `mockData.js`, failure flag |
 | `services/employeeAuthService.js` | Employee auth | Local username/password table |
 | `services/adminAuthService.js` | Admin auth | Local table, five-attempt lockout |
@@ -314,7 +331,7 @@ npm run check
 npx expo export --platform all
 ```
 
-Current suite count (13 November 2026): **22 Jest suites**.
+Current suite count (18 November 2026): **28 Jest suites**.
 
 - Run `npm install` before `npm test`: the event-details, QR-code and sign-off screens add `expo-document-picker`, `react-native-qrcode-svg` and `react-native-svg`.
 - `npm test -- --runInBand` runs every suite once.
@@ -327,6 +344,7 @@ Current suite count (13 November 2026): **22 Jest suites**.
 | `screens.test.js` | Fee review loading/error, checkout totals, coverage switch, promo/split, progress dividers, missing booking |
 | `settings.test.js` | Notification defaults/toggles, pickers, save success/failure, cancel and breadcrumb routing, dashboard links |
 | `settingsService.test.js` | Saved payload, delay, failure |
+| `accessibility.test.js` | Master-toggle gating, text-size factors, app-wide text scaling, high-contrast text and borders, large touch targets, reduced-motion launch skip, reset and dashboard routing |
 | `responsive.test.js` | Phone/tablet/desktop breakpoints, short-window compaction, footer width, desktop booking three-column layout, tablet full-width Venue & Address, desktop and tablet receipt layouts, full-width receipt note, phone receipt compact action row and header, home-indicator clearance, manage two-column and compact footer layouts, cancelled status layout, footer action order, archived-note visibility |
 | `credits.test.js` | Balance/rules/activity content, back and booking routes, stacked phone vs two-column wide layout |
 | `eventCardsResponsive.test.js` | Confirmed card layout at 320, 390, 768 and 1440 px, including wrap and non-truncation rules |
@@ -355,7 +373,7 @@ app.json                              Expo app config and web bundler
 package.json / package-lock.json      Dependencies, scripts, Jest preset
 assets/orion-skys-logo.png            Brand logo used by the header and welcome screen
 src/
-  theme.js                            Colors, spacing, mono font, responsive breakpoints
+  theme.js                            Colors, high-contrast tokens, spacing, mono font, responsive breakpoints
   mockData.js                         Notification defaults, pickers, request contact, fee payload
   utils/
     bookingCalendar.js                Month grid, lead time, slots, date-key helpers
@@ -371,10 +389,14 @@ src/
     signOffService.js                 Credential profile, signatures and session records
     paymentService.js                 Mock payment lifecycle and webhook contract
     settingsService.js                Preferences store and mock save
+    accessibilityService.js           Accessibility preferences, master gating, text-size factors
     feeService.js                     Mock fee fetch with failure flag
     employeeAuthService.js            Employee demo accounts
     adminAuthService.js               Admin demo accounts and lockout
   components/
+    AccessibilityProvider.js          Accessibility context, high-contrast palette and tap-target hooks
+    AppText.js                        App-wide Text wrapper: text scaling and contrast colours
+    AppTextInput.js                   App-wide TextInput wrapper: same scaling plus large targets
     BookingWizardProgress.js          Three-step DATE & VENUE / REVIEW / REQUEST header
     CalendarPicker.js                 Month grid, month/year jump, booked dates
     DropdownSelect.js                 Expanding picker overlay
@@ -390,7 +412,7 @@ src/
     ScreenLayout.js                   Safe area, header, scroll view, footer, keyboard handling
     SendPlaneIcon.js                  Paper-plane submit icon drawn with thin bars
     Toast.js                          Auto-dismissing success toast
-    ToggleSwitch.js                   Animated lime/grey switch
+    ToggleSwitch.js                   Animated lime/grey switch (instant and larger in reduced-motion / large-target modes)
   screens/                            One file per route (see screen map)
 __tests__/                            Jest suites listed above
 ```

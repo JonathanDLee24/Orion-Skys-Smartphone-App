@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
+import TextInput from '../components/AppTextInput';
 import BookingWizardProgress from '../components/BookingWizardProgress';
 import CalendarPicker from '../components/CalendarPicker';
 import PrimaryButton from '../components/PrimaryButton';

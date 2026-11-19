@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import DroneGlyph from './DroneGlyph';
+import { useAccessibility } from './AccessibilityProvider';
 import { colors } from '../theme';
 
 // react-native-web has no native animated module, so fall back to the JS driver there.
@@ -142,7 +143,13 @@ function DroneLaunchOverlay({ onFinished }) {
 
 export function DroneLaunchProvider({ children }) {
   const [run, setRun] = useState(0);
-  const launch = useCallback(() => setRun((current) => current + 1), []);
+  const { reduceMotion } = useAccessibility();
+  // Reduced motion skips the launch animation entirely; the sign-in still
+  // navigates through the caller, it just never paints the flying overlay.
+  const launch = useCallback(() => {
+    if (reduceMotion) return;
+    setRun((current) => current + 1);
+  }, [reduceMotion]);
   const value = useMemo(() => ({ launch }), [launch]);
   const finish = useCallback(() => setRun(0), []);
 

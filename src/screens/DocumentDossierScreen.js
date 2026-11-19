@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { downloadDossierPdf } from '../services/dossierPdfService';

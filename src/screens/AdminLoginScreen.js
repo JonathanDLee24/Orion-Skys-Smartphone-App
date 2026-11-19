@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
+import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import DemoUnlock from '../components/DemoUnlock';
 import { useDroneLaunch } from '../components/DroneLaunchTransition';

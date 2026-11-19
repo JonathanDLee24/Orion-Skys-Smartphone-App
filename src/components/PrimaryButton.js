@@ -1,9 +1,12 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 export default function PrimaryButton({ title, onPress, disabled = false, loading = false, showArrow = false, leadingIcon = null, compact = false, testID }) {
   const layout = useResponsiveLayout();
+  const tapTargets = useTapTargets();
   const unavailable = disabled || loading;
   return (
     <Pressable
@@ -12,11 +15,14 @@ export default function PrimaryButton({ title, onPress, disabled = false, loadin
       accessibilityLabel={title}
       accessibilityState={{ disabled: unavailable, busy: loading }}
       disabled={unavailable}
+      hitSlop={tapTargets.hitSlop}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
         compact && styles.compact,
         layout.wide && { minHeight: compact ? 48 : 56, padding: compact ? 12 : 16 },
+        compact && tapTargets.largeTargets && { minHeight: 56, paddingVertical: 14 },
+        !compact && tapTargets.largeTargets && { minHeight: 60, minWidth: 56, paddingVertical: 16 },
         unavailable && styles.disabled,
         pressed && styles.pressed,
       ]}
