@@ -60,3 +60,27 @@ export const mockBooking = {
     { type: 'State Sales Tax (8.7%)', amountCents: 17400, tax: true },
   ],
 };
+
+export const mockDroneUsage = {
+  droneID: "D1",
+  hours: 12,
+  numFlights: 3,
+  nextMaintenanceInHours: 12,
+};
+
+export const droneMissionData = [
+  {
+    missionID: "M1",
+    droneID: "D1",
+    totalFlightTimeMins: 12,
+    date: "2026-11-20",
+    missionName: "Test Flight 1",
+  },
+  {
+    missionID: "M2",
+    droneID: "D1",
+    totalFlightTimeMins: 15,
+    date: "2026-11-21",
+    missionName: "Test Flight 2",
+  },
+];
