@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, useResponsiveLayout } from '../theme';
 
@@ -7,6 +8,7 @@ const QUICK_LINKS = [
   { key: 'booking', label: 'Schedule a drone show', description: 'Pick a date, time and venue', route: 'BookingDateVenue' },
   { key: 'fees', label: 'Review booking fees', description: 'Coverage, policy and checkout', route: 'FeeReview' },
   { key: 'settings', label: 'Account settings', description: 'Notifications, language and time zone', route: 'AccountSettings' },
+  { key: 'accessibility', label: 'Accessibility options', description: 'Text size, contrast, touch targets and reduced motion', route: 'AccessibilitySettings' },
   { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DossierShowSelect' },
   { key: 'signOff', label: 'Client sign-off', description: 'Confirm your credentials and sign authorization', route: 'ClientSignOff' },
   { key: 'qrScanner', label: 'Scan QR codes', description: 'Check-in staff and guests', route: 'QRCodeScanner' },

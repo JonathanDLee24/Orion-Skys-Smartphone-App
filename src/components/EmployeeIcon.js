@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import Text from './AppText';
 
 // Shared line icons for the employee portal chrome (bottom navigation, cards).
 export default function EmployeeIcon({ type, color, size = 22 }) {

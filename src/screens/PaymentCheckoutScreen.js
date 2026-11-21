@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
+import TextInput from '../components/AppTextInput';
 import FeeRow from '../components/FeeRow';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';

@@ -1,5 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibility, useAccessibilityColors } from './AccessibilityProvider';
 import { colors, monoFont } from '../theme';
 
 // react-native-web has no native animated module, so fall back to the JS driver there.
@@ -21,6 +23,8 @@ export default function ConfirmationPopup({
   const opacity = useRef(new Animated.Value(0)).current;
   const onHideRef = useRef(onHide);
   onHideRef.current = onHide;
+  const { reduceMotion } = useAccessibility();
+  const theme = useAccessibilityColors();
 
   const hide = () => {
     opacity.stopAnimation();
@@ -33,6 +37,13 @@ export default function ConfirmationPopup({
   // popup is up fades from wherever it is instead of snapping back to 0.
   useLayoutEffect(() => {
     if (!message) return undefined;
+    // Reduced motion: the confirmation appears and disappears with no fade.
+    if (reduceMotion) {
+      opacity.stopAnimation();
+      opacity.setValue(1);
+      const plainTimer = setTimeout(hide, duration);
+      return () => clearTimeout(plainTimer);
+    }
     opacity.stopAnimation();
     Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver }).start();
     const timer = setTimeout(() => {
@@ -42,7 +53,7 @@ export default function ConfirmationPopup({
     }, duration);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message, showKey, duration, opacity, useNativeDriver]);
+  }, [message, showKey, duration, opacity, useNativeDriver, reduceMotion]);
 
   if (!message) return null;
 
@@ -59,7 +70,7 @@ export default function ConfirmationPopup({
         onPress={hide}
         style={styles.backdrop}
       >
-        <View style={styles.popup}>
+        <View style={[styles.popup, { backgroundColor: theme.card, borderColor: theme.accent }]}>
           <View style={styles.badge}>
             <Text style={styles.check}>✓</Text>
           </View>

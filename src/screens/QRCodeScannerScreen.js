@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
