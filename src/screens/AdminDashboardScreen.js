@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import {
   formatUnavailableSlot,
@@ -20,6 +21,7 @@ const DESTINATIONS = [
   { label: 'Contracts', description: 'Venue, crew, and vendor records', icon: '▤', route: 'AdminContracts' },
   { label: 'Crew', description: 'Staff access, gates, and roles', icon: '♙', route: 'QRCodeScanner', adminMode: true },
   { label: 'Settings', description: 'Portal, security, and preferences', icon: '⚙', route: 'AccountSettings', adminMode: true },
+  { label: 'Accessibility', description: 'Text size, contrast, touch targets and motion', icon: '◍', route: 'AccessibilitySettings', adminMode: true },
   { label: 'QuickBooks Sync', description: 'ERP ledger sync and API access', icon: '⟳', notice: 'QuickBooks sync is not configured in this app yet.' },
   { label: 'Sync status', description: 'View synchronization status', icon: '▦', notice: 'No external synchronization service is connected.' },
   { label: 'Send survey', description: 'Email feedback survey', icon: '▤', notice: 'Survey delivery is not configured in this app yet.' },

@@ -1,8 +1,10 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { act, create } from 'react-test-renderer';
+import { AccessibilityProvider } from '../src/components/AccessibilityProvider';
 import DocumentDossierScreen from '../src/screens/DocumentDossierScreen';
 import DossierDeliveryScreen, { DossierSentLogScreen } from '../src/screens/DossierDeliveryScreen';
+import { resetAccessibilityPreferences, setAccessibilityPreferences } from '../src/services/accessibilityService';
 import { clearDossierDeliverySession, fetchDossierDelivery, fetchEventEmailHistory, recordDossierDelivery } from '../src/services/dossierDeliveryService';
 
 jest.mock('@react-navigation/native', () => ({ ...jest.requireActual('@react-navigation/native'), useNavigation: () => ({ popToTop: jest.fn() }) }));
@@ -17,7 +19,10 @@ const delivery = { id: 'mail-1', sentAt: '2026-11-18T12:00:00Z', recipients: [
 ] };
 const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
 const button = (tree, label) => tree.root.findAll((node) => node.props.accessibilityLabel === label && node.props.onPress)[0];
-beforeEach(() => clearDossierDeliverySession());
+beforeEach(() => {
+  clearDossierDeliverySession();
+  resetAccessibilityPreferences();
+});
 
 test('delivery updates are retained in the correct event history', async () => {
   recordDossierDelivery(dossier.id, delivery);
@@ -40,6 +45,30 @@ test('confirmation fetches all recipients, opens event history and dismisses', a
   await act(async () => tree.unmount());
   await act(async () => { tree = create(<DossierSentLogScreen route={{ params: { dossier } }} navigation={navigation} />); });
   expect(textOf(tree)).toContain('bcc@example.com');
+  await act(async () => tree.unmount());
+});
+
+test('delivery details follow the accessibility text size and expose labels', async () => {
+  recordDossierDelivery(dossier.id, delivery);
+  setAccessibilityPreferences({ enabled: true, textSize: 'large' });
+  let tree;
+  await act(async () => {
+    tree = create(
+      <AccessibilityProvider>
+        <DossierDeliveryScreen route={{ params: { dossier, deliveryId: delivery.id } }} navigation={{ navigate: jest.fn(), goBack: jest.fn() }} />
+      </AccessibilityProvider>,
+    );
+  });
+
+  const heading = tree.root.find((node) => node.type === 'Text' && node.props.children === 'Test show');
+  expect(StyleSheet.flatten(heading.props.style).fontSize).toBe(20); // 16px heading × 1.25
+  expect(tree.root.findAll((node) => node.props.accessibilityRole === 'alert').length).toBeGreaterThan(0);
+  for (const label of ['Refresh delivery status', 'View Sent Log', 'Dismiss']) {
+    const action = button(tree, label);
+    expect(action.props.accessibilityRole).toBe('button');
+    expect(StyleSheet.flatten(action.props.style({ pressed: false })).minHeight).toBeGreaterThanOrEqual(56);
+  }
+
   await act(async () => tree.unmount());
 });
 

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import Text from './src/components/AppText';
 import { StatusBar } from 'expo-status-bar';
 import NetInfo from '@react-native-community/netinfo';
+import AccessibilitySettingsScreen from './src/screens/AccessibilitySettingsScreen';
 import AccountSettingsScreen from './src/screens/AccountSettingsScreen';
 import BookingDateVenueScreen from './src/screens/BookingDateVenueScreen';
 import BookingConflictScreen from './src/screens/BookingConflictScreen';
@@ -37,7 +39,7 @@ import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
-import { colors } from './src/theme';
+import { AccessibilityProvider, useAccessibility, useAccessibilityColors } from './src/components/AccessibilityProvider';
 
 NetInfo.configure({
   reachabilityShortTimeout: 1000,
@@ -46,13 +48,25 @@ NetInfo.configure({
 });
 
 const Stack = createNativeStackNavigator();
-const navigationTheme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, primary: colors.accent, background: colors.background, card: colors.card, text: colors.text, border: colors.border },
-};
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AccessibilityProvider>
+        <DroneLaunchProvider>
+          <AppShell />
+        </DroneLaunchProvider>
+      </AccessibilityProvider>
+    </SafeAreaProvider>
+  );
+}
+
+// Inside the accessibility provider so the palette and reduced-motion choice
+// reach the navigation container and the offline overlay too.
+function AppShell() {
   const [isOffline, setIsOffline] = useState(false);
+  const theme = useAccessibilityColors();
+  const { reduceMotion } = useAccessibility();
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -86,29 +100,46 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  const navigationTheme = useMemo(() => ({
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: theme.accent,
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      border: theme.border,
+    },
+  }), [theme]);
+
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar style="light" />
-      <DroneLaunchProvider>
-      <View style={styles.app}>
-        <View style={styles.app}>
+      <View style={[styles.app, { backgroundColor: theme.background }]}>
         <NavigationContainer theme={navigationTheme}>
-            <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-              <Stack.Screen name="Welcome" component={WelcomeScreen} />
-              <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
-              <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
-              <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
-              <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
-              <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
-              <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
-              <Stack.Screen name="Credits" component={CreditsScreen} />
-              <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
-              <Stack.Screen name="EventAction" component={EventActionScreen} />
-              <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
-              <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
-              <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-              <Stack.Screen name="AdminSchedule" component={AdminScheduleScreen} />
-              <Stack.Screen name="AdminContracts" component={AdminContractsScreen} />
+          <Stack.Navigator
+            initialRouteName="Welcome"
+            screenOptions={{
+              headerShown: false,
+              animation: reduceMotion ? 'none' : 'default',
+              contentStyle: { backgroundColor: theme.background },
+            }}
+          >
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
+            <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
+            <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
+            <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
+            <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
+            <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
+            <Stack.Screen name="Credits" component={CreditsScreen} />
+            <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
+            <Stack.Screen name="EventAction" component={EventActionScreen} />
+            <Stack.Screen name="EmployeeLogin" component={EmployeeLoginScreen} />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+            <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+            <Stack.Screen name="AdminSchedule" component={AdminScheduleScreen} />
+            <Stack.Screen name="AdminContracts" component={AdminContractsScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="BookingDateVenue" component={BookingDateVenueScreen} />
             <Stack.Screen name="BookingReview" component={BookingReviewScreen} />
@@ -118,30 +149,29 @@ export default function App() {
             <Stack.Screen name="LiabilityClauses" component={LiabilityClausesScreen} />
             <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
-              <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
-              <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
-              <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
-              <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
-              <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
-              <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
-              <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
-              <Stack.Screen name="DossierDelivery" component={DossierDeliveryScreen} />
-              <Stack.Screen name="DossierSentLog" component={DossierSentLogScreen} />
-              <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
+            <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+            <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+            <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+            <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
+            <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            <Stack.Screen name="AccessibilitySettings" component={AccessibilitySettingsScreen} />
+            <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
+            <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+            <Stack.Screen name="DossierDelivery" component={DossierDeliveryScreen} />
+            <Stack.Screen name="DossierSentLog" component={DossierSentLogScreen} />
+            <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
         {isOffline && (
           <View accessibilityRole="alert" style={styles.offlineOverlay}>
-            <View style={styles.offlineCard}>
-              <Text style={styles.offlineTitle}>Connection lost</Text>
-              <Text style={styles.offlineMessage}>Check your internet connection. This screen will close when you’re back online.</Text>
+            <View style={[styles.offlineCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.offlineTitle, { color: theme.text }]}>Connection lost</Text>
+              <Text style={[styles.offlineMessage, { color: theme.muted }]}>Check your internet connection. This screen will close when you’re back online.</Text>
             </View>
           </View>
         )}
-        </View>
       </View>
-      </DroneLaunchProvider>
-    </SafeAreaProvider>
+    </>
   );
 }
 
@@ -161,18 +191,14 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
     alignItems: 'center',
   },
   offlineTitle: {
-    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
   },
   offlineMessage: {
-    color: colors.muted,
     fontSize: 14,
     lineHeight: 21,
     textAlign: 'center',

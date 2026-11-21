@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import ScreenLayout from '../components/ScreenLayout';
 import { colors } from '../theme';
 import { mockEmployee } from '../mockData';

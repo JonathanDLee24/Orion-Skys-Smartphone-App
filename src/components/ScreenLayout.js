@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Text from './AppText';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAccessibilityColors, useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 function WebStatusBar() {
@@ -22,15 +24,17 @@ function WebStatusBar() {
 export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, headerAction, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, compactHeader = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay, backgroundColor }) {
   const navigation = useNavigation();
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
+  const tapTargets = useTapTargets();
   const badgeText = headerBadge || badge || (secure ? '● SECURE' : phase ? `PHASE 0${phase}/04` : null);
   const shouldShowProgress = showProgress && phase != null;
   const logo = <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />;
   return (
-    <SafeAreaView style={[styles.safe, backgroundColor && { backgroundColor }]}>
-      <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth }, backgroundColor && { backgroundColor }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: backgroundColor || theme.background }]}>
+      <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth, backgroundColor: backgroundColor || theme.background }]}>
         {!layout.wide && <WebStatusBar />}
-        {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding }, !layout.wide && styles.phoneBrand]}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Return to home" onPress={onLogoPress || (() => navigation.popToTop())}>
+        {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding, borderColor: theme.border }, !layout.wide && styles.phoneBrand]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Return to home" hitSlop={tapTargets.hitSlop} onPress={onLogoPress || (() => navigation.popToTop())}>
             <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />
           </Pressable>
           <Text style={[styles.brandCaption, !layout.wide && styles.phoneBrandCaption]}>{caption}</Text>
@@ -49,7 +53,7 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
             <View style={styles.headerActions}>
               {headerAction}
               {!!onAccount && (
-                <Pressable accessibilityRole="button" accessibilityLabel="Account settings" onPress={onAccount} style={({ pressed }) => [styles.account, !layout.wide && compactHeader && styles.phoneCompactAccount, pressed && styles.backPressed]}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Account settings" hitSlop={tapTargets.hitSlop} onPress={onAccount} style={({ pressed }) => [styles.account, !layout.wide && compactHeader && !tapTargets.largeTargets && styles.phoneCompactAccount, tapTargets.style, pressed && styles.backPressed]}>
                   <Text style={styles.accountText}>◈ ACCOUNT</Text>
                 </Pressable>
               )}
@@ -63,7 +67,7 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
         {shouldShowProgress && (
           <View accessibilityRole="progressbar" accessibilityLabel="Booking progress" accessibilityValue={{ min: 1, max: 4, now: phase, text: `Phase ${phase} of 4` }} style={styles.progress}>
             {[1, 2, 3, 4].map((segment) => (
-              <View key={segment} testID={`phase-segment-${segment}`} style={[styles.segment, segment <= phase && styles.filledSegment]} />
+              <View key={segment} testID={`phase-segment-${segment}`} style={[styles.segment, { backgroundColor: theme.border }, segment <= phase && styles.filledSegment]} />
             ))}
           </View>
         )}
@@ -79,13 +83,13 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
           keyboardDismissMode="on-drag"
         >
           {onBack && (
-            <Pressable accessibilityRole="button" accessibilityLabel={backLabel} onPress={onBack} style={({ pressed }) => [styles.back, layout.wide && styles.wideBack, layout.tight && styles.tightBack, pressed && styles.backPressed]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={backLabel} hitSlop={tapTargets.hitSlop} onPress={onBack} style={({ pressed }) => [styles.back, layout.wide && styles.wideBack, layout.tight && !tapTargets.largeTargets && styles.tightBack, tapTargets.style, pressed && styles.backPressed]}>
               <Text style={[styles.backText, layout.wide && styles.wideBackText]}>{backGlyph} {backLabel}</Text>
             </Pressable>
           )}
           {children}
         </ScrollView>
-        {!hideFooter && !!footer && <View style={[styles.footer, layout.wide && !flushFooter && !plainFooter && { paddingHorizontal: layout.padding, paddingVertical: layout.tight ? 6 : 12 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
+        {!hideFooter && !!footer && <View style={[styles.footer, { backgroundColor: theme.card, borderColor: theme.border }, layout.wide && !flushFooter && !plainFooter && { paddingHorizontal: layout.padding, paddingVertical: layout.tight ? 6 : 12 }, flushFooter && styles.flushFooter, plainFooter && styles.plainFooter]}>
           <View testID="footer-actions" style={[styles.footerInner, layout.wide && !plainFooter && styles.wideFooterInner]}>{footer}</View>
         </View>}
       </View>
@@ -96,11 +100,18 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
 
 export function useScreenStyles() {
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
   return {
     ...screenStyles,
-    card: [screenStyles.card, layout.wide && { padding: 24, marginBottom: 24, borderRadius: 10 }],
-    label: [screenStyles.label, { fontSize: layout.labelSize, lineHeight: layout.wide ? 20 : 16 }],
-    body: [screenStyles.body, { fontSize: layout.bodySize, lineHeight: layout.wide ? 24 : 16 }],
+    card: [
+      screenStyles.card,
+      { backgroundColor: theme.card, borderColor: theme.border },
+      layout.wide && { padding: 24, marginBottom: 24, borderRadius: 10 },
+    ],
+    label: [screenStyles.label, { color: theme.muted, fontSize: layout.labelSize, lineHeight: layout.wide ? 20 : 16 }],
+    body: [screenStyles.body, { color: theme.muted, fontSize: layout.bodySize, lineHeight: layout.wide ? 24 : 16 }],
+    divider: [screenStyles.divider, { backgroundColor: theme.border }],
+    errorTitle: [screenStyles.errorTitle, { color: theme.error }],
   };
 }
 
