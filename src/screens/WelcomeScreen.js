@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, Image} from 'react-native';
+import { Pressable, StyleSheet, Image } from 'react-native';
+import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, useResponsiveLayout } from '../theme';
 

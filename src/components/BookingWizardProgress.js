@@ -1,11 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibilityColors } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 export const BOOKING_WIZARD_STEPS = ['DATE & VENUE', 'REVIEW', 'REQUEST'];
 
 export default function BookingWizardProgress({ currentStep = 1 }) {
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
 
   return (
     <View
@@ -25,14 +28,14 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
               numberOfLines={1}
               style={[
                 styles.label,
-                { fontSize: layout.wide ? 11 : 9 },
+                { color: theme.muted, fontSize: layout.wide ? 11 : 9 },
                 complete && styles.completeLabel,
                 active && styles.activeLabel,
               ]}
             >
               {label}
             </Text>
-            <View style={[styles.track, complete && styles.completeTrack, active && styles.activeTrack]} />
+            <View style={[styles.track, { backgroundColor: theme.border }, complete && styles.completeTrack, complete && { backgroundColor: theme.muted }, active && styles.activeTrack]} />
           </View>
         );
       })}

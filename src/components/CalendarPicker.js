@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibilityColors, useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import {
   MONTH_NAMES,
@@ -24,6 +26,8 @@ function buildYearOptions(currentYear, visibleYear) {
 
 export default function CalendarPicker({ value = null, onChange, today = new Date(), unavailableDates = [] }) {
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
+  const tapTargets = useTapTargets();
   const earliestBookable = getEarliestBookableDate(today);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     // Until a day is tapped nothing is highlighted, so open on the first month
@@ -59,8 +63,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
           accessibilityRole="button"
           accessibilityLabel="Previous month"
           testID="calendar-prev"
+          hitSlop={tapTargets.hitSlop}
           onPress={() => shiftMonth(-1)}
-          style={({ pressed }) => [styles.caret, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.caret, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text style={styles.caretText}>‹</Text>
         </Pressable>
@@ -70,7 +75,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
           testID="calendar-month-trigger"
           accessibilityState={{ expanded: pickerOpen }}
           onPress={togglePicker}
-          style={({ pressed }) => [styles.monthTrigger, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.monthTrigger, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text testID="calendar-month-label" accessibilityRole="header" style={[styles.month, layout.wide && styles.wideMonth]}>
             {formatMonthYear(visibleMonth)}
@@ -81,8 +86,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
           accessibilityRole="button"
           accessibilityLabel="Next month"
           testID="calendar-next"
+          hitSlop={tapTargets.hitSlop}
           onPress={() => shiftMonth(1)}
-          style={({ pressed }) => [styles.caret, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.caret, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text style={styles.caretText}>›</Text>
         </Pressable>
@@ -106,7 +112,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                   onPress={() => setPickerYear(year)}
                   style={({ pressed }) => [
                     styles.yearChip,
+                    { borderColor: theme.border },
                     active && styles.activeChip,
+                    tapTargets.largeTargets && styles.largeChip,
                     disabled && styles.disabledChip,
                     pressed && !disabled && styles.pressed,
                   ]}
@@ -132,7 +140,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                   onPress={() => chooseMonth(index)}
                   style={({ pressed }) => [
                     styles.monthOption,
+                    { borderColor: theme.border },
                     active && styles.activeChip,
+                    tapTargets.largeTargets && styles.largeChip,
                     disabled && styles.disabledChip,
                     pressed && !disabled && styles.pressed,
                   ]}
@@ -186,12 +196,15 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                     aria-selected={selected}
                     disabled={disabled}
                     onPress={() => onChange(new Date(cell.date))}
+                    hitSlop={tapTargets.hitSlop}
                     style={({ pressed }) => [
                       styles.cell,
                       layout.wide ? (layout.tight ? styles.tightCell : styles.wideCell) : styles.squareCell,
                       cell.inMonth && !disabled && styles.availableCell,
                       booked && !selected && styles.bookedCell,
                       selected && styles.selectedCell,
+                      cell.inMonth && { borderColor: disabled ? theme.error : theme.border },
+                      tapTargets.largeTargets && styles.largeCell,
                       pressed && !disabled && styles.pressed,
                     ]}
                   >
@@ -240,6 +253,8 @@ const styles = StyleSheet.create({
   monthOption: { flexBasis: '22%', flexGrow: 1, minWidth: 0, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   monthOptionText: { color: colors.text, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   activeChip: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  largeChip: { minHeight: 48, minWidth: 48 },
+  largeCell: { minHeight: 46 },
   activeChipText: { color: colors.accent },
   disabledChip: { opacity: 0.35 },
   disabledText: { color: colors.muted },
