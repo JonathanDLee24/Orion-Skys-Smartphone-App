@@ -1,5 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibilityColors, useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont } from '../theme';
 
 // A centered confirm/cancel dialog over a dimmed screen. Tapping outside the
@@ -16,6 +18,8 @@ export default function ConfirmDialog({
   testID = 'confirm-dialog',
   children,
 }) {
+  const theme = useAccessibilityColors();
+  const tapTargets = useTapTargets();
   if (!visible) return null;
 
   return (
@@ -32,7 +36,7 @@ export default function ConfirmDialog({
           accessibilityViewIsModal
           aria-modal
           onPress={() => {}}
-          style={styles.card}
+          style={[styles.card, { backgroundColor: theme.card, borderColor: theme.accent }]}
         >
           <Text style={styles.title}>{title}</Text>
           {message ? <Text style={styles.message}>{message}</Text> : null}
@@ -43,8 +47,15 @@ export default function ConfirmDialog({
               testID={`${testID}-cancel`}
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
+              hitSlop={tapTargets.hitSlop}
               onPress={onCancel}
-              style={({ pressed }) => [styles.button, styles.cancel, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.button,
+                styles.cancel,
+                { borderColor: theme.border, backgroundColor: theme.field },
+                tapTargets.style,
+                pressed && styles.pressed,
+              ]}
             >
               <Text style={[styles.buttonText, styles.cancelText]}>{cancelLabel}</Text>
             </Pressable>
@@ -52,8 +63,9 @@ export default function ConfirmDialog({
               testID={`${testID}-confirm`}
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
+              hitSlop={tapTargets.hitSlop}
               onPress={onConfirm}
-              style={({ pressed }) => [styles.button, styles.confirm, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.button, styles.confirm, tapTargets.style, pressed && styles.pressed]}
             >
               <Text style={[styles.buttonText, styles.confirmText]}>{confirmLabel}</Text>
             </Pressable>

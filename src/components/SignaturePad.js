@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { PanResponder, StyleSheet, Text, View } from 'react-native';
+import { PanResponder, StyleSheet, View } from 'react-native';
+import Text from './AppText';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { colors, monoFont } from '../theme';
 

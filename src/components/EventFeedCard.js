@@ -1,7 +1,9 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
 import EmployeeIcon from './EmployeeIcon';
 import { useScreenStyles } from './ScreenLayout';
+import { useAccessibilityColors, useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import { formatUnavailableSlot } from '../services/bookingConflictService';
 import { MONTH_SHORT, parseDateKey } from '../utils/bookingCalendar';
@@ -49,6 +51,8 @@ function eventVenue(submission) {
 export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const theme = useAccessibilityColors();
+  const tapTargets = useTapTargets();
   const date = parseDateKey(submission.date);
   const name = submission.eventName || 'Untitled show';
   const confirmed = tone === 'confirmed';
@@ -109,13 +113,13 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
             </Text>
           </View>
           <View testID={`event-schedule-row-${submission.id}`} style={styles.logisticsRow}>
-            <EmployeeIcon type="clock" color={colors.muted} size={13} />
+            <EmployeeIcon type="clock" color={theme.muted} size={13} />
             <Text testID={`event-schedule-${submission.id}`} style={styles.schedule}>
               {eventSchedule(submission)}
             </Text>
           </View>
           <View testID={`event-venue-row-${submission.id}`} style={styles.logisticsRow}>
-            <EmployeeIcon type="pin" color={colors.muted} size={13} />
+            <EmployeeIcon type="pin" color={theme.muted} size={13} />
             <Text testID={`event-venue-${submission.id}`} style={styles.venue}>{eventVenue(submission)}</Text>
           </View>
         </View>
@@ -125,16 +129,23 @@ export default function EventFeedCard({ submission, tone = 'confirmed', onOpen }
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`View event & manage for ${name}`}
+          hitSlop={tapTargets.hitSlop}
           onPress={() => onOpen(submission)}
-          style={({ pressed }) => [styles.footerLink, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.footerLink, tapTargets.style, pressed && styles.pressed]}
         >
           <Text style={styles.linkText}>View event &amp; manage</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Open event dashboard for ${name}`}
+          hitSlop={tapTargets.hitSlop}
           onPress={() => onOpen(submission)}
-          style={({ pressed }) => [styles.arrowButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.arrowButton,
+            { borderColor: theme.accent },
+            tapTargets.largeTargets && styles.largeArrowButton,
+            pressed && styles.pressed,
+          ]}
         >
           <Text style={styles.arrow}>→</Text>
         </Pressable>
@@ -209,6 +220,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  largeArrowButton: { width: 46, height: 46, borderRadius: 23 },
   arrow: { color: colors.accent, fontSize: 16, fontWeight: '700', lineHeight: 18 },
   pressed: { opacity: 0.72 },
 });

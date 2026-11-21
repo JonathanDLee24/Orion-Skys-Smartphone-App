@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibility, useAccessibilityColors } from './AccessibilityProvider';
 import { colors, monoFont } from '../theme';
 
 // react-native-web has no native animated module, so fall back to the JS driver there.
@@ -9,9 +11,20 @@ export default function Toast({ message, onHide, duration = 2600 }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const onHideRef = useRef(onHide);
   onHideRef.current = onHide;
+  const { reduceMotion } = useAccessibility();
+  const theme = useAccessibilityColors();
 
   useEffect(() => {
     if (!message) return undefined;
+    // Reduced motion: no fade, just show for the same duration and dismiss.
+    if (reduceMotion) {
+      opacity.setValue(1);
+      const plainTimer = setTimeout(() => {
+        opacity.setValue(0);
+        if (onHideRef.current) onHideRef.current();
+      }, duration);
+      return () => clearTimeout(plainTimer);
+    }
     opacity.setValue(0);
     Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: USE_NATIVE_DRIVER }).start();
     const timer = setTimeout(() => {
@@ -20,13 +33,13 @@ export default function Toast({ message, onHide, duration = 2600 }) {
       });
     }, duration);
     return () => clearTimeout(timer);
-  }, [message, duration, opacity]);
+  }, [message, duration, opacity, reduceMotion]);
 
   if (!message) return null;
 
   return (
     <Animated.View pointerEvents="none" style={[styles.layer, { opacity }]}>
-      <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.toast}>
+      <View accessibilityRole="alert" accessibilityLiveRegion="polite" style={[styles.toast, { borderColor: theme.accent }]}>
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>
