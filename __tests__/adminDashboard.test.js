@@ -13,6 +13,22 @@ jest.mock('react-native-safe-area-context', () => require('react-native-safe-are
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
+test('admin action groups share the same grid and single-line card subtitles', async () => {
+  let tree;
+  await act(async () => {
+    tree = create(<AdminDashboardScreen navigation={{ navigate: jest.fn() }} />);
+  });
+
+  const quickGrid = tree.root.findByProps({ testID: 'admin-quick-actions' });
+  const destinationGrid = tree.root.findByProps({ testID: 'admin-operation-links' });
+  expect(quickGrid.props.style).toEqual(destinationGrid.props.style);
+  expect(quickGrid.parent).toBe(destinationGrid.parent);
+  expect(quickGrid.children[0].props.style).toEqual(destinationGrid.children[0].props.style);
+  const subtitle = tree.root.find((node) => node.props.children === 'Pending agreements');
+  expect(subtitle.props.numberOfLines).toBe(1);
+  await act(async () => tree.unmount());
+});
+
 test('admin dashboard links to Orion Skys operational screens', async () => {
   const navigation = { navigate: jest.fn() };
   let tree;

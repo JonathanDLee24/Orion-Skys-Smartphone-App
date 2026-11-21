@@ -21,7 +21,7 @@ function WebStatusBar() {
   );
 }
 
-export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, headerAction, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, compactHeader = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay }) {
+export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATIONS / PAYMENTS', onLogoPress, phase, secure = false, headerBadge, headerTone, headerAction, showProgress = true, hideBrand = false, hideFooter = false, flushFooter = false, plainFooter = false, compactHeader = false, badge, onBack, backLabel = 'Back to Airspace Coverage', backGlyph = '←', onAccount, children, footer, overlay, backgroundColor }) {
   const navigation = useNavigation();
   const layout = useResponsiveLayout();
   const theme = useAccessibilityColors();
@@ -30,8 +30,8 @@ export default function ScreenLayout({ label, title, caption = 'CLIENT OPERATION
   const shouldShowProgress = showProgress && phase != null;
   const logo = <Image accessibilityLabel="Orion Skys Drones" source={require('../../assets/orion-skys-logo.png')} resizeMode="contain" style={[styles.brandLogo, !layout.wide && styles.phoneBrandLogo]} />;
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth, backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: backgroundColor || theme.background }]}>
+      <View testID="responsive-frame" style={[styles.frame, { maxWidth: layout.maxWidth, backgroundColor: backgroundColor || theme.background }]}>
         {!layout.wide && <WebStatusBar />}
         {!hideBrand && <View style={[styles.brand, { paddingHorizontal: layout.padding, borderColor: theme.border }, !layout.wide && styles.phoneBrand]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Return to home" hitSlop={tapTargets.hitSlop} onPress={onLogoPress || (() => navigation.popToTop())}>
