@@ -1,11 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibilityColors } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 export const BOOKING_WIZARD_STEPS = ['DATE & VENUE', 'REVIEW', 'REQUEST'];
 
 export default function BookingWizardProgress({ currentStep = 1 }) {
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
 
   return (
     <View
@@ -13,7 +16,7 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
       accessibilityRole="progressbar"
       accessibilityLabel="Booking progress"
       accessibilityValue={{ min: 1, max: BOOKING_WIZARD_STEPS.length, now: currentStep, text: `${BOOKING_WIZARD_STEPS[currentStep - 1]} step` }}
-      style={styles.row}
+      style={[styles.row, layout.tight && styles.tightRow]}
     >
       {BOOKING_WIZARD_STEPS.map((label, index) => {
         const step = index + 1;
@@ -25,14 +28,14 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
               numberOfLines={1}
               style={[
                 styles.label,
-                { fontSize: layout.wide ? 11 : 9 },
+                { color: theme.muted, fontSize: layout.wide ? 11 : 9 },
                 complete && styles.completeLabel,
                 active && styles.activeLabel,
               ]}
             >
               {label}
             </Text>
-            <View style={[styles.track, complete && styles.completeTrack, active && styles.activeTrack]} />
+            <View style={[styles.track, { backgroundColor: theme.border }, complete && styles.completeTrack, complete && { backgroundColor: theme.muted }, active && styles.activeTrack]} />
           </View>
         );
       })}
@@ -41,7 +44,8 @@ export default function BookingWizardProgress({ currentStep = 1 }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  tightRow: { marginBottom: 8 },
   segment: { flex: 1, minWidth: 0 },
   label: { color: colors.muted, fontFamily: monoFont, fontWeight: '700', letterSpacing: 0.4, marginBottom: 7 },
   completeLabel: { color: colors.text },

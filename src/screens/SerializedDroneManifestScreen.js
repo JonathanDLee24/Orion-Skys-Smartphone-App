@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
+import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
@@ -73,9 +75,10 @@ function FleetBottomNav() {
   );
 }
 
-export default function SerializedDroneManifestScreen() {
+export default function SerializedDroneManifestScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const adminMode = route?.params?.adminMode === true;
   const [query, setQuery] = useState('');
   const rows = useMemo(() => {
     const value = query.trim().toLowerCase();
@@ -84,7 +87,18 @@ export default function SerializedDroneManifestScreen() {
   }, [query]);
 
   return (
-    <ScreenLayout label="FLEET REGISTRY" title="DRONE FLEET MANIFEST" headerBadge="● ONLINE" showProgress={false} flushFooter plainFooter footer={<FleetBottomNav />}>
+    <ScreenLayout
+      label={adminMode ? 'ADMIN FLEET REGISTRY' : 'FLEET REGISTRY'}
+      title="DRONE FLEET MANIFEST"
+      headerBadge="● ONLINE"
+      showProgress={false}
+      onLogoPress={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      onBack={adminMode ? () => navigation.navigate('AdminDashboard') : undefined}
+      backLabel="Back to admin dashboard"
+      flushFooter
+      plainFooter
+      footer={<FleetBottomNav />}
+    >
       <View style={[styles.manifest, layout.wide && styles.wideManifest]}>
         <View style={styles.manifestHeading}>
           <Text style={s.label}>// SYSTEM HARDWARE MANIFEST</Text>

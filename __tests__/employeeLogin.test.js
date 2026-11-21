@@ -3,6 +3,7 @@ import { act, create } from 'react-test-renderer';
 import { Text, TextInput } from 'react-native';
 import EmployeeLoginScreen from '../src/screens/EmployeeLoginScreen';
 import WelcomeScreen from '../src/screens/WelcomeScreen';
+import { isEmployeeAccountLocked, resetEmployeeLoginAttempts } from '../src/services/employeeAuthService';
 
 const mockPopToTop = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -13,6 +14,29 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
+
+test('employee lockout blocks correct credentials until simulated email link is opened', async () => {
+  resetEmployeeLoginAttempts('test');
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => { tree = create(<EmployeeLoginScreen navigation={navigation} />); });
+  const inputs = tree.root.findAllByType(TextInput);
+  await act(async () => inputs[0].props.onChangeText('test'));
+  await act(async () => inputs[1].props.onChangeText('wrong'));
+  const submit = tree.root.find((node) => node.props.accessibilityLabel === 'Sign in');
+  for (let i = 0; i < 5; i += 1) await act(async () => submit.props.onPress());
+  expect(isEmployeeAccountLocked('test')).toBe(true);
+  await act(async () => inputs[1].props.onChangeText('password1234'));
+  await act(async () => submit.props.onPress());
+  expect(navigation.navigate).not.toHaveBeenCalled();
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Request demo unlock email').props.onPress());
+  await act(async () => tree.root.find((node) => node.props.accessibilityLabel === 'Open simulated unlock link').props.onPress());
+  expect(isEmployeeAccountLocked('test')).toBe(false);
+  await act(async () => inputs[1].props.onChangeText('password1234'));
+  await act(async () => submit.props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('EmployeeDashboard');
+  await act(async () => tree.unmount());
+});
 
 test('employee sign in accepts the demo credentials and opens the dashboard', async () => {
   const navigation = { navigate: jest.fn() };

@@ -17,6 +17,7 @@ import {
   formatMonthYear,
   formatSelectedDate,
   getEarliestBookableDate,
+  isTimeSlotPast,
 } from '../src/utils/bookingCalendar';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
@@ -50,19 +51,29 @@ beforeEach(() => {
   clearBookingSubmissions();
 });
 
-test('the grid allows Sundays and opens dates seven days out', () => {
+test('the grid allows Sundays and opens on the device date with no lead time', () => {
   const cells = buildMonthGrid(2026, 10, new Date(2026, 9, 19));
   expect(cells).toHaveLength(42);
   expect(cells[0]).toMatchObject({ day: 1, inMonth: true, available: true });
   expect(cells[1]).toMatchObject({ day: 2, inMonth: true, available: true });
   expect(cells.find((cell) => cell.day === 21 && cell.inMonth)).toMatchObject({ available: true });
-  expect(cells.find((cell) => cell.day === 22 && cell.inMonth)).toMatchObject({ available: true });
   expect(cells.some((cell) => !cell.inMonth && cell.available)).toBe(false);
 
-  const october = buildMonthGrid(2026, 9, new Date(2026, 9, 19));
-  expect(october.find((cell) => cell.day === 25 && cell.inMonth)).toMatchObject({ available: false });
+  const october = buildMonthGrid(2026, 9, new Date(2026, 9, 19, 15, 30));
+  expect(october.find((cell) => cell.day === 18 && cell.inMonth)).toMatchObject({ available: false });
+  expect(october.find((cell) => cell.day === 19 && cell.inMonth)).toMatchObject({ available: true });
   expect(october.find((cell) => cell.day === 26 && cell.inMonth)).toMatchObject({ available: true });
+  expect(getEarliestBookableDate(new Date(2026, 9, 19, 23, 45))).toEqual(new Date(2026, 9, 19));
   expect(formatSelectedDate(new Date(2026, 10, 21))).toBe('SAT, 21 NOV // PST (UTC-8)');
+});
+
+test('elapsed hourly slots are detected from the device clock', () => {
+  const today = new Date(2026, 10, 8);
+  const afternoon = new Date(2026, 10, 8, 13, 30);
+  expect(isTimeSlotPast(12, today, afternoon)).toBe(true);
+  expect(isTimeSlotPast(13, today, afternoon)).toBe(true);
+  expect(isTimeSlotPast(14, today, afternoon)).toBe(false);
+  expect(isTimeSlotPast(8, new Date(2026, 10, 9), afternoon)).toBe(false);
 });
 
 test('venue validation requires every location string', () => {
@@ -109,7 +120,7 @@ test('date and venue step opens with nothing selected until a day is tapped', as
   expect(text).toContain('REVIEW');
   expect(text).toContain('REQUEST');
   expect(text).toContain(formatMonthYear(getEarliestBookableDate()));
-  expect(text).toContain('SELECT A DATE');
+  expect(text).toContain('SELECT A TIME');
   expect(text).toContain('12:00 AM');
   expect(text).toContain('8:00 PM');
   expect(text).toContain('11:00 PM');
@@ -136,6 +147,64 @@ test('date and venue step opens with nothing selected until a day is tapped', as
   expect(textOf(tree)).toContain('SAT, 21 NOV // UTC+8');
   const chosenDay = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-21')[0];
   expect(chosenDay.props.accessibilityState.selected).toBe(true);
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
+
+  await act(async () => tree.unmount());
+});
+
+test('today is bookable and past time slots are disabled on the device clock', async () => {
+  const now = new Date(2026, 10, 8, 13, 30);
+  let tree;
+  await act(async () => {
+    tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} now={now} />);
+  });
+
+  expect(textOf(tree)).toContain('November 2026');
+  const todayCell = tree.root.findAll((node) => node.props.testID === 'calendar-day-2026-11-08')[0];
+  expect(todayCell.props.accessibilityState.disabled).toBe(false);
+
+  await pressDay(tree, '2026-11-08');
+  expect(textOf(tree)).toContain('SUN, 8 NOV // UTC+8');
+  expect(findButton(tree, '12:00 PM').props.accessibilityState).toMatchObject({ disabled: true });
+  expect(findButton(tree, '1:00 PM').props.accessibilityState).toMatchObject({ disabled: true });
+  expect(findButton(tree, '2:00 PM').props.accessibilityState).toMatchObject({ checked: false });
+  expect(findButton(tree, '2:00 PM').props.accessibilityState.disabled).toBeUndefined();
+  expect(findButton(tree, '8:00 PM').props.accessibilityState).toEqual({ checked: true });
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
+
+  await act(async () => tree.unmount());
+});
+
+test('picking today after the default slot has passed rolls to the next available slot', async () => {
+  const now = new Date(2026, 10, 8, 21, 30);
+  let tree;
+  await act(async () => {
+    tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} now={now} />);
+  });
+
+  await pressDay(tree, '2026-11-08');
+  expect(findButton(tree, '8:00 PM').props.accessibilityState).toMatchObject({ disabled: true });
+  expect(findButton(tree, '9:00 PM').props.accessibilityState).toMatchObject({ disabled: true });
+  expect(findButton(tree, '10:00 PM').props.accessibilityState).toEqual({ checked: true });
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
+
+  await act(async () => tree.unmount());
+});
+
+test('late-night today has no remaining slots, and another date restores a time', async () => {
+  const now = new Date(2026, 10, 8, 23, 30);
+  let tree;
+  await act(async () => {
+    tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} now={now} />);
+  });
+
+  await pressDay(tree, '2026-11-08');
+  expect(textOf(tree)).toContain('No time slots remain today. Choose another date.');
+  expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(true);
+
+  await pressDay(tree, '2026-11-09');
+  expect(textOf(tree)).not.toContain('No time slots remain today. Choose another date.');
+  expect(findButton(tree, '8:00 PM').props.accessibilityState).toEqual({ checked: true });
   expect(findButton(tree, 'Continue to booking review').props.accessibilityState.disabled).toBe(false);
 
   await act(async () => tree.unmount());
@@ -182,7 +251,7 @@ test('the venue postal code selects the booking time zone', async () => {
     tree = create(<BookingDateVenueScreen navigation={{ navigate: jest.fn() }} />);
   });
 
-  expect(textOf(tree)).toContain('SELECT A DATE');
+  expect(textOf(tree)).toContain('SELECT A TIME');
   expect(textOf(tree)).toContain('TIME ZONE · Singapore · SGT (UTC+8)');
 
   await goToMonth(tree, 'November 2026');

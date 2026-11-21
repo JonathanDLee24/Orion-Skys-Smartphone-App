@@ -14,6 +14,7 @@ import {
   requestBookingSlot,
 } from '../src/services/bookingConflictService';
 import { clearBookingSession } from '../src/services/bookingDraftService';
+import { DEMO_EVENTS, seedDemoEvents } from '../src/services/eventFeedService';
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 jest.mock('@react-navigation/native', () => ({
@@ -108,7 +109,7 @@ test('the manage screen confirms before cancelling and reports the released date
   await act(async () => findButton(tree, 'Cancel booking').props.onPress());
   await act(async () => findButton(tree, 'Yes, cancel booking').props.onPress());
 
-  expect(textOf(tree)).toContain('Booking cancelled.');
+  expect(textOf(tree)).toContain('BOOKING CANCELLED');
   expect(textOf(tree)).toContain('● CANCELLED');
   expect(textOf(tree)).toContain('available to book again');
   expect(tree.root.findAll((node) => node.props.testID === 'cancelled-state').length).toBeGreaterThan(0);
@@ -124,13 +125,42 @@ test('the manage screen confirms before cancelling and reports the released date
   await act(async () => tree.unmount());
 });
 
+test('confirmed and completed shows keep their real status in management', async () => {
+  seedDemoEvents();
+  const navigation = { navigate: jest.fn() };
+
+  let tree;
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={navigation} />
+    );
+  });
+  expect(textOf(tree)).toContain('Manage this show.');
+  expect(textOf(tree)).toContain('● CONFIRMED');
+  expect(findButton(tree, 'Cancel booking')).toBeTruthy();
+  await act(async () => tree.unmount());
+
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[3] } }} navigation={navigation} />
+    );
+  });
+  expect(textOf(tree)).toContain('Past show.');
+  expect(textOf(tree)).toContain('● COMPLETED');
+  expect(textOf(tree)).toContain('This show has completed.');
+  expect(textOf(tree)).toContain('This event is archived.');
+  expect(findButton(tree, 'Cancel booking')).toBeUndefined();
+  expect(findButton(tree, 'Back to dashboard')).toBeTruthy();
+  await act(async () => tree.unmount());
+});
+
 test('the dashboard routes the booked show into the manage screen', async () => {
   const submission = bookShow();
   const navigation = { navigate: jest.fn() };
 
   let tree;
   await act(async () => {
-    tree = create(<EmployeeDashboard navigation={navigation} />);
+    tree = create(<EmployeeDashboard seedDemoData={false} navigation={navigation} />);
   });
 
   await act(async () => findButton(tree, 'Manage event for Harbour Night Market').props.onPress());
@@ -143,8 +173,36 @@ test('the dashboard routes the booked show into the manage screen', async () => 
   // A cancelled show drops out of the dashboard's upcoming list.
   cancelBookingSubmission(submission.id);
   await act(async () => {
-    tree = create(<EmployeeDashboard navigation={{ navigate: jest.fn() }} />);
+    tree = create(<EmployeeDashboard seedDemoData={false} navigation={{ navigate: jest.fn() }} />);
   });
   expect(textOf(tree)).toContain('No shows booked yet.');
+  await act(async () => tree.unmount());
+});
+
+test('the manage screen offers Show Authorization until the booking is cancelled', async () => {
+  seedDemoEvents();
+  const findAuthorization = (tree) => tree.root.findAll((node) => node.props.testID === 'show-authorization');
+
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(
+      <BookingManageScreen route={{ params: { submission: DEMO_EVENTS[0] } }} navigation={navigation} />
+    );
+  });
+  expect(findAuthorization(tree).length).toBeGreaterThan(0);
+  expect(textOf(tree)).toContain('Show Authorization');
+
+  await act(async () => findButton(tree, 'Show Authorization').props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('ShowAuthorization', {
+    submission: expect.objectContaining({ id: 'demo-apex-summit' }),
+  });
+
+  await act(async () => findButton(tree, 'Cancel booking').props.onPress());
+  expect(findAuthorization(tree)).toHaveLength(0);
+
+  await act(async () => findButton(tree, 'Yes, cancel booking').props.onPress());
+  expect(findAuthorization(tree)).toHaveLength(0);
+
   await act(async () => tree.unmount());
 });

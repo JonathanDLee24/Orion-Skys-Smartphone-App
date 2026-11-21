@@ -1,5 +1,7 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
@@ -24,25 +26,69 @@ function TabIcon({ icon, color }) {
   return <Text style={[styles.backIcon, { color }]} accessibilityElementsHidden>←</Text>;
 }
 
-export default function QRCodeScannerScreen({ navigation }) {
+export default function QRCodeScannerScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+
+  const handleBarcodeScanned = ({ data }) => {
+    setScanned(true); // Prevent repeated detections while processing.
+    navigation.navigate('EmployeeSuccessfulScan', { qrData: data });
+  };
+  const adminMode = route?.params?.adminMode === true;
+  const returnToDashboard = () => navigation?.navigate(adminMode ? 'AdminDashboard' : 'EmployeeDashboard');
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
       <View style={[styles.screen, layout.wide && styles.wideScreen]}>
         <View style={styles.header}>
+          {adminMode ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back to admin dashboard"
+              onPress={returnToDashboard}
+              style={({ pressed }) => [styles.adminBack, pressed && styles.pressed]}
+            >
+              <Text style={styles.adminBackText}>← Dashboard</Text>
+            </Pressable>
+          ) : null}
           <Text accessibilityRole="header" style={styles.title}>Staff QR Scanner</Text>
         </View>
 
         <View style={styles.scanArea}>
-          <View style={styles.scanFrame}>
-            <View style={[styles.frameCorner, styles.frameTopLeft]} />
-            <View style={[styles.frameCorner, styles.frameTopRight]} />
-            <View style={[styles.frameCorner, styles.frameBottomLeft]} />
-            <View style={[styles.frameCorner, styles.frameBottomRight]} />
-            <View style={styles.scanLine} />
-          </View>
-          <Text style={styles.instruction}>ALIGN QR CODE</Text>
+          {permission?.granted ? (
+            <CameraView
+              testID="camera-preview"
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+              onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+            />
+          ) : (
+            <View style={styles.permissionMessage}>
+              <Text style={styles.permissionText}>Camera access is needed to scan QR codes.</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Allow camera"
+                onPress={requestPermission}
+                style={styles.permissionButton}
+              >
+                <Text style={styles.permissionButtonText}>Allow camera</Text>
+              </Pressable>
+            </View>
+          )}
+          {permission?.granted && (
+            <>
+              <View style={styles.scanFrame}>
+                <View style={[styles.frameCorner, styles.frameTopLeft]} />
+                <View style={[styles.frameCorner, styles.frameTopRight]} />
+                <View style={[styles.frameCorner, styles.frameBottomLeft]} />
+                <View style={[styles.frameCorner, styles.frameBottomRight]} />
+                <View style={styles.scanLine} />
+              </View>
+              <Text style={styles.instruction}>ALIGN QR CODE</Text>
+            </>
+          )}
         </View>
 
         <View style={styles.controlPanel}>
@@ -75,7 +121,7 @@ export default function QRCodeScannerScreen({ navigation }) {
                   accessibilityRole={isBack ? 'button' : 'tab'}
                   accessibilityLabel={tab.label}
                   accessibilityState={isBack ? undefined : { selected }}
-                  onPress={isBack ? () => navigation?.navigate('EmployeeDashboard') : undefined}
+                  onPress={isBack ? returnToDashboard : undefined}
                   style={({ pressed }) => [
                     styles.tab,
                     selected && styles.selectedTab,
@@ -89,6 +135,7 @@ export default function QRCodeScannerScreen({ navigation }) {
             })}
           </View>
         </View>
+
       </View>
     </SafeAreaView>
   );
@@ -117,6 +164,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  adminBack: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 10 },
+  adminBackText: { color: colors.accent, fontSize: 13, fontWeight: '600' },
   title: {
     color: '#F5F7FC',
     fontSize: 20,
@@ -134,6 +183,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#05070E',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  permissionMessage: {
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 24,
+  },
+  permissionText: {
+    color: '#F5F7FC',
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  permissionButton: {
+    borderRadius: 6,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  permissionButtonText: {
+    color: '#070912',
+    fontWeight: '700',
   },
   scanFrame: {
     width: '62%',

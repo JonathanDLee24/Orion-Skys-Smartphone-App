@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from './AppText';
+import { useAccessibilityColors, useTapTargets } from './AccessibilityProvider';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 import {
   MONTH_NAMES,
@@ -24,6 +26,8 @@ function buildYearOptions(currentYear, visibleYear) {
 
 export default function CalendarPicker({ value = null, onChange, today = new Date(), unavailableDates = [] }) {
   const layout = useResponsiveLayout();
+  const theme = useAccessibilityColors();
+  const tapTargets = useTapTargets();
   const earliestBookable = getEarliestBookableDate(today);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     // Until a day is tapped nothing is highlighted, so open on the first month
@@ -54,13 +58,14 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
 
   return (
     <View testID="booking-calendar" style={styles.wrapper}>
-      <View style={styles.header}>
+      <View style={[styles.header, layout.tight && styles.tightHeader]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Previous month"
           testID="calendar-prev"
+          hitSlop={tapTargets.hitSlop}
           onPress={() => shiftMonth(-1)}
-          style={({ pressed }) => [styles.caret, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.caret, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text style={styles.caretText}>‹</Text>
         </Pressable>
@@ -70,7 +75,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
           testID="calendar-month-trigger"
           accessibilityState={{ expanded: pickerOpen }}
           onPress={togglePicker}
-          style={({ pressed }) => [styles.monthTrigger, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.monthTrigger, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text testID="calendar-month-label" accessibilityRole="header" style={[styles.month, layout.wide && styles.wideMonth]}>
             {formatMonthYear(visibleMonth)}
@@ -81,8 +86,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
           accessibilityRole="button"
           accessibilityLabel="Next month"
           testID="calendar-next"
+          hitSlop={tapTargets.hitSlop}
           onPress={() => shiftMonth(1)}
-          style={({ pressed }) => [styles.caret, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.caret, { borderColor: theme.border }, tapTargets.style, pressed && styles.pressed]}
         >
           <Text style={styles.caretText}>›</Text>
         </Pressable>
@@ -106,7 +112,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                   onPress={() => setPickerYear(year)}
                   style={({ pressed }) => [
                     styles.yearChip,
+                    { borderColor: theme.border },
                     active && styles.activeChip,
+                    tapTargets.largeTargets && styles.largeChip,
                     disabled && styles.disabledChip,
                     pressed && !disabled && styles.pressed,
                   ]}
@@ -132,7 +140,9 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                   onPress={() => chooseMonth(index)}
                   style={({ pressed }) => [
                     styles.monthOption,
+                    { borderColor: theme.border },
                     active && styles.activeChip,
+                    tapTargets.largeTargets && styles.largeChip,
                     disabled && styles.disabledChip,
                     pressed && !disabled && styles.pressed,
                   ]}
@@ -145,7 +155,7 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
         </View>
       )}
 
-      <View testID="calendar-legend" style={styles.legend}>
+      <View testID="calendar-legend" style={[styles.legend, layout.tight && styles.tightLegend]}>
         <View style={styles.legendItem}>
           <View style={[styles.legendSwatch, styles.legendAvailable]} />
           <Text style={styles.legendText}>AVAILABLE</Text>
@@ -186,11 +196,15 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
                     aria-selected={selected}
                     disabled={disabled}
                     onPress={() => onChange(new Date(cell.date))}
+                    hitSlop={tapTargets.hitSlop}
                     style={({ pressed }) => [
                       styles.cell,
+                      layout.wide ? (layout.tight ? styles.tightCell : styles.wideCell) : styles.squareCell,
                       cell.inMonth && !disabled && styles.availableCell,
                       booked && !selected && styles.bookedCell,
                       selected && styles.selectedCell,
+                      cell.inMonth && { borderColor: disabled ? theme.error : theme.border },
+                      tapTargets.largeTargets && styles.largeCell,
                       pressed && !disabled && styles.pressed,
                     ]}
                   >
@@ -214,21 +228,22 @@ export default function CalendarPicker({ value = null, onChange, today = new Dat
         ))}
       </View>
 
-      <Text testID="calendar-footnote" style={styles.footnote}>
-        • One show per day. Red days are already booked. Bookings open 7 days ahead, including Sundays. Sample availability · not live inventory.
+      <Text testID="calendar-footnote" style={[styles.footnote, layout.tight && styles.tightFootnote]}>
+        • One show per day. Red days are already booked. Same-day booking is available; past times are disabled. Sample availability · not live inventory.
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { width: '100%', maxWidth: 520, alignSelf: 'center' },
+  wrapper: { width: '100%', maxWidth: 340, alignSelf: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 },
+  tightHeader: { marginBottom: 6 },
   caret: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   caretText: { color: colors.accent, fontFamily: monoFont, fontSize: 24, lineHeight: 28 },
   monthTrigger: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   month: { color: colors.text, fontFamily: monoFont, fontSize: 15, fontWeight: '700', textAlign: 'center' },
-  wideMonth: { fontSize: 18 },
+  wideMonth: { fontSize: 16 },
   triggerChevron: { color: colors.accent, fontFamily: monoFont, fontSize: 12 },
   pickerPanel: { borderWidth: 1, borderColor: colors.accent, borderRadius: 6, backgroundColor: colors.field, padding: 10, marginBottom: 12 },
   pickerLabel: { color: colors.accent, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.5, marginBottom: 8 },
@@ -238,26 +253,34 @@ const styles = StyleSheet.create({
   monthOption: { flexBasis: '22%', flexGrow: 1, minWidth: 0, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: colors.border },
   monthOptionText: { color: colors.text, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   activeChip: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  largeChip: { minHeight: 48, minWidth: 48 },
+  largeCell: { minHeight: 46 },
   activeChipText: { color: colors.accent },
   disabledChip: { opacity: 0.35 },
   disabledText: { color: colors.muted },
   yearText: { color: colors.text, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', marginBottom: 4 },
   weekday: { flex: 1, color: colors.muted, fontFamily: monoFont, fontSize: 8, textAlign: 'center', letterSpacing: 0.3 },
-  wideWeekday: { fontSize: 10 },
+  wideWeekday: { fontSize: 9 },
   grid: { width: '100%' },
   week: { flexDirection: 'row' },
   cellWrap: { flex: 1, minWidth: 0, padding: 2 },
-  cell: { aspectRatio: 1, minHeight: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: 'transparent' },
+  cell: { minHeight: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4, borderWidth: 1, borderColor: 'transparent' },
+  // Phones keep square day cells; wide layouts use a fixed height so six week
+  // rows stay short enough for the whole booking step to fit without scrolling.
+  squareCell: { aspectRatio: 1 },
+  wideCell: { height: 38 },
+  tightCell: { height: 32 },
   availableCell: { backgroundColor: colors.field, borderColor: colors.border },
   selectedCell: { backgroundColor: colors.accent, borderColor: colors.accent },
   day: { color: colors.muted, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
-  wideDay: { fontSize: 13 },
+  wideDay: { fontSize: 12 },
   outsideDay: { color: colors.border },
   disabledDay: { color: colors.border },
   bookedCell: { backgroundColor: colors.error, borderColor: colors.error },
   bookedDay: { color: colors.text },
   legend: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 8 },
+  tightLegend: { marginBottom: 4 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2, borderWidth: 1 },
   legendAvailable: { backgroundColor: colors.field, borderColor: colors.border },
@@ -267,5 +290,6 @@ const styles = StyleSheet.create({
   legendBookedText: { color: colors.error, fontWeight: '700' },
   selectedDay: { color: colors.background },
   footnote: { color: colors.muted, fontSize: 10, lineHeight: 15, marginTop: 12 },
+  tightFootnote: { fontSize: 9, lineHeight: 13, marginTop: 6 },
   pressed: { opacity: 0.7 },
 });

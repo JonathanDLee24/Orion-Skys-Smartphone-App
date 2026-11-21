@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import EmployeeIcon from '../components/EmployeeIcon';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';

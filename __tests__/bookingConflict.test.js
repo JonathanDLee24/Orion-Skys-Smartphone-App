@@ -99,7 +99,7 @@ test('the confirmation screen shows the saved request and its next actions', asy
 
   const text = textOf(tree);
   expect(text).toContain('NEW BOOKING // REQUEST SUBMITTED');
-  expect(text).toContain("You're in the review queue.");
+  expect(text).not.toContain("You're in the review queue.");
   expect(text).toContain('BOOKING REQUEST RECEIVED');
   expect(text).toContain('Your request has been sent to operations. Your show is not confirmed yet.');
   expect(text).toContain('PENDING REVIEW');

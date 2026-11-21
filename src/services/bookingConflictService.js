@@ -97,6 +97,12 @@ export function getScheduledSubmissions() {
   return getBookingSubmissions().sort(compareSubmissions);
 }
 
+// Full session history, including cancelled records, so the events archive can
+// still show a show that was cancelled instead of losing it.
+export function getSubmissionHistory() {
+  return [...bookingSubmissions].sort(compareSubmissions);
+}
+
 export function getNextScheduledSubmission(today = new Date()) {
   const todayKey = toDateKey(today);
   return getScheduledSubmissions().find((submission) => submission.date >= todayKey) || null;

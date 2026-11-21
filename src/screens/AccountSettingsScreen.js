@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
 import DropdownSelect from '../components/DropdownSelect';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
@@ -16,9 +17,10 @@ const NOTIFICATION_STREAMS = [
   { key: 'billing', title: 'Billing messages', description: 'Invoices and payment reminders' },
 ];
 
-export default function AccountSettingsScreen({ navigation }) {
+export default function AccountSettingsScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const adminMode = route?.params?.adminMode === true;
   const [notifications, setNotifications] = useState(() => ({ ...getSettingsPreferences().notifications }));
   const [language, setLanguage] = useState(() => getSettingsPreferences().language);
   const [timeZone, setTimeZone] = useState(() => getSettingsPreferences().timeZone);
@@ -27,7 +29,7 @@ export default function AccountSettingsScreen({ navigation }) {
   const [saveError, setSaveError] = useState(null);
 
   function backToDashboard() {
-    navigation.navigate('Dashboard');
+    navigation.navigate(adminMode ? 'AdminDashboard' : 'Dashboard');
   }
 
   function toggleStream(key, value) {
@@ -50,10 +52,10 @@ export default function AccountSettingsScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      label="CLIENT ACCOUNT // SETTINGS"
+      label={adminMode ? 'ADMIN ACCOUNT // SETTINGS' : 'CLIENT ACCOUNT // SETTINGS'}
       title="Notification Preferences"
-      onLogoPress={() => navigation.navigate('EmployeeDashboard')}
-      backLabel="ACCOUNT"
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'EmployeeDashboard')}
+      backLabel={adminMode ? 'Back to admin dashboard' : 'ACCOUNT'}
       backGlyph="<"
       onBack={backToDashboard}
       overlay={<Toast message={savedMessage} onHide={() => setSavedMessage(null)} />}
@@ -89,6 +91,21 @@ export default function AccountSettingsScreen({ navigation }) {
           <DropdownSelect testID="timezone-select" label="Time zone" value={timeZone} options={timeZoneOptions} onChange={setTimeZone} />
           <Text style={s.body}>Used as the default for bookings. A recognized venue postal code sets the show's time zone automatically.</Text>
         </View>
+        <View style={[s.card, styles.accessibilityCard]}>
+          <Text style={[s.label, styles.groupLabel]}>// ACCESSIBILITY</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Accessibility options"
+            onPress={() => navigation.navigate('AccessibilitySettings')}
+            style={({ pressed }) => [styles.stream, pressed && styles.pressed]}
+          >
+            <View style={styles.streamCopy}>
+              <Text style={styles.streamTitle}>Accessibility options</Text>
+              <Text style={s.body}>Text size, high-contrast colours, large touch targets and reduced motion.</Text>
+            </View>
+            <Text style={styles.chevron}>→</Text>
+          </Pressable>
+        </View>
       </View>
     </ScreenLayout>
   );
@@ -97,6 +114,8 @@ export default function AccountSettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
   columns: { alignItems: 'stretch' },
   column: { flex: 1, minWidth: 0 },
+  accessibilityCard: { marginTop: 0 },
+  chevron: { color: colors.accent, fontSize: 16 },
   groupLabel: { marginBottom: 12 },
   stream: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 10 },
   streamDivider: { borderTopWidth: 1, borderColor: colors.border },

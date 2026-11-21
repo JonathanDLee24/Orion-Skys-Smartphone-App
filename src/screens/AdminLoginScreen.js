@@ -1,15 +1,36 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Text from '../components/AppText';
+import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import DemoUnlock from '../components/DemoUnlock';
+import { useDroneLaunch } from '../components/DroneLaunchTransition';
 import {
   hasAdminUsername,
   isAdminAccountLocked,
+  resetAdminLoginAttempts,
   validateAdminPassword,
 } from '../services/adminAuthService';
 import { colors } from '../theme';
 
+// Both admin sign-in actions share one button style so the login page does not
+// mix filled and outlined treatments on the same form.
+function AdminLoginButton({ label, onPress }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+    >
+      <Text style={styles.buttonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function AdminLoginScreen({ navigation }) {
   const s = useScreenStyles();
+  const { launch } = useDroneLaunch();
   const passwordInputRef = useRef(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +47,7 @@ export default function AdminLoginScreen({ navigation }) {
       return;
     }
     if (isAdminAccountLocked(username)) {
-      setError('Account locked after 5 incorrect password attempts. Contact an administrator to reset access.');
+      setError('Account locked after 5 incorrect password attempts. Use the demo unlock flow below.');
       return;
     }
     if (!password.trim()) {
@@ -35,12 +56,13 @@ export default function AdminLoginScreen({ navigation }) {
     }
     if (!validateAdminPassword(username, password)) {
       setError(isAdminAccountLocked(username)
-        ? 'Account locked after 5 incorrect password attempts. Contact an administrator to reset access.'
+        ? 'Account locked after 5 incorrect password attempts. Use the demo unlock flow below.'
         : 'Password is incorrect.');
       return;
     }
     setError('');
-    navigation.navigate('DroneManifest');
+    launch();
+    navigation.navigate('AdminDashboard');
   }
 
   return (
@@ -90,22 +112,11 @@ export default function AdminLoginScreen({ navigation }) {
           </Pressable>
         </View>
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Sign in"
-          onPress={signIn}
-          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-        >
-          <Text style={styles.buttonText}>Sign in</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Enterprise SSO"
-          onPress={() => {}}
-          style={({ pressed }) => [styles.ssoButton, pressed && styles.pressed]}
-        >
-          <Text style={styles.ssoButtonText}>Enterprise SSO</Text>
-        </Pressable>
+        {isAdminAccountLocked(username) && <DemoUnlock key={username.trim().toLowerCase()} onUnlock={() => { resetAdminLoginAttempts(username); setPassword(''); setError('Demo account unlocked. You can sign in.'); }} />}
+        <View style={styles.actions}>
+          <AdminLoginButton label="Sign in" onPress={signIn} />
+          <AdminLoginButton label="Enterprise SSO" onPress={() => {}} />
+        </View>
       </View>
     </ScreenLayout>
   );
@@ -122,9 +133,8 @@ const styles = StyleSheet.create({
   eyePupil: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.muted },
   eyeSlash: { position: 'absolute', width: 23, height: 1.5, backgroundColor: colors.muted, transform: [{ rotate: '-38deg' }] },
   error: { color: colors.error, fontSize: 13, marginTop: 12 },
-  button: { minHeight: 48, marginTop: 22, borderRadius: 8, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  actions: { gap: 12, marginTop: 22 },
+  button: { minHeight: 48, borderRadius: 8, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#111600', fontSize: 15, fontWeight: '700' },
-  ssoButton: { minHeight: 48, marginTop: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  ssoButtonText: { color: colors.text, fontSize: 15, fontWeight: '600' },
   pressed: { opacity: 0.82 },
 });
