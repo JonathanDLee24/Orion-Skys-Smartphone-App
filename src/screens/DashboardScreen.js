@@ -12,6 +12,8 @@ const QUICK_LINKS = [
   { key: 'documents', label: 'Review documents', description: 'Agreements, waivers, receipts and flight plans', route: 'DossierShowSelect' },
   { key: 'signOff', label: 'Client sign-off', description: 'Confirm your credentials and sign authorization', route: 'ClientSignOff' },
   { key: 'qrScanner', label: 'Scan QR codes', description: 'Check-in staff and guests', route: 'QRCodeScanner' },
+  { key: 'receipts', label: 'Attach payment receipt', description: 'Link receipts to contracts and show dossiers', route: 'PaymentReceiptAttachment' },
+  { key: 'maintenance', label: 'Review maintenance warnings', description: 'Check flight-hour thresholds before load-out', route: 'MaintenanceWarning' },
   { key: 'employeeQRCode', label: 'Employee QR Code', description: 'View your personal QR code', route: 'EmployeeQRCode' },
 ];
 

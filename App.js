@@ -38,6 +38,8 @@ import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanSc
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
+import PaymentReceiptAttachmentScreen from './src/screens/PaymentReceiptAttachmentScreen';
+import MaintenanceWarningScreen from './src/screens/MaintenanceWarningScreen';
 import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { AccessibilityProvider, useAccessibility, useAccessibilityColors } from './src/components/AccessibilityProvider';
 
@@ -153,6 +155,8 @@ function AppShell() {
             <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
             <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
+            <Stack.Screen name="PaymentReceiptAttachment" component={PaymentReceiptAttachmentScreen} />
+            <Stack.Screen name="MaintenanceWarning" component={MaintenanceWarningScreen} />
             <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
             <Stack.Screen name="AccessibilitySettings" component={AccessibilitySettingsScreen} />
             <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
