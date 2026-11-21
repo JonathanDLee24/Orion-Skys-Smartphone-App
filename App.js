@@ -29,6 +29,8 @@ import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
+import PaymentReceiptAttachmentScreen from './src/screens/PaymentReceiptAttachmentScreen';
+import MaintenanceWarningScreen from './src/screens/MaintenanceWarningScreen';
 import { colors } from './src/theme';
 
 NetInfo.configure({
@@ -105,6 +107,8 @@ export default function App() {
               <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
               <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
               <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
+              <Stack.Screen name="PaymentReceiptAttachment" component={PaymentReceiptAttachmentScreen} />
+              <Stack.Screen name="MaintenanceWarning" component={MaintenanceWarningScreen} />
               <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
               <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
               <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
