@@ -32,6 +32,7 @@ import ShowAuthorizationScreen from './src/screens/ShowAuthorizationScreen';
 import LiabilityClausesScreen from './src/screens/LiabilityClausesScreen';
 import PendingSignaturesScreen from './src/screens/PendingSignaturesScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
+import UnsuccessfulQRCodeScanScreen from './src/screens/UnsuccessfulQRCodeScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
@@ -97,6 +98,7 @@ export default function App() {
               <Stack.Screen name="EmployeeDashboard" component={EmployeeDashboard} />
               <Stack.Screen name="EmployeeSuccessfulScan" component={EmployeeSuccessfulScanScreen} />
               <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
+              <Stack.Screen name="UnsuccessfulQRCodeScan" component={UnsuccessfulQRCodeScanScreen} />
               <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
               <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
               <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
