@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
@@ -6,7 +6,8 @@ import {
   formatUnavailableSlot,
   getNextScheduledSubmission,
 } from '../services/bookingConflictService';
-import { colors, useResponsiveLayout } from '../theme';
+import { getFleetStatusSummary } from '../services/droneDowntimeService';
+import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
   { label: 'View schedule', description: 'Upcoming shows and timelines', icon: '▣', route: 'AdminSchedule' },
@@ -54,7 +55,16 @@ export default function AdminDashboardScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const [notice, setNotice] = useState('');
+  const [fleetStatus, setFleetStatus] = useState(getFleetStatusSummary);
   const nextShow = getNextScheduledSubmission();
+
+  // Downtime follow-ups change the launch-ready count, so refresh when the
+  // dashboard regains focus after a fleet visit.
+  useEffect(() => {
+    const refreshFleet = () => setFleetStatus(getFleetStatusSummary());
+    const unsubscribe = navigation?.addListener?.('focus', refreshFleet);
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
+  }, [navigation]);
 
   function openDestination(destination) {
     if (destination.route) {
@@ -100,6 +110,13 @@ export default function AdminDashboardScreen({ navigation }) {
 
         </View>
 
+        <View testID="fleet-readiness-strip" style={[styles.rowBetween, styles.readinessStrip]}>
+          <Text style={s.label}>// FLEET READINESS</Text>
+          <Text style={styles.readinessText}>
+            {fleetStatus.launchReady} LAUNCH-READY · {fleetStatus.maintenance} MAINTENANCE · {fleetStatus.grounded} GROUNDED
+          </Text>
+        </View>
+
         <Text style={[s.label, styles.secureNote]}>◈ SECURE ADMIN SESSION</Text>
         <View style={styles.quickHeading}>
           <Text style={s.label}>// QUICK ACTIONS</Text>
@@ -141,6 +158,8 @@ const styles = StyleSheet.create({
   showTime: { color: colors.text, fontSize: 14, marginTop: 16 },
   emptyShow: { marginTop: 16 },
   secureNote: { textAlign: 'center', marginTop: 16 },
+  readinessStrip: { marginTop: 18 },
+  readinessText: { color: colors.cyan, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   quickHeading: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 22, marginBottom: 10 },
   destinationsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 10 },
   notice: { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 13 },

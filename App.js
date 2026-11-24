@@ -1,3 +1,4 @@
+import DroneDowntimeScreen from './src/screens/DroneDowntimeScreen';
 import React, { useEffect, useMemo, useState } from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -150,6 +151,7 @@ function AppShell() {
             <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
             <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+            <Stack.Screen name="DroneDowntime" component={DroneDowntimeScreen} />
             <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
             <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />

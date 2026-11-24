@@ -135,6 +135,9 @@ export default function EmployeeDashboard({ navigation, seedDemoData = true }) {
 
             <PrimaryButton title="+ Schedule a show" onPress={() => navigation.navigate('BookingDateVenue')} />
 
+            <View style={styles.fleetButton}>
+              <PrimaryButton title="Manage drone fleet" onPress={() => navigation.navigate('DroneManifest')} />
+            </View>
             {splitLayout && nextAction}
             {splitLayout && helpRow}
           </View>
@@ -223,6 +226,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1 },
   statValue: { color: colors.accent, fontFamily: monoFont, fontSize: 26, fontWeight: '700', marginBottom: 6 },
   wideStatValue: { fontSize: 34 },
+  fleetButton: { marginTop: 10 },
   sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   sectionLabel: { marginTop: 6, marginBottom: 8 },
   inlineLink: { minHeight: 44, justifyContent: 'center' },
