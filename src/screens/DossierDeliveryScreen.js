@@ -2,7 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { fetchDossierDelivery, fetchEventEmailHistory } from '../services/dossierDeliveryService';
+import Toast from '../components/Toast';
+import {
+  fetchDossierDelivery,
+  fetchEventAuditLog,
+  fetchEventEmailHistory,
+  getOverrideReasonLabel,
+  isFailedRecipient,
+} from '../services/dossierDeliveryService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 function DestinationAction({ label, description, icon, onPress }) {
@@ -17,36 +24,93 @@ function DestinationAction({ label, description, icon, onPress }) {
   );
 }
 
-function Recipients({ recipients }) {
-  return recipients.map((recipient, index) => (
-    <View key={`${recipient.type}-${recipient.email}-${index}`} style={styles.row}>
-      <View style={styles.recipient}>
-        <Text style={styles.role}>{recipient.type}</Text>
-        <Text style={styles.email}>{recipient.email}</Text>
+function Recipients({ recipients, onOverride }) {
+  return recipients.map((recipient, index) => {
+    const failed = isFailedRecipient(recipient);
+    return (
+      <View key={`${recipient.type}-${recipient.email}-${index}`} style={styles.row}>
+        <View style={styles.recipient}>
+          <Text style={styles.role}>{recipient.type}</Text>
+          <Text style={styles.email}>{recipient.email}</Text>
+          {!!recipient.replacedEmail && <Text style={styles.replaced}>Replaces {recipient.replacedEmail}</Text>}
+        </View>
+        <View style={styles.statusColumn}>
+          <Text style={[styles.status, failed && styles.bounced, recipient.status === 'Resent' && styles.resent]}>{recipient.status || 'Unknown'}</Text>
+          {onOverride && (
+            <Pressable
+              testID={`override-recipient-${index}`}
+              accessibilityRole="button"
+              accessibilityLabel={`Override and resend to ${recipient.type} recipient`}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => onOverride(index)}
+              style={({ pressed }) => [styles.overrideButton, !failed && styles.overrideButtonQuiet, pressed && styles.pressed]}
+            >
+              <Text style={[styles.overrideText, !failed && styles.overrideTextQuiet]}>{failed ? 'OVERRIDE & RESEND' : 'RESEND'}</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
-      <Text style={[styles.status, recipient.status === 'Bounced' && styles.bounced]}>{recipient.status || 'Unknown'}</Text>
+    );
+  });
+}
+
+function AuditLog({ entries }) {
+  const s = useScreenStyles();
+  if (entries.length === 0) return <Text style={s.body}>No overrides have been recorded for this delivery.</Text>;
+  return (
+    <View style={s.card}>
+      {entries.map((entry, index) => (
+        <View key={entry.id} testID="delivery-audit-entry">
+          {index > 0 && <View style={[s.divider, styles.auditDivider]} />}
+          <View style={styles.auditHeader}>
+            <Text style={styles.auditAction}>DISPATCH OVERRIDE{entry.preview ? ' (PREVIEW)' : ''}</Text>
+            <Text style={styles.auditTime}>{new Date(entry.at).toLocaleString()}</Text>
+          </View>
+          <Text style={styles.auditDetail}>
+            {entry.previousRecipient.toLowerCase() === entry.newRecipient.toLowerCase()
+              ? `${entry.recipientType}: re-sent to ${entry.newRecipient}`
+              : `${entry.recipientType}: ${entry.previousRecipient} → ${entry.newRecipient}`}
+          </Text>
+          <Text style={styles.auditMeta}>REASON: {getOverrideReasonLabel(entry.reason).toUpperCase()}</Text>
+          <Text style={styles.auditNotes}>“{entry.notes}”</Text>
+          <Text style={styles.auditMeta}>BY {entry.admin.toUpperCase()}</Text>
+        </View>
+      ))}
     </View>
-  ));
+  );
 }
 
 export default function DossierDeliveryScreen({ route, navigation }) {
   const s = useScreenStyles();
-  const { dossier, deliveryId } = route.params;
+  const { dossier, deliveryId, overrideId } = route.params;
   const [delivery, setDelivery] = useState(null);
+  const [auditLog, setAuditLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await fetchDossierDelivery(dossier.id, deliveryId);
+      const [result, log] = await Promise.all([fetchDossierDelivery(dossier.id, deliveryId), fetchEventAuditLog(dossier.id, deliveryId)]);
       setDelivery(result);
+      setAuditLog(log);
       setError(result ? '' : 'Delivery record not found.');
     } catch (err) { setError('Unable to load delivery status. Please try again.'); }
     finally { setLoading(false); }
   }, [dossier.id, deliveryId]);
   useEffect(() => { load(); }, [load]);
+  // Reload when returning from the dispatch override screen.
+  useEffect(() => (navigation.addListener ? navigation.addListener('focus', load) : undefined), [navigation, load]);
+  useEffect(() => {
+    if (!overrideId) return;
+    fetchEventAuditLog(dossier.id, deliveryId).then((log) => {
+      const entry = log.find((item) => item.id === overrideId);
+      if (entry) setToast(`Dossier re-sent to ${entry.newRecipient}`);
+    });
+  }, [overrideId, dossier.id, deliveryId]);
+  const openOverride = (recipientIndex) => navigation.navigate('DispatchOverride', { dossier, deliveryId, recipientIndex });
   return (
-    <ScreenLayout caption="ADMIN OPERATIONS / CONTRACTS" label={`DOSSIER: ${dossier.id}`} title="Delivery details" onBack={() => navigation.goBack()} backLabel="Back to dossier">
+    <ScreenLayout caption="ADMIN OPERATIONS / CONTRACTS" label={`DOSSIER: ${dossier.id}`} title="Delivery details" onBack={() => navigation.goBack()} backLabel="Back to dossier" overlay={<Toast message={toast} onHide={() => setToast('')} />}>
       {loading && <Text style={s.body}>Loading delivery status…</Text>}
       {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
       {delivery && (
@@ -58,7 +122,9 @@ export default function DossierDeliveryScreen({ route, navigation }) {
           <Text style={styles.heading}>{dossier.event}</Text>
           <Text style={styles.copy}>Sent: {new Date(delivery.sentAt).toLocaleString()}</Text>
           <Text style={[s.label, styles.section]}>// RECIPIENT DELIVERY STATUS</Text>
-          <View style={s.card}><Recipients recipients={delivery.recipients} /></View>
+          <View style={s.card}><Recipients recipients={delivery.recipients} onOverride={openOverride} /></View>
+          <Text style={[s.label, styles.section]}>// AUDIT LOG</Text>
+          <View testID="delivery-audit-log"><AuditLog entries={auditLog} /></View>
           <View style={styles.destinations}>
             <DestinationAction label="Refresh delivery status" description="Check the latest recipient statuses" icon="⟳" onPress={load} />
             <DestinationAction label="View Sent Log" description="Open this event’s email history" icon="▤" onPress={() => navigation.navigate('DossierSentLog', { dossier })} />
@@ -106,6 +172,20 @@ const styles = StyleSheet.create({
   email: { color: colors.text, fontSize: 13 },
   status: { color: colors.green, fontFamily: monoFont, fontSize: 11, fontWeight: '700' },
   bounced: { color: colors.error },
+  resent: { color: colors.cyan },
+  replaced: { color: colors.muted, fontSize: 11, marginTop: 2, textDecorationLine: 'line-through' },
+  statusColumn: { alignItems: 'flex-end', gap: 6 },
+  overrideButton: { borderWidth: 1, borderColor: colors.error, borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  overrideText: { color: colors.error, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  overrideButtonQuiet: { borderColor: colors.border },
+  overrideTextQuiet: { color: colors.muted },
+  auditDivider: { marginVertical: 10 },
+  auditHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 },
+  auditAction: { color: colors.gold, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
+  auditTime: { color: colors.muted, fontFamily: monoFont, fontSize: 10 },
+  auditDetail: { color: colors.text, fontSize: 13, marginBottom: 4 },
+  auditNotes: { color: colors.text, fontSize: 12, fontStyle: 'italic', lineHeight: 18, marginVertical: 4 },
+  auditMeta: { color: colors.muted, fontFamily: monoFont, fontSize: 10 },
   destinations: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between', marginBottom: 10 },
   destination: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 92, width: '48%', flexGrow: 1, flexBasis: 145, marginBottom: 0, padding: 12 },
   wideDestination: { flexBasis: 280, minHeight: 104 },
