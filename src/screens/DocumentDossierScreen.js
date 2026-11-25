@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
@@ -55,8 +55,16 @@ export default function DocumentDossierScreen({ navigation, route }) {
       <View testID="document-groups" style={[styles.groups, layout.wide && styles.wideGroups]}>
         {DOCUMENT_GROUPS.map((group) => {
           const verified = group.status === 'VERIFIED';
+          const opensReceipts = adminMode && group.key === 'receipts';
+          const Card = opensReceipts ? Pressable : View;
+          const cardProps = opensReceipts ? {
+            accessibilityRole: 'button',
+            accessibilityLabel: 'Open payment receipts',
+            onPress: () => navigation.navigate('PaymentReceipt', { dossier: activeDossier, adminMode }),
+            style: ({ pressed }) => [s.card, layout.wide && styles.wideGroup, pressed && styles.pressed],
+          } : { style: [s.card, layout.wide && styles.wideGroup] };
           return (
-            <View key={group.key} style={[s.card, layout.wide && styles.wideGroup]}>
+            <Card key={group.key} {...cardProps}>
               <View style={styles.groupHeader}>
                 <Text style={styles.icon}>{group.icon}</Text>
                 <Text style={[styles.groupTitle, layout.wide && styles.wideGroupTitle]}>{group.title.toUpperCase()}</Text>
@@ -67,7 +75,7 @@ export default function DocumentDossierScreen({ navigation, route }) {
                 <Text style={styles.metaText}>{group.count} {group.count === 1 ? 'DOC' : 'DOCS'}</Text>
                 <Text style={styles.metaText}>UPDATED: {group.updated}</Text>
               </View>
-            </View>
+            </Card>
           );
         })}
       </View>
@@ -98,4 +106,5 @@ const styles = StyleSheet.create({
   divider: { marginVertical: 12 },
   groupMeta: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   metaText: { color: colors.muted, fontFamily: monoFont, fontSize: 10 },
+  pressed: { opacity: 0.72 },
 });
