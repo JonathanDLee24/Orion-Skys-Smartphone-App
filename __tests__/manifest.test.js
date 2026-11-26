@@ -13,8 +13,9 @@ global.IS_REACT_ACT_ENVIRONMENT = true;
 
 test('OSPSA-258 renders the fleet manifest and filters airframes', async () => {
   let tree;
+  const navigation = { navigate: jest.fn() };
   await act(async () => {
-    tree = create(<SerializedDroneManifestScreen navigation={{ navigate: jest.fn() }} />);
+    tree = create(<SerializedDroneManifestScreen navigation={navigation} />);
   });
 
   const text = tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
@@ -26,6 +27,9 @@ test('OSPSA-258 renders the fleet manifest and filters airframes', async () => {
   expect(text).toContain('AIRSPACE');
   expect(text).toContain('LAANC');
   expect(text).toContain('NOTAM');
+
+  await act(async () => tree.root.findByProps({ accessibilityLabel: 'PAIR navigation' }).props.onPress());
+  expect(navigation.navigate).toHaveBeenCalledWith('DronePairing');
 
   await act(async () => tree.root.findByType(TextInput).props.onChangeText('SF-Q-003'));
   const filteredText = tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');

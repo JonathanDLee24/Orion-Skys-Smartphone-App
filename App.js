@@ -29,6 +29,8 @@ import FeeReviewScreen from './src/screens/FeeReviewScreen';
 import EmployeeLoginScreen from './src/screens/EmployeeLoginScreen';
 import PaymentCheckoutScreen from './src/screens/PaymentCheckoutScreen';
 import SerializedDroneManifestScreen from './src/screens/SerializedDroneManifestScreen';
+import DronePairingScreen from './src/screens/DronePairingScreen';
+import DroneDetailsScreen from './src/screens/DroneDetailsScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import ClientSignOffScreen from './src/screens/ClientSignOffScreen';
 import ShowAuthorizationScreen from './src/screens/ShowAuthorizationScreen';
@@ -150,6 +152,8 @@ function AppShell() {
             <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
             <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+            <Stack.Screen name="DronePairing" component={DronePairingScreen} />
+            <Stack.Screen name="DroneDetails" component={DroneDetailsScreen} />
             <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
             <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />

@@ -4,15 +4,7 @@ import Text from '../components/AppText';
 import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
-
-const fleet = [
-  { id: 'SF-Q-001', rfid: 'RFID: 900-11A0', state: 'ACTIVE', battery: '98%' },
-  { id: 'SF-Q-002', rfid: 'RFID: 900-11A1', state: 'ACTIVE', battery: '92%' },
-  { id: 'SF-Q-003', rfid: 'RFID: 900-11A2', state: 'STANDBY', battery: '45%' },
-  { id: 'SF-Q-004', rfid: 'RFID: 900-11A3', state: 'SERVICE', battery: '12%' },
-  { id: 'SF-Q-005', rfid: 'RFID: 900-11A4', state: 'ACTIVE', battery: '88%' },
-  { id: 'SF-Q-006', rfid: 'RFID: 900-11A5', state: 'ACTIVE', battery: '76%' },
-];
+import { droneFleet } from '../data/droneFleet';
 
 function StateBadge({ state }) {
   const style = state === 'ACTIVE' ? styles.active : state === 'STANDBY' ? styles.standby : styles.service;
@@ -49,7 +41,7 @@ function NavIcon({ type, active }) {
   return <View style={[styles.chipIcon, { borderColor: color }]}><View style={[styles.chipCore, { borderColor: color }]} /><View style={[styles.chipPin, styles.chipPinTop, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinBottom, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinLeft, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinRight, { backgroundColor: color }]} /></View>;
 }
 
-function FleetBottomNav() {
+function FleetBottomNav({ navigation }) {
   const items = [
     ['MAP', 'map'],
     ['AIRSPACE', 'airspace'],
@@ -63,7 +55,7 @@ function FleetBottomNav() {
         {items.map(([label, icon]) => {
           const active = label === 'AIRSPACE';
           return (
-            <Pressable key={label} accessibilityRole="tab" accessibilityLabel={`${label} navigation`} accessibilityState={{ selected: active }} style={({ pressed }) => [styles.navItem, active && styles.activeNavItem, pressed && styles.pressed]}>
+            <Pressable key={label} accessibilityRole="tab" accessibilityLabel={`${label} navigation`} accessibilityState={{ selected: active }} onPress={label === 'PAIR' ? () => navigation.navigate('DronePairing') : undefined} style={({ pressed }) => [styles.navItem, active && styles.activeNavItem, pressed && styles.pressed]}>
               <NavIcon type={icon} active={active} />
               <Text style={[styles.navLabel, active && styles.activeNavText]}>{label}</Text>
             </Pressable>
@@ -82,8 +74,8 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
   const [query, setQuery] = useState('');
   const rows = useMemo(() => {
     const value = query.trim().toLowerCase();
-    if (!value) return fleet;
-    return fleet.filter((drone) => `${drone.id} ${drone.rfid} ${drone.state}`.toLowerCase().includes(value));
+    if (!value) return droneFleet;
+    return droneFleet.filter((drone) => `${drone.id} ${drone.rfid} ${drone.state}`.toLowerCase().includes(value));
   }, [query]);
 
   return (
@@ -97,7 +89,7 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
       backLabel="Back to admin dashboard"
       flushFooter
       plainFooter
-      footer={<FleetBottomNav />}
+      footer={<FleetBottomNav navigation={navigation} />}
     >
       <View style={[styles.manifest, layout.wide && styles.wideManifest]}>
         <View style={styles.manifestHeading}>
