@@ -61,7 +61,8 @@ export default function DossierDeliveryScreen({ route, navigation }) {
             <View style={styles.deliveryPackage}>
               <Text style={[s.label, styles.section]}>// REVIEWED SUBJECT</Text>
               <Text style={styles.copy}>{delivery.subject}</Text>
-              {!!delivery.laancReference && <Text style={styles.copy}>LAANC reference: {delivery.laancReference} (demo only)</Text>}
+              {!!delivery.location && <Text style={styles.copy}>Event location: {delivery.location}</Text>}
+              {!!delivery.laancAssessment && <Text style={styles.copy}>LAANC screening: {delivery.laancAssessment}</Text>}
               {!!delivery.attachments?.length && (
                 <>
                   <Text style={[s.label, styles.section]}>// ATTACHMENTS IN PREVIEW</Text>
@@ -101,7 +102,7 @@ export function DossierSentLogScreen({ route, navigation }) {
       {loading && <Text style={s.body}>Loading email history…</Text>}
       {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
       {!loading && !error && history.length === 0 && <Text style={s.body}>No sent emails for this event.</Text>}
-      {history.map((entry) => <View key={entry.id} style={s.card} testID="sent-log-entry"><Text style={styles.heading}>{entry.preview ? 'Operations package (preview)' : 'Operations package'}</Text><Text style={styles.copy}>Sent: {new Date(entry.sentAt).toLocaleString()}</Text>{entry.subject ? <Text style={styles.copy}>Subject: {entry.subject}</Text> : null}{entry.attachments?.map((attachment) => <Text key={attachment} style={styles.copy}>• {attachment}</Text>)}<Recipients recipients={entry.recipients} /></View>)}
+      {history.map((entry) => <View key={entry.id} style={s.card} testID="sent-log-entry"><Text style={styles.heading}>{entry.preview ? 'Operations package (preview)' : 'Operations package'}</Text><Text style={styles.copy}>Sent: {new Date(entry.sentAt).toLocaleString()}</Text>{entry.subject ? <Text style={styles.copy}>Subject: {entry.subject}</Text> : null}{entry.location ? <Text style={styles.copy}>Event location: {entry.location}</Text> : null}{entry.laancAssessment ? <Text style={styles.copy}>LAANC screening: {entry.laancAssessment}</Text> : null}{entry.attachments?.map((attachment) => <Text key={attachment} style={styles.copy}>• {attachment}</Text>)}<Recipients recipients={entry.recipients} /></View>)}
       <View style={styles.destinations}><DestinationAction label="Back" description="Return to delivery details" icon="←" onPress={() => navigation.goBack()} /></View>
     </ScreenLayout>
   );

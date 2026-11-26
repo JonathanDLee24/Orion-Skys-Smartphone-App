@@ -53,7 +53,8 @@ test('delivery preview displays the reviewed subject, LAANC demo reference and a
     ...delivery,
     preview: true,
     subject: 'Test show flight documents',
-    laancReference: 'DEMO-event-1',
+    location: '100 Runway Road, Los Angeles 90045',
+    laancAssessment: 'Undetermined - verify in an FAA-approved LAANC service',
     attachments: ['Flight plans (4 files)', 'Service agreement (1 file)'],
   };
   recordDossierDelivery(dossier.id, reviewedDelivery);
@@ -67,7 +68,7 @@ test('delivery preview displays the reviewed subject, LAANC demo reference and a
     );
   });
 
-  for (const value of ['Test show flight documents', 'DEMO-event-1', 'demo only', 'Flight plans (4 files)', 'Service agreement (1 file)']) {
+  for (const value of ['Test show flight documents', '100 Runway Road', 'LAANC screening', 'Undetermined - verify in an FAA-approved LAANC service', 'Flight plans (4 files)', 'Service agreement (1 file)']) {
     expect(textOf(tree)).toContain(value);
   }
   await act(async () => tree.unmount());

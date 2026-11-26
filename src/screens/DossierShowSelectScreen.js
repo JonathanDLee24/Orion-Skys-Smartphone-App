@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { getBookingSubmissions } from '../services/bookingConflictService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 // Mock content for now; shows will load from the client's bookings once the document service exists.
@@ -13,6 +14,15 @@ const SHOWS = [
 export default function DossierShowSelectScreen({ navigation, adminMode = false }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const submissions = getBookingSubmissions();
+  const shows = [
+    ...SHOWS.filter((show) => !submissions.some((submission) => submission.eventName === show.event)),
+    ...submissions.map((submission) => ({
+      id: submission.reference,
+      event: submission.eventName || 'Untitled show',
+      booking: submission,
+    })),
+  ];
 
   return (
     <ScreenLayout
@@ -25,15 +35,16 @@ export default function DossierShowSelectScreen({ navigation, adminMode = false 
     >
       <View style={[styles.list, layout.wide && styles.wideList]}>
         <Text style={[s.body, styles.intro]}>Choose a drone show to review its operations documents.</Text>
-        <Text style={[s.label, styles.sectionLabel]}>// {String(SHOWS.length).padStart(2, '0')} {SHOWS.length === 1 ? 'SHOW' : 'SHOWS'}</Text>
+        <Text style={[s.label, styles.sectionLabel]}>// {String(shows.length).padStart(2, '0')} {shows.length === 1 ? 'SHOW' : 'SHOWS'}</Text>
         <View testID="dossier-shows">
-          {SHOWS.map((show) => (
+          {shows.map((show) => (
             <Pressable
               key={show.id}
               accessibilityRole="button"
               accessibilityLabel={`Review documents for ${show.event}`}
               onPress={() => navigation.navigate('DocumentDossier', {
                 dossier: show,
+                ...(show.booking ? { booking: show.booking } : {}),
                 ...(adminMode ? { adminMode: true } : {}),
               })}
               style={({ pressed }) => [s.card, pressed && styles.pressed]}

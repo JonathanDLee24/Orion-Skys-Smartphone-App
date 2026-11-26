@@ -76,7 +76,10 @@ export default function DocumentDossierScreen({ navigation, route }) {
         <PrimaryButton
           title="Review LAANC & delivery"
           testID="review-laanc-delivery"
-          onPress={() => navigation.navigate('LaancDocumentReview', { dossier: activeDossier })}
+          onPress={() => navigation.navigate('LaancDocumentReview', {
+            dossier: activeDossier,
+            ...(activeDossier.booking ? { booking: activeDossier.booking } : {}),
+          })}
         />
         <Text style={s.body}>Email delivery is not configured. Preview the delivery confirmation using simulated data.</Text>
         <PrimaryButton title="Preview delivery status" testID="preview-delivery" onPress={() => {

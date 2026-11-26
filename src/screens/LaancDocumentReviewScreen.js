@@ -22,22 +22,30 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const dossier = route?.params?.dossier;
+  const booking = route?.params?.booking || dossier?.booking;
   const contact = dossier?.requestContact || mockRequestContact;
+  const siteAddress = booking
+    ? [booking.venueName, booking.streetAddress, [booking.city, booking.postalCode].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+    : '';
+  const hasLocation = Boolean(booking?.streetAddress?.trim() && booking?.city?.trim() && booking?.postalCode?.trim());
   const [subject, setSubject] = useState(`LAANC and flight documents - ${dossier?.event || 'Drone show'}`);
   const [selectedIds, setSelectedIds] = useState(() => ATTACHMENTS.filter((item) => item.status === 'Ready').map((item) => item.id));
   const [checks, setChecks] = useState(null);
   const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [laancVerified, setLaancVerified] = useState(false);
 
   useEffect(() => {
     setSubject(`LAANC and flight documents - ${dossier?.event || 'Drone show'}`);
     setSelectedIds(ATTACHMENTS.filter((item) => item.status === 'Ready').map((item) => item.id));
     setChecks(null);
     setReviewConfirmed(false);
-  }, [dossier?.id, dossier?.event, contact?.email]);
+    setLaancVerified(false);
+  }, [dossier?.id, dossier?.event, contact?.email, booking?.streetAddress, booking?.city, booking?.postalCode]);
 
   function invalidateReview() {
     setChecks(null);
     setReviewConfirmed(false);
+    setLaancVerified(false);
   }
 
   function toggleAttachment(id) {
@@ -50,6 +58,13 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
   function validatePackage() {
     const selected = ATTACHMENTS.filter((item) => selectedIds.includes(item.id));
     const nextChecks = [
+      {
+        label: 'Event booking location',
+        passed: hasLocation,
+        detail: hasLocation
+          ? 'Using the venue address saved with this event booking.'
+          : 'No complete venue address is linked to this event. Select its submitted booking first.',
+      },
       {
         label: 'Event requester recipient',
         passed: Boolean(dossier?.id && dossier?.event && contact?.name && isValidEmail(contact?.email)),
@@ -82,8 +97,9 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
       sentAt: new Date().toISOString(),
       preview: true,
       subject: subject.trim(),
+      location: siteAddress,
+      laancAssessment: 'Undetermined - verify in an FAA-approved LAANC service',
       attachments: selected.map((item) => `${item.name} (${item.files} ${item.files === 1 ? 'file' : 'files'})`),
-      laancReference: `DEMO-${dossier.id}`,
       recipients: [{ type: 'To', email: contact.email, status: 'Preview only' }],
     });
     navigation.navigate('DossierDelivery', { dossier, deliveryId: delivery.id });
@@ -110,6 +126,18 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
             <>
               <Pressable
                 accessibilityRole="checkbox"
+                accessibilityLabel="Confirm LAANC requirement verified with an official FAA source"
+                accessibilityState={{ checked: laancVerified }}
+                onPress={() => setLaancVerified((value) => !value)}
+                style={styles.confirm}
+              >
+                <View style={[styles.checkbox, laancVerified && styles.checkboxChecked]}>
+                  {laancVerified && <Text style={styles.checkboxMark}>✓</Text>}
+                </View>
+                <Text style={s.body}>I verified the LAANC requirement for this location in an official FAA-approved source.</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="checkbox"
                 accessibilityLabel="Confirm recipient, subject, and attachments reviewed"
                 accessibilityState={{ checked: reviewConfirmed }}
                 onPress={() => setReviewConfirmed((value) => !value)}
@@ -122,7 +150,7 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
               </Pressable>
               <PrimaryButton
                 title="Create delivery preview (no email sent)"
-                disabled={!reviewConfirmed}
+                disabled={!reviewConfirmed || !laancVerified}
                 onPress={createPreview}
                 testID="create-delivery-preview"
               />
@@ -133,8 +161,8 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
     >
       <View style={[styles.content, layout.wide && styles.wideContent]}>
         <View style={styles.demoNotice} accessibilityRole="alert">
-          <Text style={styles.demoTitle}>LAANC connection is not configured</Text>
-          <Text style={styles.demoCopy}>This demo uses local package checks only. It does not contact the FAA/LAANC system, verify airspace authorization, or send email.</Text>
+          <Text style={styles.demoTitle}>LAANC requirement: undetermined</Text>
+          <Text style={styles.demoCopy}>The venue address is shown below, but this app has no FAA airspace data connection. It cannot say whether LAANC is required. Check the location in an FAA-approved LAANC service before proceeding. No authorization or email is sent here.</Text>
         </View>
 
         <View style={[s.card, styles.sectionCard]}>
@@ -142,9 +170,13 @@ export default function LaancDocumentReviewScreen({ navigation, route }) {
           <Text style={styles.eventTitle}>{dossier?.event || 'Drone show'}</Text>
           <Text style={styles.metadata}>DOSSIER {dossier?.id || 'UNASSIGNED'}</Text>
           <View style={styles.rule} />
-          <Text style={styles.fieldLabel}>DEMO LAANC REFERENCE</Text>
-          <Text accessibilityLabel="Demo LAANC reference" style={styles.reference}>{`DEMO-${dossier?.id || 'UNASSIGNED'}`}</Text>
-          <Text style={styles.helper}>Reference only; not an FAA-issued authorization.</Text>
+          <Text style={styles.fieldLabel}>VENUE LOCATION FROM SUBMITTED BOOKING</Text>
+          <Text accessibilityLabel="Event venue location" style={styles.locationValue}>
+            {siteAddress || 'No submitted booking with a venue address is linked to this dossier.'}
+          </Text>
+          <Text style={styles.helper}>
+            {hasLocation ? 'Address provided for screening. LAANC requirement still needs official FAA airspace verification.' : 'A complete saved booking address is required before package review can pass.'}
+          </Text>
         </View>
 
         <View style={[s.card, styles.sectionCard]}>
@@ -240,7 +272,7 @@ const styles = StyleSheet.create({
   metadata: { color: colors.muted, fontFamily: monoFont, fontSize: 10, letterSpacing: 0.6 },
   rule: { height: 1, backgroundColor: colors.border, marginVertical: 12 },
   fieldLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 9, marginBottom: 5 },
-  reference: { color: colors.accent, fontFamily: monoFont, fontSize: 13, fontWeight: '700' },
+  locationValue: { color: colors.text, fontSize: 14, lineHeight: 20, marginBottom: 5 },
   helper: { color: colors.muted, fontSize: 11, lineHeight: 16 },
   recipientRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   recipientTag: { minWidth: 42, borderRadius: 4, backgroundColor: colors.accentTint, paddingHorizontal: 10, paddingVertical: 6, alignItems: 'center' },
