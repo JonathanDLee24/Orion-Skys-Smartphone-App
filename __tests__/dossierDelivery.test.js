@@ -48,6 +48,31 @@ test('confirmation fetches all recipients, opens event history and dismisses', a
   await act(async () => tree.unmount());
 });
 
+test('delivery preview displays the reviewed subject, LAANC demo reference and attachments', async () => {
+  const reviewedDelivery = {
+    ...delivery,
+    preview: true,
+    subject: 'Test show flight documents',
+    laancReference: 'DEMO-event-1',
+    attachments: ['Flight plans (4 files)', 'Service agreement (1 file)'],
+  };
+  recordDossierDelivery(dossier.id, reviewedDelivery);
+  let tree;
+  await act(async () => {
+    tree = create(
+      <DossierDeliveryScreen
+        route={{ params: { dossier, deliveryId: reviewedDelivery.id } }}
+        navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
+      />,
+    );
+  });
+
+  for (const value of ['Test show flight documents', 'DEMO-event-1', 'demo only', 'Flight plans (4 files)', 'Service agreement (1 file)']) {
+    expect(textOf(tree)).toContain(value);
+  }
+  await act(async () => tree.unmount());
+});
+
 test('delivery details follow the accessibility text size and expose labels', async () => {
   recordDossierDelivery(dossier.id, delivery);
   setAccessibilityPreferences({ enabled: true, textSize: 'large' });

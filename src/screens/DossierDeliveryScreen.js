@@ -57,6 +57,19 @@ export default function DossierDeliveryScreen({ route, navigation }) {
           </View>
           <Text style={styles.heading}>{dossier.event}</Text>
           <Text style={styles.copy}>Sent: {new Date(delivery.sentAt).toLocaleString()}</Text>
+          {!!delivery.subject && (
+            <View style={styles.deliveryPackage}>
+              <Text style={[s.label, styles.section]}>// REVIEWED SUBJECT</Text>
+              <Text style={styles.copy}>{delivery.subject}</Text>
+              {!!delivery.laancReference && <Text style={styles.copy}>LAANC reference: {delivery.laancReference} (demo only)</Text>}
+              {!!delivery.attachments?.length && (
+                <>
+                  <Text style={[s.label, styles.section]}>// ATTACHMENTS IN PREVIEW</Text>
+                  {delivery.attachments.map((attachment) => <Text key={attachment} style={styles.copy}>• {attachment}</Text>)}
+                </>
+              )}
+            </View>
+          )}
           <Text style={[s.label, styles.section]}>// RECIPIENT DELIVERY STATUS</Text>
           <View style={s.card}><Recipients recipients={delivery.recipients} /></View>
           <View style={styles.destinations}>
@@ -88,7 +101,7 @@ export function DossierSentLogScreen({ route, navigation }) {
       {loading && <Text style={s.body}>Loading email history…</Text>}
       {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
       {!loading && !error && history.length === 0 && <Text style={s.body}>No sent emails for this event.</Text>}
-      {history.map((entry) => <View key={entry.id} style={s.card} testID="sent-log-entry"><Text style={styles.heading}>{entry.preview ? 'Operations package (preview)' : 'Operations package'}</Text><Text style={styles.copy}>Sent: {new Date(entry.sentAt).toLocaleString()}</Text><Recipients recipients={entry.recipients} /></View>)}
+      {history.map((entry) => <View key={entry.id} style={s.card} testID="sent-log-entry"><Text style={styles.heading}>{entry.preview ? 'Operations package (preview)' : 'Operations package'}</Text><Text style={styles.copy}>Sent: {new Date(entry.sentAt).toLocaleString()}</Text>{entry.subject ? <Text style={styles.copy}>Subject: {entry.subject}</Text> : null}{entry.attachments?.map((attachment) => <Text key={attachment} style={styles.copy}>• {attachment}</Text>)}<Recipients recipients={entry.recipients} /></View>)}
       <View style={styles.destinations}><DestinationAction label="Back" description="Return to delivery details" icon="←" onPress={() => navigation.goBack()} /></View>
     </ScreenLayout>
   );
@@ -100,6 +113,7 @@ const styles = StyleSheet.create({
   copy: { color: colors.muted, fontSize: 13, lineHeight: 20 },
   heading: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 8 },
   section: { marginTop: 22, marginBottom: 12 },
+  deliveryPackage: { marginTop: 8 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingVertical: 10 },
   recipient: { flex: 1 },
   role: { color: colors.muted, fontFamily: monoFont, fontSize: 10, marginBottom: 4 },

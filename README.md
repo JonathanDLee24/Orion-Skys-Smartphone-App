@@ -82,6 +82,7 @@ All routes are registered in `App.js` with `headerShown: false`; each screen ren
 | `ClientSignOff` | `ClientSignOffScreen.js` | Credential check and drawn or typed signature |
 | `DossierShowSelect` | `DossierShowSelectScreen.js` | Choose a show for document review |
 | `DocumentDossier` | `DocumentDossierScreen.js` | Dossier sections and test-PDF generation |
+| `LaancDocumentReview` | `LaancDocumentReviewScreen.js` | Admin review of the request contact, subject, LAANC demo reference and document attachments |
 | `QRCodeScanner` | `QRCodeScannerScreen.js` | Simulated staff/guest check-in scanner |
 | `EmployeeQRCode` | `EmployeeQRCode.js` | Personal employee QR badge |
 | `EmployeeSuccessfulScan` | `EmployeeSuccessfulScanScreen.js` | Staff check-in verification result |
@@ -114,6 +115,7 @@ Welcome
 │         ├→ QRCodeScanner
 │         └→ EmployeeQRCode
 └─ Admin Sign In → AdminLogin → DroneManifest
+     └→ AdminContracts → DossierShowSelect → DocumentDossier → LaancDocumentReview → DossierDelivery
 ```
 
 The logo in the shared header calls `navigation.popToTop()`, returning to `Welcome`. Account Settings is the one screen that overrides it, sending the logo back to the employee dashboard.
@@ -204,7 +206,7 @@ Reached from **Client sign-off** in My Account. It shows a verified credential p
 
 Reached from **Review documents** in My Account. Pick a mock show, review agreements, waivers, receipts and FAA flight plans, then press **Reconcile & Generate Complete PDF**. `dossierPdfService` writes a one-page test PDF locally and downloads it on web or shares it through `expo-sharing` on device; no server is involved.
 
-Admins can open **Preview delivery status** from a dossier to inspect a simulated confirmation, per-recipient To/CC/BCC statuses, and that event's sent log. The preview does not send email or query a mail provider. Its event-scoped records exist only in memory for the current app session; production delivery and open/bounce updates require a backend, provider integration and durable storage.
+Admins can open **Review LAANC & delivery** from a dossier to review the event request contact, edit the email subject, select attachments and run local package checks before creating a delivery preview. Pending documents must be excluded or resolved before the local checks pass, and the admin must confirm they reviewed the recipient, subject and attachments. This is a demo only: it does not connect to FAA/LAANC, verify airspace authorization, or send email. The preview records the subject, recipient and selected documents in the event's in-memory delivery log. The separate **Preview delivery status** action remains a simulated example; production authorization checks and email delivery require a backend, FAA/LAANC integration, provider integration and durable storage.
 
 ### QR check-in
 

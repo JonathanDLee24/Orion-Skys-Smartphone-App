@@ -72,6 +72,12 @@ export default function DocumentDossierScreen({ navigation, route }) {
         })}
       </View>
       {adminMode && <View style={styles.previewAction}>
+        <Text style={s.body}>Review the request contact, email subject, and documents before creating a simulated delivery preview.</Text>
+        <PrimaryButton
+          title="Review LAANC & delivery"
+          testID="review-laanc-delivery"
+          onPress={() => navigation.navigate('LaancDocumentReview', { dossier: activeDossier })}
+        />
         <Text style={s.body}>Email delivery is not configured. Preview the delivery confirmation using simulated data.</Text>
         <PrimaryButton title="Preview delivery status" testID="preview-delivery" onPress={() => {
           const delivery = createPreviewDelivery(activeDossier.id);

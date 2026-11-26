@@ -38,6 +38,7 @@ import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanSc
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
+import LaancDocumentReviewScreen from './src/screens/LaancDocumentReviewScreen';
 import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { AccessibilityProvider, useAccessibility, useAccessibilityColors } from './src/components/AccessibilityProvider';
 
@@ -158,6 +159,7 @@ function AppShell() {
             <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
             <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
             <Stack.Screen name="DossierDelivery" component={DossierDeliveryScreen} />
+            <Stack.Screen name="LaancDocumentReview" component={LaancDocumentReviewScreen} />
             <Stack.Screen name="DossierSentLog" component={DossierSentLogScreen} />
             <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
           </Stack.Navigator>

@@ -1,0 +1,102 @@
+import React from 'react';
+import { Text, TextInput } from 'react-native';
+import { act, create } from 'react-test-renderer';
+import LaancDocumentReviewScreen from '../src/screens/LaancDocumentReviewScreen';
+import DocumentDossierScreen from '../src/screens/DocumentDossierScreen';
+import { clearDossierDeliverySession, fetchEventEmailHistory } from '../src/services/dossierDeliveryService';
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: jest.fn(), popToTop: jest.fn() }),
+}));
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+
+global.IS_REACT_ACT_ENVIRONMENT = true;
+
+const dossier = { id: 'SKY-8902-A', event: 'Neon Lights Festival' };
+const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
+const press = async (tree, label) => {
+  const control = tree.root.find((node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function');
+  await act(async () => control.props.onPress());
+  return control;
+};
+const previewButtons = (tree) => tree.root.findAll((node) => (
+  node.props.accessibilityLabel === 'Create delivery preview (no email sent)'
+  && node.props.accessibilityRole === 'button'
+  && typeof node.props.onPress === 'function'
+));
+
+beforeEach(() => clearDossierDeliverySession());
+
+test('admin dossier opens the LAANC and delivery review for the selected event', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(<DocumentDossierScreen route={{ params: { dossier, adminMode: true } }} navigation={navigation} />);
+  });
+
+  await press(tree, 'Review LAANC & delivery');
+  expect(navigation.navigate).toHaveBeenCalledWith('LaancDocumentReview', { dossier });
+  await act(async () => tree.unmount());
+});
+
+test('review validates request recipient and attachments before creating a preview', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(<LaancDocumentReviewScreen route={{ params: { dossier } }} navigation={navigation} />);
+  });
+
+  expect(textOf(tree)).toContain('kenneth.elliott@csus.edu');
+  expect(textOf(tree)).toContain('LAANC connection is not configured');
+  expect(textOf(tree)).toContain('FAA flight plans');
+  const subject = tree.root.findByType(TextInput);
+  await act(async () => subject.props.onChangeText('Neon Lights Festival - LAANC package'));
+  await press(tree, 'Validate recipient & documents');
+  expect(textOf(tree)).toContain('LOCAL PACKAGE CHECKS PASSED');
+  expect(textOf(tree)).toContain('It is not LAANC approval.');
+
+  expect(previewButtons(tree)[0].props.disabled).toBe(true);
+  await press(tree, 'Confirm recipient, subject, and attachments reviewed');
+  const previewButton = previewButtons(tree)[0];
+  expect(previewButton.props.disabled).toBe(false);
+  await act(async () => previewButton.props.onPress());
+
+  const history = await fetchEventEmailHistory(dossier.id);
+  expect(history).toHaveLength(1);
+  expect(history[0]).toMatchObject({
+    preview: true,
+    subject: 'Neon Lights Festival - LAANC package',
+    laancReference: `DEMO-${dossier.id}`,
+    recipients: [{ type: 'To', email: 'kenneth.elliott@csus.edu', status: 'Preview only' }],
+  });
+  expect(history[0].attachments).toEqual(expect.arrayContaining([
+    'FAA flight plans (4 files)',
+    'Drone show service agreement (1 file)',
+  ]));
+  expect(navigation.navigate).toHaveBeenCalledWith('DossierDelivery', { dossier, deliveryId: history[0].id });
+  await act(async () => tree.unmount());
+});
+
+test('validation blocks pending attachments and requires a fresh review after edits', async () => {
+  const navigation = { navigate: jest.fn() };
+  let tree;
+  await act(async () => {
+    tree = create(<LaancDocumentReviewScreen route={{ params: { dossier } }} navigation={navigation} />);
+  });
+
+  await press(tree, 'Liability waivers attachment');
+  await press(tree, 'Validate recipient & documents');
+  expect(textOf(tree)).toContain('Pending documents must be resolved or excluded.');
+  expect(previewButtons(tree)).toHaveLength(0);
+
+  await press(tree, 'Liability waivers attachment');
+  await press(tree, 'Validate recipient & documents');
+  expect(previewButtons(tree)).toHaveLength(1);
+
+  const subject = tree.root.findByType(TextInput);
+  await act(async () => subject.props.onChangeText(''));
+  expect(previewButtons(tree)).toHaveLength(0);
+  expect(navigation.navigate).not.toHaveBeenCalled();
+  await act(async () => tree.unmount());
+});
