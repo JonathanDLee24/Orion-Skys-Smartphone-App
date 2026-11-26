@@ -35,6 +35,7 @@ import ShowAuthorizationScreen from './src/screens/ShowAuthorizationScreen';
 import LiabilityClausesScreen from './src/screens/LiabilityClausesScreen';
 import PendingSignaturesScreen from './src/screens/PendingSignaturesScreen';
 import CustomerSuccessfulScanScreen from './src/screens/CustomerSuccessfulScanScreen';
+import UnsuccessfulQRCodeScanScreen from './src/screens/UnsuccessfulQRCodeScanScreen';
 import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
@@ -131,6 +132,7 @@ function AppShell() {
             <Stack.Screen name="CustomerSuccessfulScan" component={CustomerSuccessfulScanScreen} />
             <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
             <Stack.Screen name="EmployeeQRCode" component={EmployeeQRCodeScreen} />
+            <Stack.Screen name="UnsuccessfulQRCodeScan" component={UnsuccessfulQRCodeScanScreen} />
             <Stack.Screen name="EmployeeEvents" component={EmployeeEventsScreen} />
             <Stack.Screen name="Credits" component={CreditsScreen} />
             <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
