@@ -63,8 +63,8 @@ export const mockBooking = {
 
 export const mockDroneUsage = {
   droneID: "D1",
-  hours: 12,
-  numFlights: 3,
+  hours: 42.5,
+  numFlights: 18,
   nextMaintenanceInHours: 12,
 };
 
@@ -82,5 +82,12 @@ export const droneMissionData = [
     totalFlightTimeMins: 15,
     date: "2026-11-21",
     missionName: "Test Flight 2",
+  },
+  {
+    missionID: "M3",
+    droneID: "D1",
+    totalFlightTimeMins: 9.7,
+    date: "2026-11-18",
+    missionName: "Test Flight 3",
   },
 ];
