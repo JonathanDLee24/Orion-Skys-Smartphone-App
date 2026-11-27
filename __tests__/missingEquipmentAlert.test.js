@@ -19,6 +19,10 @@ function screenText(tree) {
   return tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');
 }
 
+function pressByLabel(tree, label) {
+  return tree.root.findAll((node) => node.props.accessibilityLabel === label)[0].props.onPress();
+}
+
 beforeEach(() => {
   resetEquipmentReadiness();
 });
@@ -51,17 +55,13 @@ test('OSPSA-254 safety follow-up and resolution update the audit trail', async (
   });
 
   await act(async () => {
-    tree.root
-      .find((node) => node.props.accessibilityLabel === 'Open follow-up for SF-Q-005')
-      .props.onPress();
+    pressByLabel(tree, 'Open follow-up for SF-Q-005');
   });
   await act(async () => {
     tree.root.findByType(TextInput).props.onChangeText('Recovery crew searching the NE sector.');
   });
   await act(async () => {
-    tree.root
-      .find((node) => node.props.accessibilityLabel === 'Save safety follow-up')
-      .props.onPress();
+    pressByLabel(tree, 'Save safety follow-up');
   });
 
   let text = screenText(tree);
@@ -69,9 +69,7 @@ test('OSPSA-254 safety follow-up and resolution update the audit trail', async (
   expect(text).toContain('FOLLOW_UP');
 
   await act(async () => {
-    tree.root
-      .find((node) => node.props.accessibilityLabel === 'Mark resolved and verify')
-      .props.onPress();
+    pressByLabel(tree, 'Mark resolved and verify');
   });
 
   text = screenText(tree);
@@ -89,9 +87,7 @@ test('OSPSA-254 alert actions are available to safety staff', async () => {
   });
 
   await act(async () => {
-    tree.root
-      .find((node) => node.props.accessibilityLabel === 'Ping active transceivers')
-      .props.onPress();
+    pressByLabel(tree, 'Ping active transceivers');
   });
 
   const text = screenText(tree);
