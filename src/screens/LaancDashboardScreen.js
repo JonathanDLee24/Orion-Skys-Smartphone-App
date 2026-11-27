@@ -66,7 +66,7 @@ export default function LaancDashboardScreen({ navigation }) {
                 <Text style={styles.certificateId}>ID: {authorization.certificateId}</Text>
                 <Text style={styles.approvedBadge}>{authorization.status}</Text>
               </View>
-              <View style={styles.divider} />
+              <View style={[s.divider, styles.divider]} />
               <View style={styles.metricRow}>
                 <Text style={styles.metricLabel}>Max Grid Altitude</Text>
                 <Text style={styles.metricValue}>{authorization.maxAltitude}</Text>
@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   authorizationCard: { borderWidth: 1, borderColor: colors.accent, borderRadius: 6, padding: 16, gap: 4 },
   authorizationTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   certificateId: { color: colors.accent, fontFamily: monoFont, fontSize: 15, fontWeight: '700', flexShrink: 1 },
-  approvedBadge: { color: '#0B0F00', backgroundColor: colors.accent, fontFamily: monoFont, fontSize: 10, fontWeight: '700', letterSpacing: 0.6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 3, overflow: 'hidden' },
-  divider: { height: 1, backgroundColor: '#1F2937', marginVertical: 10 },
+  approvedBadge: { color: colors.background, backgroundColor: colors.accent, fontFamily: monoFont, fontSize: 10, fontWeight: '700', letterSpacing: 0.6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 3, overflow: 'hidden' },
+  divider: { marginVertical: 10 },
   metricRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, minHeight: 34 },
   metricLabel: { color: colors.muted, fontSize: 13, flexShrink: 1 },
   metricValue: { color: colors.text, fontFamily: monoFont, fontSize: 13, fontWeight: '700' },
@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
   cohortStatus: { color: colors.accent, fontFamily: monoFont, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   cohortPending: { color: colors.gold },
   initiationCard: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 12, gap: 5 },
-  initiationCleared: { borderColor: colors.accent, backgroundColor: '#12180A' },
-  initiationBlocked: { borderColor: colors.gold, backgroundColor: '#1A1405' },
+  initiationCleared: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  initiationBlocked: { borderColor: colors.gold, backgroundColor: colors.goldTint },
   initiationTitle: { fontFamily: monoFont, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
   initiationTitleCleared: { color: colors.accent },
   initiationTitleBlocked: { color: colors.gold },

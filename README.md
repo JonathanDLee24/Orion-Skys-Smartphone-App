@@ -212,7 +212,7 @@ My Account links to the personal **Employee QR Code** (`EmployeeQRCode`, encodin
 
 ### Admin fleet manifest
 
-`SerializedDroneManifestScreen` is a static sample of six airframes with an airframe/RFID search, status badges, battery telemetry and a five-tab fleet bottom bar. Cyan (`colors.cyan`) is still used here and by the drone launch animation; the rest of the app uses lime, gold, green and red. The header is hard-coded to `TOTAL: 120 UNITS` while only six rows are mocked.
+`SerializedDroneManifestScreen` is a static sample of six airframes with an airframe/RFID search, status badges, battery telemetry and a five-tab fleet bottom bar. Cyan (`colors.cyan`) is still used here for the standby badge; the drone launch animation now uses lime like the rest of the app. The header is hard-coded to `TOTAL: 120 UNITS` while only six rows are mocked.
 
 ### Client account and settings
 
@@ -258,6 +258,7 @@ Colors live in `src/theme.js`:
 | `accent` | `#DAFF02` | Primary actions, active step, lime badge/check |
 | `accentTint` | `#1A2200` | Tinted active backgrounds |
 | `gold` | `#FFC107` | Pending review, conflicts, step-1 review title |
+| `goldTint` | `#171200` | Tinted warning/pending backgrounds |
 | `green` | `#00C795` | Confirmed/saved states |
 | `error` | `#FF3B30` | Booked dates, cancelled/destructive states |
 | `muted` | `#8C8C8C` | Secondary copy |

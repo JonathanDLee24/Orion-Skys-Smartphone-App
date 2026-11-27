@@ -12,7 +12,7 @@ const ITEMS = [
 ];
 
 function NavIcon({ type, active }) {
-  const color = active ? colors.cyan : colors.muted;
+  const color = active ? colors.accent : colors.muted;
   if (Platform.OS === 'web') {
     const stroke = { fill: 'none', stroke: color, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' };
     const shape = {
@@ -71,7 +71,7 @@ export default function FleetBottomNav({ active = 'AIRSPACE', onSelect }) {
 }
 
 const styles = StyleSheet.create({
-  bottomNav: { alignItems: 'center', borderTopWidth: 1, borderColor: colors.border, backgroundColor: '#0B111C', minHeight: 84, paddingTop: 6, paddingBottom: 8 },
+  bottomNav: { alignItems: 'center', borderTopWidth: 1, borderColor: colors.border, backgroundColor: colors.card, minHeight: 84, paddingTop: 6, paddingBottom: 8 },
   navItems: { width: '100%', flexDirection: 'row', justifyContent: 'space-around', flex: 1 },
   navItem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 56 },
   activeNavItem: {},
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   chipPinLeft: { left: -7, top: 7, width: 5, height: 3 },
   chipPinRight: { right: -7, top: 7, width: 5, height: 3 },
   navLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.4 },
-  activeNavText: { color: colors.cyan },
+  activeNavText: { color: colors.accent },
   homeIndicator: { width: 150, height: 6, borderRadius: 4, backgroundColor: colors.muted, opacity: 0.9, marginTop: 4 },
   pressed: { opacity: 0.72 },
 });
