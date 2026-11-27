@@ -4,11 +4,13 @@ import {
   getAuditTrail,
   getExpectedManifest,
   getFlaggedAssets,
+  getLaunchClearance,
   getMissingEquipmentAlert,
   getOpenFollowUps,
   getReadinessStatus,
   logAlertAction,
   openSafetyFollowUp,
+  requestLaunch,
   resetEquipmentReadiness,
   resolveAsset,
 } from '../src/services/equipmentReadinessService';
@@ -87,6 +89,29 @@ test('OSPSA-254 AC-4 follow-ups and resolutions are auditable', () => {
   expect(trail.some((entry) => entry.action === 'FOLLOW_UP' && entry.assetId === 'SF-Q-005')).toBe(true);
   expect(trail.filter((entry) => entry.action === 'RESOLVED')).toHaveLength(3);
   expect(trail[0].action).toBe('RESOLVED');
+});
+
+test('OSPSA-254 AC-3 the readiness lock refuses a launch until every asset is verified', () => {
+  expect(getLaunchClearance().allowed).toBe(false);
+
+  const refused = requestLaunch({ actor: 'Show operator' });
+  expect(refused.allowed).toBe(false);
+  expect(refused.message).toBe(
+    'Launch blocked: SF-Q-004 · FAILED, SF-Q-005 · MISSING, SF-Q-006 · UNVERIFIED must be verified by safety staff.',
+  );
+  expect(getAuditTrail()[0]).toMatchObject({ action: 'LAUNCH_BLOCKED', actor: 'Show operator' });
+
+  // One asset short of a clear manifest still refuses the launch.
+  resolveAsset('SF-Q-004', { resolution: 'Battery pack replaced.' });
+  resolveAsset('SF-Q-005', { resolution: 'Airframe recovered.' });
+  expect(requestLaunch().allowed).toBe(false);
+  expect(getAuditTrail()[0].action).toBe('LAUNCH_BLOCKED');
+
+  resolveAsset('SF-Q-006', { resolution: 'Safety sign-off recorded.' });
+  const cleared = requestLaunch({ actor: 'Show operator' });
+  expect(cleared.allowed).toBe(true);
+  expect(cleared.message).toBe('Launch cleared. All required equipment is verified.');
+  expect(getAuditTrail()[0]).toMatchObject({ action: 'LAUNCH_AUTHORIZED', actor: 'Show operator' });
 });
 
 test('OSPSA-254 alert actions are written to the audit trail', () => {

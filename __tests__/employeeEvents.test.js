@@ -19,9 +19,26 @@ jest.mock('@react-navigation/native', () => ({
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
+// The demo schedule is a fixed 2026 season, so the Upcoming/Past split only
+// matches these expectations before the first demo show. Pin the clock to the
+// season instead of letting the suite drift into the past.
+const DEMO_NOW = new Date('2026-10-01T12:00:00.000Z');
+const REAL_TIMERS = [
+  'hrtime', 'nextTick', 'performance', 'queueMicrotask',
+  'requestAnimationFrame', 'cancelAnimationFrame',
+  'requestIdleCallback', 'cancelIdleCallback',
+  'setImmediate', 'clearImmediate', 'setInterval', 'clearInterval',
+  'setTimeout', 'clearTimeout',
+];
+
 beforeEach(() => {
+  jest.useFakeTimers({ now: DEMO_NOW, doNotFake: REAL_TIMERS });
   clearBookingSession();
   clearBookingSubmissions();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
 });
 
 const textOf = (tree) => tree.root.findAllByType(Text).map((node) => node.props.children).flat().join(' ');

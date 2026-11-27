@@ -15,7 +15,19 @@ global.IS_REACT_ACT_ENVIRONMENT = true;
 
 let tree;
 
+// The confirmed demo card only exists while its show is still upcoming, so the
+// clock is pinned inside the 2026 demo season.
+const DEMO_NOW = new Date('2026-10-01T12:00:00.000Z');
+const REAL_TIMERS = [
+  'hrtime', 'nextTick', 'performance', 'queueMicrotask',
+  'requestAnimationFrame', 'cancelAnimationFrame',
+  'requestIdleCallback', 'cancelIdleCallback',
+  'setImmediate', 'clearImmediate', 'setInterval', 'clearInterval',
+  'setTimeout', 'clearTimeout',
+];
+
 beforeEach(() => {
+  jest.useFakeTimers({ now: DEMO_NOW, doNotFake: REAL_TIMERS });
   clearBookingSession();
   clearBookingSubmissions();
 });
@@ -24,6 +36,7 @@ afterEach(() => {
   if (tree) act(() => tree.unmount());
   tree = null;
   jest.restoreAllMocks();
+  jest.useRealTimers();
 });
 
 const styleOf = (testID) => StyleSheet.flatten(tree.root.findByProps({ testID }).props.style);
