@@ -206,6 +206,32 @@ export function getMissingEquipmentAlert() {
   };
 }
 
+// AC-3: the lock is a gate, not a banner. A launch only clears when every
+// required asset is verified, and the clearance is read before anything is
+// allowed to start.
+export function getLaunchClearance() {
+  const readiness = getReadinessStatus();
+  return {
+    allowed: !readiness.blocked,
+    message: readiness.blocked
+      ? `Launch blocked: ${readiness.blockers.join(', ')} must be verified by safety staff.`
+      : 'Launch cleared. All required equipment is verified.',
+    readiness,
+  };
+}
+
+// A refused launch still leaves a trail, so safety staff can see that an
+// operator tried to fly a show with flagged equipment.
+export function requestLaunch({ actor = 'Show operator' } = {}) {
+  const clearance = getLaunchClearance();
+  if (!clearance.allowed) {
+    recordAudit('LAUNCH_BLOCKED', null, clearance.message, actor);
+    return { ...clearance, allowed: false };
+  }
+  recordAudit('LAUNCH_AUTHORIZED', null, clearance.message, actor);
+  return { ...clearance, allowed: true };
+}
+
 // AC-4: follow-ups are append-only from the operator's point of view. Opening
 // an existing follow-up again returns the open record instead of duplicating it.
 export function openSafetyFollowUp(assetId, { note, actor = 'Safety staff' } = {}) {
