@@ -40,6 +40,7 @@ import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import DroneUsageScreen from './src/screens/DroneUsageScreen';
+import LaancDashboardScreen from './src/screens/LaancDashboardScreen';
 import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { AccessibilityProvider, useAccessibility, useAccessibilityColors } from './src/components/AccessibilityProvider';
 
@@ -154,6 +155,7 @@ function AppShell() {
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
               <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
               <Stack.Screen name="DroneUsage" component={DroneUsageScreen} />
+              <Stack.Screen name="LaancDashboard" component={LaancDashboardScreen} />
               <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
               <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
               <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
