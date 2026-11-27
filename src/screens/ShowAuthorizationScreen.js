@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import ConfirmationPopup from '../components/ConfirmationPopup';
+import PrimaryButton from '../components/PrimaryButton';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { getLaunchClearance, requestLaunch } from '../services/equipmentReadinessService';
 import { getShowKey, useLiabilityAccepted } from '../services/liabilityClausesService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
@@ -34,6 +36,18 @@ export default function ShowAuthorizationScreen({ route, navigation }) {
   const acceptedNotice = route?.params?.acceptedNotice;
   const [dismissedNotice, setDismissedNotice] = useState(null);
   const showAcceptedPopup = Boolean(acceptedNotice) && acceptedNotice !== dismissedNotice;
+  // Equipment readiness is the launch gate: a show cannot be authorized to fly
+  // while any required asset is missing, failed or unverified.
+  const clearance = getLaunchClearance();
+  const [launchResult, setLaunchResult] = useState(null);
+
+  function authorizeLaunch() {
+    setLaunchResult(requestLaunch());
+  }
+
+  function openEquipmentAlert() {
+    navigation.navigate('MissingEquipmentAlert', adminReturn ? { adminMode: true } : undefined);
+  }
 
   function hideAcceptedPopup() {
     setDismissedNotice(acceptedNotice);
@@ -111,6 +125,48 @@ export default function ShowAuthorizationScreen({ route, navigation }) {
             );
           })}
         </View>
+
+        <View
+          testID="launch-gate"
+          style={[s.card, styles.gate, !clearance.allowed && styles.gateLocked]}
+        >
+          <Text style={s.label}>// SHOW READINESS</Text>
+          <Text
+            testID="launch-gate-state"
+            style={[styles.gateState, !clearance.allowed && styles.gateStateLocked]}
+          >
+            {clearance.allowed ? 'SHOW READINESS CLEARED' : 'SHOW READINESS LOCKED'}
+          </Text>
+          <Text testID="launch-gate-copy" style={[s.body, styles.gateCopy]}>
+            {clearance.allowed
+              ? `${clearance.readiness.verifiedCount}/${clearance.readiness.requiredCount} required assets verified.`
+              : `${clearance.readiness.flaggedCount}/${clearance.readiness.requiredCount} required assets are flagged. ${clearance.message}`}
+          </Text>
+          <PrimaryButton
+            testID="authorize-launch"
+            title="Authorize launch"
+            onPress={authorizeLaunch}
+          />
+          {!clearance.allowed ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Review equipment alert"
+              onPress={openEquipmentAlert}
+              style={({ pressed }) => [styles.gateLink, pressed && styles.pressed]}
+            >
+              <Text style={styles.gateLinkText}>REVIEW MISSING EQUIPMENT ALERT →</Text>
+            </Pressable>
+          ) : null}
+          {launchResult ? (
+            <Text
+              testID="launch-gate-result"
+              accessibilityRole="alert"
+              style={[styles.gateResult, !launchResult.allowed && styles.gateResultBlocked]}
+            >
+              {launchResult.message}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </ScreenLayout>
   );
@@ -136,5 +192,34 @@ const styles = StyleSheet.create({
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: 4 },
   accepted: { color: colors.green, fontFamily: monoFont, fontSize: 10, fontWeight: '700', marginTop: 8 },
   chevron: { color: colors.accent, fontSize: 18, fontWeight: '700' },
+  gate: { marginTop: 16, borderColor: colors.green },
+  gateLocked: { borderColor: colors.error },
+  gateState: {
+    color: colors.green,
+    fontFamily: monoFont,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  gateStateLocked: { color: colors.error },
+  gateCopy: { marginBottom: 14 },
+  gateLink: { minHeight: 44, justifyContent: 'center', marginTop: 4 },
+  gateLinkText: {
+    color: colors.error,
+    fontFamily: monoFont,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  gateResult: {
+    color: colors.green,
+    fontFamily: monoFont,
+    fontSize: 10,
+    lineHeight: 16,
+    marginTop: 10,
+  },
+  gateResultBlocked: { color: colors.error },
   pressed: { opacity: 0.72 },
 });
