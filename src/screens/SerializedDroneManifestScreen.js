@@ -1,22 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
-import { getFlaggedAssets, getReadinessStatus } from '../services/equipmentReadinessService';
+import {
+  compareManifest,
+  getFlaggedAssets,
+  getReadinessStatus,
+} from '../services/equipmentReadinessService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
-const fleet = [
-  { id: 'SF-Q-001', rfid: 'RFID: 900-11A0', state: 'ACTIVE', battery: '98%' },
-  { id: 'SF-Q-002', rfid: 'RFID: 900-11A1', state: 'ACTIVE', battery: '92%' },
-  { id: 'SF-Q-003', rfid: 'RFID: 900-11A2', state: 'STANDBY', battery: '45%' },
-  { id: 'SF-Q-004', rfid: 'RFID: 900-11A3', state: 'SERVICE', battery: '12%' },
-  { id: 'SF-Q-005', rfid: 'RFID: 900-11A4', state: 'ACTIVE', battery: '88%' },
-  { id: 'SF-Q-006', rfid: 'RFID: 900-11A5', state: 'ACTIVE', battery: '76%' },
-];
-
 function StateBadge({ state }) {
-  const style = state === 'ACTIVE' ? styles.active : state === 'STANDBY' ? styles.standby : styles.service;
+  const style = state === 'ACTIVE'
+    ? styles.active
+    : state === 'STANDBY'
+      ? styles.standby
+      : state === 'SERVICE'
+        ? styles.service
+        : styles.unaccounted;
   return <Text style={[styles.state, style]}>{state}</Text>;
 }
 
@@ -90,17 +91,32 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
   const s = useScreenStyles();
   const adminMode = route?.params?.adminMode === true;
   const [query, setQuery] = useState('');
-  const readiness = getReadinessStatus();
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = navigation?.addListener?.('focus', () => {
+      setRefreshToken((value) => value + 1);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const fleet = useMemo(() => compareManifest().map((asset) => ({
+    id: asset.assetId,
+    rfid: asset.rfid,
+    state: asset.state,
+    battery: asset.battery,
+  })), [refreshToken]);
+  const readiness = useMemo(() => getReadinessStatus(), [refreshToken]);
   const flaggedById = useMemo(() => getFlaggedAssets().reduce((next, asset) => {
     next[asset.assetId] = asset;
     return next;
-  }, {}), []);
+  }, {}), [refreshToken]);
 
   const rows = useMemo(() => {
     const value = query.trim().toLowerCase();
     if (!value) return fleet;
     return fleet.filter((drone) => `${drone.id} ${drone.rfid} ${drone.state}`.toLowerCase().includes(value));
-  }, [query]);
+  }, [query, fleet]);
 
   return (
     <ScreenLayout
@@ -215,6 +231,7 @@ const styles = StyleSheet.create({
   active: { color: '#041A15', borderColor: colors.green, backgroundColor: colors.green },
   standby: { color: '#001A20', borderColor: colors.cyan, backgroundColor: colors.cyan },
   service: { color: '#231700', borderColor: colors.gold, backgroundColor: colors.gold },
+  unaccounted: { color: colors.error, borderColor: colors.error, backgroundColor: 'rgba(255, 59, 48, 0.12)' },
   telemetry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 9, paddingTop: 7, borderTopWidth: 1, borderColor: '#1A2636' },
   telemetryLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
   battery: { color: colors.text, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },

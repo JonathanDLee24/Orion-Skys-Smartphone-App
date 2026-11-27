@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
-import { Text } from 'react-native';
+import { Text, TextInput } from 'react-native';
 import MissingEquipmentAlertScreen from '../src/screens/MissingEquipmentAlertScreen';
 import {
   getReadinessStatus,
@@ -56,9 +56,7 @@ test('OSPSA-254 safety follow-up and resolution update the audit trail', async (
       .props.onPress();
   });
   await act(async () => {
-    tree.root
-      .find((node) => node.props.accessibilityLabel === 'Follow-up note')
-      .props.onChangeText('Recovery crew searching the NE sector.');
+    tree.root.findByType(TextInput).props.onChangeText('Recovery crew searching the NE sector.');
   });
   await act(async () => {
     tree.root

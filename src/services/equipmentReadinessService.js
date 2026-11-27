@@ -18,12 +18,12 @@ export const READINESS_RULES = [
 ];
 
 const EXPECTED_EQUIPMENT = [
-  { assetId: 'SF-Q-001', label: 'Primary airframe 01', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad A' },
-  { assetId: 'SF-Q-002', label: 'Primary airframe 02', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad A' },
-  { assetId: 'SF-Q-003', label: 'Primary airframe 03', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad B' },
-  { assetId: 'SF-Q-004', label: 'Primary airframe 04', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Maintenance bay' },
-  { assetId: 'SF-Q-005', label: 'Primary airframe 05', role: 'SHOW AIRFRAME', required: true, stagingArea: 'NE sector' },
-  { assetId: 'SF-Q-006', label: 'Primary airframe 06', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Staging perimeter' },
+  { assetId: 'SF-Q-001', rfid: 'RFID: 900-11A0', label: 'Primary airframe 01', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad A' },
+  { assetId: 'SF-Q-002', rfid: 'RFID: 900-11A1', label: 'Primary airframe 02', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad A' },
+  { assetId: 'SF-Q-003', rfid: 'RFID: 900-11A2', label: 'Primary airframe 03', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad B' },
+  { assetId: 'SF-Q-004', rfid: 'RFID: 900-11A3', label: 'Primary airframe 04', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Maintenance bay' },
+  { assetId: 'SF-Q-005', rfid: 'RFID: 900-11A4', label: 'Primary airframe 05', role: 'SHOW AIRFRAME', required: true, stagingArea: 'NE sector' },
+  { assetId: 'SF-Q-006', rfid: 'RFID: 900-11A5', label: 'Primary airframe 06', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Staging perimeter' },
 ];
 
 // Snapshot of the last serialized scan for the show. Assets missing from this
