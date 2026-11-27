@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import TextInput from '../components/AppTextInput';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
+import { getFlaggedAssets, getReadinessStatus } from '../services/equipmentReadinessService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const fleet = [
@@ -75,11 +76,26 @@ function FleetBottomNav() {
   );
 }
 
+function IssueBadge({ status }) {
+  const tone = status === 'MISSING'
+    ? styles.missingTag
+    : status === 'FAILED'
+      ? styles.failedTag
+      : styles.unverifiedTag;
+  return <Text style={[styles.statusTag, tone]}>{status}</Text>;
+}
+
 export default function SerializedDroneManifestScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const adminMode = route?.params?.adminMode === true;
   const [query, setQuery] = useState('');
+  const readiness = getReadinessStatus();
+  const flaggedById = useMemo(() => getFlaggedAssets().reduce((next, asset) => {
+    next[asset.assetId] = asset;
+    return next;
+  }, {}), []);
+
   const rows = useMemo(() => {
     const value = query.trim().toLowerCase();
     if (!value) return fleet;
@@ -100,6 +116,22 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
       footer={<FleetBottomNav />}
     >
       <View style={[styles.manifest, layout.wide && styles.wideManifest]}>
+        {readiness.blocked ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View equipment alert"
+            onPress={() => navigation.navigate('MissingEquipmentAlert', adminMode ? { adminMode: true } : undefined)}
+            style={({ pressed }) => [styles.alertBanner, pressed && styles.pressed]}
+          >
+            <View style={styles.alertBannerCopy}>
+              <Text style={styles.alertBannerLabel}>⚠ EQUIPMENT ALERT · {readiness.level}</Text>
+              <Text style={styles.alertBannerText}>
+                {readiness.headline} — show readiness is locked until safety follow-up.
+              </Text>
+            </View>
+            <Text style={styles.alertBannerArrow}>→</Text>
+          </Pressable>
+        ) : null}
         <View style={styles.manifestHeading}>
           <Text style={s.label}>// SYSTEM HARDWARE MANIFEST</Text>
           <Text style={styles.total}>TOTAL: 120 UNITS</Text>
@@ -116,13 +148,22 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
         />
         <View style={styles.list}>
           {rows.map((drone) => (
-            <Pressable key={drone.id} accessibilityRole="button" accessibilityLabel={`View ${drone.id}`} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+            <Pressable
+              key={drone.id}
+              accessibilityRole="button"
+              accessibilityLabel={`View ${drone.id}`}
+              onPress={() => navigation.navigate('MissingEquipmentAlert', adminMode ? { adminMode: true, assetId: drone.id } : { assetId: drone.id })}
+              style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+            >
               <View style={styles.rowTop}>
                 <View style={styles.identity}>
                   <Text style={styles.droneId}>{drone.id}</Text>
                   <Text style={styles.rfid}>{drone.rfid}</Text>
                 </View>
-                <StateBadge state={drone.state} />
+                <View style={styles.badgeRow}>
+                  {flaggedById[drone.id] ? <IssueBadge status={flaggedById[drone.id].status} /> : null}
+                  <StateBadge state={drone.state} />
+                </View>
               </View>
               <View style={styles.telemetry}>
                 <Text style={styles.telemetryLabel}>BATTERY TELEMETRY</Text>
@@ -140,6 +181,22 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   manifest: { flex: 1 },
   wideManifest: { maxWidth: 720, alignSelf: 'center', width: '100%' },
+  alertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255, 59, 48, 0.08)',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  alertBannerCopy: { flex: 1, minWidth: 0 },
+  alertBannerLabel: { color: colors.error, fontFamily: monoFont, fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
+  alertBannerText: { color: colors.text, fontSize: 10, lineHeight: 15, marginTop: 3 },
+  alertBannerArrow: { color: colors.error, fontSize: 18, fontWeight: '700' },
   manifestHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 },
   total: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
   search: { color: colors.text, fontFamily: monoFont, fontSize: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 3, minHeight: 42, paddingHorizontal: 12, marginBottom: 14 },
@@ -149,6 +206,11 @@ const styles = StyleSheet.create({
   identity: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexShrink: 1 },
   droneId: { color: colors.text, fontFamily: monoFont, fontSize: 12, fontWeight: '700' },
   rfid: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statusTag: { borderWidth: 1, borderRadius: 3, fontFamily: monoFont, fontSize: 8, fontWeight: '700', paddingHorizontal: 5, paddingVertical: 3 },
+  missingTag: { color: colors.error, borderColor: colors.error },
+  failedTag: { color: colors.gold, borderColor: colors.gold },
+  unverifiedTag: { color: colors.cyan, borderColor: colors.cyan },
   state: { borderWidth: 1, borderRadius: 3, fontFamily: monoFont, fontSize: 8, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 4 },
   active: { color: '#041A15', borderColor: colors.green, backgroundColor: colors.green },
   standby: { color: '#001A20', borderColor: colors.cyan, backgroundColor: colors.cyan },

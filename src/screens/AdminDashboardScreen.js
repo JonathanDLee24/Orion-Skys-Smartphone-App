@@ -6,6 +6,7 @@ import {
   formatUnavailableSlot,
   getNextScheduledSubmission,
 } from '../services/bookingConflictService';
+import { getReadinessStatus } from '../services/equipmentReadinessService';
 import { colors, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
@@ -55,6 +56,7 @@ export default function AdminDashboardScreen({ navigation }) {
   const s = useScreenStyles();
   const [notice, setNotice] = useState('');
   const nextShow = getNextScheduledSubmission();
+  const readiness = getReadinessStatus();
 
   function openDestination(destination) {
     if (destination.route) {
@@ -81,6 +83,21 @@ export default function AdminDashboardScreen({ navigation }) {
       <View style={[styles.dashboard, layout.wide && styles.wideDashboard]}>
         <Text style={[s.body, styles.subtitle]}>Administrator · Operations overview</Text>
 
+        {readiness.blocked ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View equipment alert"
+            onPress={() => navigation.navigate('MissingEquipmentAlert', { adminMode: true })}
+            style={({ pressed }) => [styles.readinessBanner, pressed && styles.pressed]}
+          >
+            <Text style={styles.readinessBannerLabel}>⚠ SHOW READINESS LOCKED</Text>
+            <Text style={styles.readinessBannerText}>
+              {readiness.headline}. {readiness.flaggedCount} assets need safety follow-up before launch.
+            </Text>
+            <Text style={styles.readinessBannerAction}>OPEN EQUIPMENT ALERT →</Text>
+          </Pressable>
+        ) : null}
+
         <View>
           <View style={styles.rowBetween}>
             <Text style={s.label}>// NEXT SCHEDULED SHOW</Text>
@@ -97,7 +114,6 @@ export default function AdminDashboardScreen({ navigation }) {
           ) : (
             <Text style={[s.body, styles.emptyShow]}>No shows are currently on the schedule.</Text>
           )}
-
         </View>
 
         <Text style={[s.label, styles.secureNote]}>◈ SECURE ADMIN SESSION</Text>
@@ -134,6 +150,30 @@ const styles = StyleSheet.create({
   dashboard: { width: '100%', maxWidth: 1120, alignSelf: 'center' },
   wideDashboard: { maxWidth: 1120 },
   subtitle: { fontSize: 14, marginBottom: 16 },
+  readinessBanner: {
+    backgroundColor: 'rgba(255, 59, 48, 0.08)',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 18,
+    gap: 6,
+  },
+  readinessBannerLabel: {
+    color: colors.error,
+    fontFamily: 'monospace',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  readinessBannerText: { color: colors.text, fontSize: 12, lineHeight: 18 },
+  readinessBannerAction: {
+    color: colors.error,
+    fontFamily: 'monospace',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   onlineLabel: { color: colors.green },
   showTitle: { color: colors.text, fontSize: 17, fontWeight: '600', marginTop: 16 },

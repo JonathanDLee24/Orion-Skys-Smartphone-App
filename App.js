@@ -40,6 +40,7 @@ import QRCodeScannerScreen from './src/screens/QRCodeScannerScreen';
 import EmployeeQRCodeScreen from './src/screens/EmployeeQRCode';
 import PaymentResultScreen from './src/screens/PaymentResultScreen';
 import DroneUsageScreen from './src/screens/DroneUsageScreen';
+import MissingEquipmentAlertScreen from './src/screens/MissingEquipmentAlertScreen';
 import { DroneLaunchProvider } from './src/components/DroneLaunchTransition';
 import { AccessibilityProvider, useAccessibility, useAccessibilityColors } from './src/components/AccessibilityProvider';
 
@@ -80,12 +81,11 @@ function AppShell() {
     });
 
     // Browsers emit these events as soon as the device loses or regains its link.
-   if (
-        Platform.OS === 'web' &&
-        typeof window !== 'undefined' &&
-        typeof window.addEventListener === 'function'
-      ) 
-      {
+    if (
+      Platform.OS === 'web' &&
+      typeof window !== 'undefined' &&
+      typeof window.addEventListener === 'function'
+    ) {
       const handleOffline = () => setIsOffline(true);
       const handleOnline = () => setIsOffline(false);
       window.addEventListener('offline', handleOffline);
@@ -152,17 +152,18 @@ function AppShell() {
             <Stack.Screen name="LiabilityClauses" component={LiabilityClausesScreen} />
             <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
-              <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
-              <Stack.Screen name="DroneUsage" component={DroneUsageScreen} />
-              <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
-              <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
-              <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
-              <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
-              <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
-              <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
-              <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
+            <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+            <Stack.Screen name="DroneUsage" component={DroneUsageScreen} />
+            <Stack.Screen name="MissingEquipmentAlert" component={MissingEquipmentAlertScreen} />
+            <Stack.Screen name="FeeReview" component={FeeReviewScreen} />
+            <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
+            <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
+            <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
+            <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+            <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
         {isOffline && (
           <View accessibilityRole="alert" style={styles.offlineOverlay}>
             <View style={[styles.offlineCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
