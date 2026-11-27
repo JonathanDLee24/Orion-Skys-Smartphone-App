@@ -11,6 +11,7 @@ import { colors, useResponsiveLayout } from '../theme';
 const QUICK_ACTIONS = [
   { label: 'View schedule', description: 'Upcoming shows and timelines', icon: '▣', route: 'AdminSchedule' },
   { label: 'Manage fleet', description: 'Drones, batteries, and status', icon: '✣', route: 'DroneManifest', adminMode: true },
+  { label: 'Maintenance warnings', description: 'Threshold alerts before the next show', icon: '⚠', route: 'MaintenanceWarning', adminMode: true },
   { label: 'Review contracts', description: 'Pending agreements', icon: '▤', route: 'AdminContracts' },
 ];
 
@@ -18,6 +19,7 @@ const DESTINATIONS = [
   { label: 'Dashboard', description: 'Overview and quick actions', icon: '▦', notice: 'You are already viewing the admin dashboard.' },
   { label: 'Schedule', description: 'Shows, rehearsals, and cues', icon: '▣', route: 'AdminSchedule' },
   { label: 'Fleet', description: 'Drones, batteries, and readiness', icon: '✣', route: 'DroneManifest', adminMode: true },
+  { label: 'Maintenance', description: 'Flight-hour thresholds and service follow-up', icon: '⚠', route: 'MaintenanceWarning', adminMode: true },
   { label: 'Contracts', description: 'Venue, crew, and vendor records', icon: '▤', route: 'AdminContracts' },
   { label: 'Crew', description: 'Staff access, gates, and roles', icon: '♙', route: 'QRCodeScanner', adminMode: true },
   { label: 'Settings', description: 'Portal, security, and preferences', icon: '⚙', route: 'AccountSettings', adminMode: true },

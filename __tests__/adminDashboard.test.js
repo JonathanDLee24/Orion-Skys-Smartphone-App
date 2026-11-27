@@ -39,9 +39,11 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
   const expectedRoutes = [
     ['View schedule', 'AdminSchedule'],
     ['Manage fleet', 'DroneManifest', { adminMode: true }],
+    ['Maintenance warnings', 'MaintenanceWarning', { adminMode: true }],
     ['Review contracts', 'AdminContracts'],
     ['Schedule', 'AdminSchedule'],
     ['Fleet', 'DroneManifest', { adminMode: true }],
+    ['Maintenance', 'MaintenanceWarning', { adminMode: true }],
     ['Contracts', 'AdminContracts'],
     ['Crew', 'QRCodeScanner', { adminMode: true }],
     ['Settings', 'AccountSettings', { adminMode: true }],
@@ -55,7 +57,7 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
     'Send survey',
     'Shared payments',
   ];
-  expect(expectedLabels).toHaveLength(13);
+  expect(expectedLabels).toHaveLength(15);
 
   for (const [label, route, params] of expectedRoutes) {
     const link = tree.root.find((node) => node.props.accessibilityLabel === label);
@@ -124,6 +126,8 @@ test('admin contract selection and dossier details return within admin navigatio
       />,
     );
   });
+  await act(async () => tree.root.findByProps({ accessibilityLabel: 'Open payment receipts' }).props.onPress());
+  expect(navigation.navigate).toHaveBeenLastCalledWith('PaymentReceiptAttachment', { adminMode: true });
   const backButton = tree.root.find((node) => node.props.accessibilityLabel === 'Back to contracts');
   await act(async () => backButton.props.onPress());
   expect(navigation.navigate).toHaveBeenLastCalledWith('AdminContracts');

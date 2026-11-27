@@ -6,9 +6,10 @@ import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const drone = { id: 'SF-Q-004', rfid: 'RFID: 900-11A3', hours: 120.4, threshold: 120, lastService: 'OCT 14, 2026' };
 
-export default function MaintenanceWarningScreen({ navigation }) {
+export default function MaintenanceWarningScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const adminMode = route?.params?.adminMode === true;
   const [status, setStatus] = useState('ACTION REQUIRED');
 
   const overdue = Math.max(0, drone.hours - drone.threshold).toFixed(1);
@@ -16,15 +17,15 @@ export default function MaintenanceWarningScreen({ navigation }) {
 
   return (
     <ScreenLayout
-      caption="EMPLOYEE OPERATIONS / FLIGHT EQUIPMENT"
+      caption={adminMode ? 'ADMIN OPERATIONS / FLIGHT EQUIPMENT' : 'EMPLOYEE OPERATIONS / FLIGHT EQUIPMENT'}
       label={`MAINTENANCE // ${drone.id}`}
       title="Maintenance Warning"
       headerBadge="● ONLINE"
       headerTone="gold"
       secure
       showProgress={false}
-      onLogoPress={() => navigation.navigate('Welcome')}
-      onBack={() => navigation.goBack()}
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'Welcome')}
+      onBack={() => (adminMode ? navigation.navigate('AdminDashboard') : navigation.goBack())}
       backLabel="BACK"
       footer={<PrimaryButton testID="maintenance-action" title={scheduled ? 'Maintenance scheduled' : 'Mark maintenance scheduled'} disabled={scheduled} onPress={() => setStatus('SCHEDULED')} />}
     >

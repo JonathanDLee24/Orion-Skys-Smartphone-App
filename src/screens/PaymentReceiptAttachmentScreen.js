@@ -17,9 +17,10 @@ const initialHistory = [
   { id: 'verified', time: 'NOV 18, 2026 · 14:05', message: 'Event and client association verified', actor: 'ADMIN' },
 ];
 
-export default function PaymentReceiptAttachmentScreen({ navigation }) {
+export default function PaymentReceiptAttachmentScreen({ navigation, route }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
+  const adminMode = route?.params?.adminMode === true;
   const [receipt, setReceipt] = useState(null);
   const [history, setHistory] = useState(initialHistory);
 
@@ -46,8 +47,8 @@ export default function PaymentReceiptAttachmentScreen({ navigation }) {
       headerBadge="● ONLINE"
       secure
       showProgress={false}
-      onLogoPress={() => navigation.navigate('Welcome')}
-      onBack={() => navigation.goBack()}
+      onLogoPress={() => navigation.navigate(adminMode ? 'AdminDashboard' : 'Welcome')}
+      onBack={() => (adminMode ? navigation.navigate('AdminContracts') : navigation.goBack())}
       backLabel="BACK"
       footer={<PrimaryButton testID="attach-receipt" title={receipt ? 'Replace receipt' : 'Attach itemized receipt'} onPress={attachReceipt} leadingIcon={<Text style={styles.uploadIcon}>↑</Text>} />}
     >
