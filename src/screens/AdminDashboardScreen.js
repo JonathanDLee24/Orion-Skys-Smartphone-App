@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
@@ -55,8 +55,16 @@ export default function AdminDashboardScreen({ navigation }) {
   const layout = useResponsiveLayout();
   const s = useScreenStyles();
   const [notice, setNotice] = useState('');
+  const [, setRefreshToken] = useState(0);
   const nextShow = getNextScheduledSubmission();
   const readiness = getReadinessStatus();
+
+  useEffect(() => {
+    const unsubscribe = navigation?.addListener?.('focus', () => {
+      setRefreshToken((value) => value + 1);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   function openDestination(destination) {
     if (destination.route) {
