@@ -7,7 +7,7 @@ import {
   getNextScheduledSubmission,
 } from '../services/bookingConflictService';
 import { getReadinessStatus } from '../services/equipmentReadinessService';
-import { colors, useResponsiveLayout } from '../theme';
+import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
   { label: 'View schedule', description: 'Upcoming shows and timelines', icon: '▣', route: 'AdminSchedule' },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   readinessBannerLabel: {
     color: colors.error,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   readinessBannerText: { color: colors.text, fontSize: 12, lineHeight: 18 },
   readinessBannerAction: {
     color: colors.error,
-    fontFamily: 'monospace',
+    fontFamily: monoFont,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,

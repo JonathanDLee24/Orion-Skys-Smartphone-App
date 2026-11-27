@@ -22,12 +22,12 @@ const EXPECTED_EQUIPMENT = [
   { assetId: 'SF-Q-002', rfid: 'RFID: 900-11A1', label: 'Primary airframe 02', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad A' },
   { assetId: 'SF-Q-003', rfid: 'RFID: 900-11A2', label: 'Primary airframe 03', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Launch pad B' },
   { assetId: 'SF-Q-004', rfid: 'RFID: 900-11A3', label: 'Primary airframe 04', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Maintenance bay' },
-  { assetId: 'SF-Q-005', rfid: 'RFID: 900-11A4', label: 'Primary airframe 05', role: 'SHOW AIRFRAME', required: true, stagingArea: 'NE sector' },
+  { assetId: 'SF-Q-005', rfid: 'RFID: 900-11A4', label: 'Primary airframe 05', role: 'SHOW AIRFRAME', required: true, stagingArea: 'NE sector', lastKnown: 'NE sector / Alt: 24 ft' },
   { assetId: 'SF-Q-006', rfid: 'RFID: 900-11A5', label: 'Primary airframe 06', role: 'SHOW AIRFRAME', required: true, stagingArea: 'Staging perimeter' },
 ];
 
-// Snapshot of the last serialized scan for the show. Assets missing from this
-// registry can never count as verified against the expected manifest.
+// Snapshot of the last serialized scan for the show. SF-Q-005 is deliberately
+// absent: the comparison below must catch it from the expected manifest.
 const INITIAL_SERIALIZED_MANIFEST = {
   'SF-Q-001': { status: 'VERIFIED', state: 'ACTIVE', battery: '98%', lastSeen: 'Launch pad A / Pre-flight bay' },
   'SF-Q-002': { status: 'VERIFIED', state: 'ACTIVE', battery: '92%', lastSeen: 'Launch pad A / Pre-flight bay' },
@@ -38,13 +38,6 @@ const INITIAL_SERIALIZED_MANIFEST = {
     battery: '12%',
     lastSeen: 'Maintenance bay / Cell 3',
     issue: 'Battery pack failed the pre-flight load test.',
-  },
-  'SF-Q-005': {
-    status: 'MISSING',
-    state: 'UNACCOUNTED',
-    battery: '—',
-    lastSeen: 'NE sector / Alt: 24 ft',
-    issue: 'No landing confirmation or RFID handshake from the serialized manifest.',
   },
   'SF-Q-006': {
     status: 'UNVERIFIED',
@@ -127,8 +120,8 @@ export function getSerializedManifest() {
   return Object.entries(serializedManifest).map(([assetId, record]) => ({ assetId, ...record }));
 }
 
-// AC-1: compare every expected asset against the serialized manifest. Missing
-// serial numbers are reported as MISSING instead of simply disappearing.
+// AC-1: compare every expected asset against the serialized manifest. A serial
+// number with no scan is reported as MISSING instead of simply disappearing.
 export function compareManifest() {
   return EXPECTED_EQUIPMENT.map((expected) => {
     const record = serializedManifest[expected.assetId];
@@ -138,8 +131,8 @@ export function compareManifest() {
         status: EQUIPMENT_STATUS.MISSING,
         state: 'UNACCOUNTED',
         battery: '—',
-        lastSeen: 'No serialized scan',
-        issue: 'Expected asset was not found in the serialized manifest.',
+        lastSeen: expected.lastKnown || 'No serialized scan',
+        issue: 'Expected asset was not found in the serialized manifest; no RFID handshake.',
       };
     }
     return { ...expected, ...record };
