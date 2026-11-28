@@ -7,6 +7,7 @@ import {
   getNextScheduledSubmission,
 } from '../services/bookingConflictService';
 import { getReadinessStatus } from '../services/equipmentReadinessService';
+import { getFleetStatusSummary } from '../services/droneDowntimeService';
 import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
@@ -55,6 +56,7 @@ export default function AdminDashboardScreen({ navigation }) {
   const s = useScreenStyles();
   const [notice, setNotice] = useState('');
   const [, setRefreshToken] = useState(0);
+  const [fleetStatus, setFleetStatus] = useState(getFleetStatusSummary);
   const nextShow = getNextScheduledSubmission();
   const readiness = getReadinessStatus();
 
@@ -63,6 +65,14 @@ export default function AdminDashboardScreen({ navigation }) {
       setRefreshToken((value) => value + 1);
     });
     return unsubscribe;
+  }, [navigation]);
+
+  // Downtime follow-ups change the launch-ready count, so refresh when the
+  // dashboard regains focus after a fleet visit.
+  useEffect(() => {
+    const refreshFleet = () => setFleetStatus(getFleetStatusSummary());
+    const unsubscribe = navigation?.addListener?.('focus', refreshFleet);
+    return typeof unsubscribe === 'function' ? unsubscribe : undefined;
   }, [navigation]);
 
   function openDestination(destination) {
@@ -121,6 +131,13 @@ export default function AdminDashboardScreen({ navigation }) {
           ) : (
             <Text style={[s.body, styles.emptyShow]}>No shows are currently on the schedule.</Text>
           )}
+        </View>
+
+        <View testID="fleet-readiness-strip" style={[styles.rowBetween, styles.readinessStrip]}>
+          <Text style={s.label}>// FLEET READINESS</Text>
+          <Text style={styles.readinessText}>
+            {fleetStatus.launchReady} LAUNCH-READY · {fleetStatus.maintenance} MAINTENANCE · {fleetStatus.grounded} GROUNDED
+          </Text>
         </View>
 
         <Text style={[s.label, styles.secureNote]}>◈ SECURE ADMIN SESSION</Text>
@@ -188,6 +205,8 @@ const styles = StyleSheet.create({
   showTime: { color: colors.text, fontSize: 14, marginTop: 16 },
   emptyShow: { marginTop: 16 },
   secureNote: { textAlign: 'center', marginTop: 16 },
+  readinessStrip: { marginTop: 18 },
+  readinessText: { color: colors.cyan, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   quickHeading: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 22, marginBottom: 10 },
   destinationsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 10 },
   notice: { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 13 },

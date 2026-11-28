@@ -4,6 +4,8 @@ import { AdminContractsScreen } from '../src/screens/DossierShowSelectScreen';
 import DocumentDossierScreen from '../src/screens/DocumentDossierScreen';
 import { AdminScheduleScreen } from '../src/screens/EmployeeEventsScreen';
 import AdminDashboardScreen from '../src/screens/AdminDashboardScreen';
+import { Text } from 'react-native';
+import { createDowntimeRecord, resetFleetForTests } from '../src/services/droneDowntimeService';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -12,6 +14,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
 global.IS_REACT_ACT_ENVIRONMENT = true;
+
+beforeEach(() => resetFleetForTests());
 
 test('admin action groups share the same grid and single-line card subtitles', async () => {
   let tree;
@@ -82,6 +86,21 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
     await act(async () => action.props.onPress());
     expect(tree.root.find((node) => node.props.accessibilityRole === 'alert').props.children).toBe(message);
   }
+
+  await act(async () => tree.unmount());
+});
+
+test('admin dashboard surfaces fleet availability for operational staff', async () => {
+  createDowntimeRecord({ droneId: 'SF-Q-003', issue: 'ESC failure', workPerformed: 'Diagnosed', staff: 'Alex', availability: 'Grounded/Downtime' });
+  let tree;
+  await act(async () => {
+    tree = create(<AdminDashboardScreen navigation={{ navigate: jest.fn() }} />);
+  });
+
+  const strip = tree.root.find((node) => node.props.testID === 'fleet-readiness-strip');
+  const text = strip.findAllByType(Text).map((node) => node.props.children).flat().join(' ').replace(/\s+/g, ' ');
+  expect(text).toContain('// FLEET READINESS');
+  expect(text).toContain('4 LAUNCH-READY · 1 MAINTENANCE · 1 GROUNDED');
 
   await act(async () => tree.unmount());
 });

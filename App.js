@@ -1,3 +1,4 @@
+import DroneDowntimeScreen from './src/screens/DroneDowntimeScreen';
 import React, { useEffect, useMemo, useState } from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -154,6 +155,7 @@ function AppShell() {
             <Stack.Screen name="PendingSignatures" component={PendingSignaturesScreen} />
             <Stack.Screen name="BookingSubmitted" component={BookingSubmittedScreen} />
             <Stack.Screen name="DroneManifest" component={SerializedDroneManifestScreen} />
+            <Stack.Screen name="DroneDowntime" component={DroneDowntimeScreen} />
             <Stack.Screen name="DroneUsage" component={DroneUsageScreen} />
             <Stack.Screen name="LaancDashboard" component={LaancDashboardScreen} />
             <Stack.Screen name="MissingEquipmentAlert" component={MissingEquipmentAlertScreen} />
@@ -161,8 +163,11 @@ function AppShell() {
             <Stack.Screen name="Checkout" component={PaymentCheckoutScreen} />
             <Stack.Screen name="PaymentStatus" component={PaymentResultScreen} />
             <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
+            <Stack.Screen name="AccessibilitySettings" component={AccessibilitySettingsScreen} />
             <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
             <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+            <Stack.Screen name="DossierDelivery" component={DossierDeliveryScreen} />
+            <Stack.Screen name="DossierSentLog" component={DossierSentLogScreen} />
             <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
           </Stack.Navigator>
         </NavigationContainer>
