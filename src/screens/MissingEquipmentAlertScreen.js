@@ -256,7 +256,7 @@ export default function MissingEquipmentAlertScreen({ navigation, route }) {
             style={styles.auditRow}
           >
             <View style={styles.auditTop}>
-              <Text style={styles.auditAction}>{entry.action}</Text>
+              <Text style={[styles.auditAction, entry.action === 'FLAGGED' && styles.auditActionFlagged]}>{entry.action}</Text>
               <Text style={styles.auditTime}>{entry.at.slice(11, 16)} UTC</Text>
             </View>
             <Text style={styles.auditNote}>
@@ -445,6 +445,7 @@ const styles = StyleSheet.create({
   },
   auditTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   auditAction: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  auditActionFlagged: { color: colors.gold },
   auditTime: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
   auditNote: { color: colors.text, fontSize: 11, lineHeight: 16, marginTop: 6 },
   auditActor: { color: colors.muted, fontFamily: monoFont, fontSize: 8, marginTop: 6 },
