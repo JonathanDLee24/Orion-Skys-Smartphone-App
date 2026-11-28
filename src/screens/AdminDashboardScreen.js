@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   emptyShow: { marginTop: 16 },
   secureNote: { textAlign: 'center', marginTop: 16 },
   readinessStrip: { marginTop: 18 },
-  readinessText: { color: colors.cyan, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
+  readinessText: { color: colors.accent, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   quickHeading: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 22, marginBottom: 10 },
   destinationsHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 10 },
   notice: { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 13 },

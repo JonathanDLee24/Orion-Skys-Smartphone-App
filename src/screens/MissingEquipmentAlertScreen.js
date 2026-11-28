@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   countRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
-  countText: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  countText: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
   actionRow: { gap: 10, marginBottom: 14 },
   primaryButton: {
     minHeight: 48,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   missingBadge: { color: colors.error, borderColor: colors.error },
   failedBadge: { color: colors.gold, borderColor: colors.gold },
-  unverifiedBadge: { color: colors.cyan, borderColor: colors.cyan },
+  unverifiedBadge: { color: colors.accent, borderColor: colors.accent },
   assetIssue: { color: colors.text, fontSize: 11, lineHeight: 16, marginTop: 10 },
   assetBottom: {
     flexDirection: 'row',
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderColor: '#1A2636',
+    borderColor: colors.border,
   },
   assetMeta: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
   assetAction: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   followUpCard: {
-    backgroundColor: '#0B111C',
+    backgroundColor: colors.field,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 7,
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   auditTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  auditAction: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  auditAction: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
   auditTime: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
   auditNote: { color: colors.text, fontSize: 11, lineHeight: 16, marginTop: 6 },
   auditActor: { color: colors.muted, fontFamily: monoFont, fontSize: 8, marginTop: 6 },

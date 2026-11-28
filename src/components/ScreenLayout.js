@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   dangerBadge: { color: '#FF3B30', borderColor: '#FF3B30' },
   goldBadge: { color: '#FFB800', borderColor: '#FFB800' },
   secure: { borderWidth: 0, paddingHorizontal: 0 },
-  onlineBadge: { color: colors.cyan, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0 },
+  onlineBadge: { color: colors.green, borderWidth: 0, backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0 },
   title: { color: colors.text, fontFamily: monoFont, fontSize: 17, fontWeight: '700', letterSpacing: 0.2, lineHeight: 24 },
   back: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center', marginTop: -10, marginBottom: 8 },
   wideBack: { minHeight: 36, marginBottom: 0 },

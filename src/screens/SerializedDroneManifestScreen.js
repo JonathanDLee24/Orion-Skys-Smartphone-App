@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   statusTag: { borderWidth: 1, borderRadius: 3, fontFamily: monoFont, fontSize: 8, fontWeight: '700', paddingHorizontal: 5, paddingVertical: 3 },
   missingTag: { color: colors.error, borderColor: colors.error },
   failedTag: { color: colors.gold, borderColor: colors.gold },
-  unverifiedTag: { color: colors.cyan, borderColor: colors.cyan },
+  unverifiedTag: { color: colors.accent, borderColor: colors.accent },
   state: { borderWidth: 1, borderRadius: 3, fontFamily: monoFont, fontSize: 8, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 4 },
   active: { color: '#041A15', borderColor: colors.green, backgroundColor: colors.green },
   service: { color: '#231700', borderColor: colors.gold, backgroundColor: colors.gold },
