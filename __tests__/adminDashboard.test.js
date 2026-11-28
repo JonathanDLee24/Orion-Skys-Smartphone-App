@@ -38,7 +38,6 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
 
   const expectedRoutes = [
     ['View schedule', 'AdminSchedule'],
-    ['Manage fleet', 'DroneManifest', { adminMode: true }],
     ['Review contracts', 'AdminContracts'],
     ['Schedule', 'AdminSchedule'],
     ['Fleet', 'DroneManifest', { adminMode: true }],
@@ -55,7 +54,10 @@ test('admin dashboard links to Orion Skys operational screens', async () => {
     'Send survey',
     'Shared payments',
   ];
-  expect(expectedLabels).toHaveLength(13);
+  expect(expectedLabels).toHaveLength(12);
+  // Fleet is reachable from the destinations grid only; the duplicate quick
+  // action was consolidated away.
+  expect(tree.root.findAll((node) => node.props.accessibilityLabel === 'Manage fleet')).toHaveLength(0);
 
   for (const [label, route, params] of expectedRoutes) {
     const link = tree.root.find((node) => node.props.accessibilityLabel === label);

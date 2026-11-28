@@ -11,7 +11,6 @@ import { colors, monoFont, useResponsiveLayout } from '../theme';
 
 const QUICK_ACTIONS = [
   { label: 'View schedule', description: 'Upcoming shows and timelines', icon: '▣', route: 'AdminSchedule' },
-  { label: 'Manage fleet', description: 'Drones, batteries, and status', icon: '✣', route: 'DroneManifest', adminMode: true },
   { label: 'Review contracts', description: 'Pending agreements', icon: '▤', route: 'AdminContracts' },
 ];
 

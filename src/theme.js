@@ -8,6 +8,7 @@ export const colors = {
   accent: '#DAFF02',
   accentTint: '#1A2200',
   gold: '#FFC107',
+  goldTint: '#171200',
   text: '#FFFFFF',
   muted: '#8C8C8C',
   error: '#FF3B30',

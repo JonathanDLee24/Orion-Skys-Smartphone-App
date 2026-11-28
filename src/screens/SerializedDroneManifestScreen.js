@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import TextInput from '../components/AppTextInput';
+import FleetBottomNav from '../components/FleetBottomNav';
 import ScreenLayout, { useScreenStyles } from '../components/ScreenLayout';
 import {
   compareManifest,
@@ -19,62 +20,6 @@ function StateBadge({ state }) {
         ? styles.service
         : styles.unaccounted;
   return <Text style={[styles.state, style]}>{state}</Text>;
-}
-
-function NavIcon({ type, active }) {
-  const color = active ? colors.cyan : colors.muted;
-  if (Platform.OS === 'web') {
-    const stroke = { fill: 'none', stroke: color, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' };
-    const shape = {
-      map: [
-        React.createElement('path', { key: 'outline', d: 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z', ...stroke }),
-        React.createElement('path', { key: 'folds', d: 'M9 3v15M15 6v15', ...stroke }),
-      ],
-      airspace: [React.createElement('path', { key: 'shield', d: 'M20 13c0 5-3.5 7-8 9-4.5-2-8-4-8-9V5l8-3 8 3v8Z', ...stroke })],
-      laanc: [
-        React.createElement('path', { key: 'circle', d: 'M19.8 7.5A9 9 0 1 1 17.2 4.6', ...stroke }),
-        React.createElement('path', { key: 'check', d: 'm8 12 3 3 9-10', ...stroke }),
-      ],
-      notam: [React.createElement('path', { key: 'bell', d: 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4', ...stroke })],
-      pair: [
-        React.createElement('rect', { key: 'outer', x: 5, y: 5, width: 14, height: 14, rx: 1, ...stroke }),
-        React.createElement('rect', { key: 'inner', x: 9, y: 9, width: 6, height: 6, ...stroke }),
-        React.createElement('path', { key: 'pins', d: 'M9 2v3m6-3v3m-6 14v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3', ...stroke }),
-      ],
-    };
-    return React.createElement('svg', { width: 25, height: 25, viewBox: '0 0 24 24', 'aria-hidden': true }, shape[type]);
-  }
-  if (type === 'map') return <View style={[styles.mapIcon, { borderColor: color }]}><View style={[styles.mapPanel, styles.mapPanelLeft, { borderColor: color }]} /><View style={[styles.mapPanel, styles.mapPanelMiddle, { borderColor: color }]} /><View style={[styles.mapPanel, styles.mapPanelRight, { borderColor: color }]} /></View>;
-  if (type === 'airspace') return <View style={[styles.shieldIcon, { borderColor: color }]} />;
-  if (type === 'laanc') return <View style={[styles.checkCircle, { borderColor: color }]}><Text style={[styles.checkMark, { color }]}>✓</Text></View>;
-  if (type === 'notam') return <View style={[styles.bellIcon, { borderColor: color }]}><View style={[styles.bellClapper, { backgroundColor: color }]} /></View>;
-  return <View style={[styles.chipIcon, { borderColor: color }]}><View style={[styles.chipCore, { borderColor: color }]} /><View style={[styles.chipPin, styles.chipPinTop, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinBottom, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinLeft, { backgroundColor: color }]} /><View style={[styles.chipPin, styles.chipPinRight, { backgroundColor: color }]} /></View>;
-}
-
-function FleetBottomNav() {
-  const items = [
-    ['MAP', 'map'],
-    ['AIRSPACE', 'airspace'],
-    ['LAANC', 'laanc'],
-    ['NOTAM', 'notam'],
-    ['PAIR', 'pair'],
-  ];
-  return (
-    <View style={styles.bottomNav} accessibilityRole="tablist">
-      <View style={styles.navItems}>
-        {items.map(([label, icon]) => {
-          const active = label === 'AIRSPACE';
-          return (
-            <Pressable key={label} accessibilityRole="tab" accessibilityLabel={`${label} navigation`} accessibilityState={{ selected: active }} style={({ pressed }) => [styles.navItem, active && styles.activeNavItem, pressed && styles.pressed]}>
-              <NavIcon type={icon} active={active} />
-              <Text style={[styles.navLabel, active && styles.activeNavText]}>{label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View style={styles.homeIndicator} />
-    </View>
-  );
 }
 
 function IssueBadge({ status }) {
@@ -129,7 +74,7 @@ export default function SerializedDroneManifestScreen({ navigation, route }) {
       backLabel="Back to admin dashboard"
       flushFooter
       plainFooter
-      footer={<FleetBottomNav />}
+      footer={<FleetBottomNav active="AIRSPACE" onSelect={(tab) => { if (tab === 'LAANC') navigation.navigate('LaancDashboard'); }} />}
     >
       <View style={[styles.manifest, layout.wide && styles.wideManifest]}>
         {readiness.blocked ? (
@@ -214,7 +159,7 @@ const styles = StyleSheet.create({
   alertBannerText: { color: colors.text, fontSize: 10, lineHeight: 15, marginTop: 3 },
   alertBannerArrow: { color: colors.error, fontSize: 18, fontWeight: '700' },
   manifestHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 },
-  total: { color: colors.cyan, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
+  total: { color: colors.accent, fontFamily: monoFont, fontSize: 9, fontWeight: '700' },
   search: { color: colors.text, fontFamily: monoFont, fontSize: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, borderRadius: 3, minHeight: 42, paddingHorizontal: 12, marginBottom: 14 },
   list: { gap: 8 },
   row: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 5, paddingHorizontal: 12, paddingVertical: 10, minHeight: 76 },
@@ -232,34 +177,10 @@ const styles = StyleSheet.create({
   standby: { color: '#001A20', borderColor: colors.cyan, backgroundColor: colors.cyan },
   service: { color: '#231700', borderColor: colors.gold, backgroundColor: colors.gold },
   unaccounted: { color: colors.error, borderColor: colors.error, backgroundColor: 'rgba(255, 59, 48, 0.12)' },
-  telemetry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 9, paddingTop: 7, borderTopWidth: 1, borderColor: '#1A2636' },
+  telemetry: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 9, paddingTop: 7, borderTopWidth: 1, borderColor: colors.border },
   telemetryLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 8 },
   battery: { color: colors.text, fontFamily: monoFont, fontSize: 10, fontWeight: '700' },
   criticalBattery: { color: colors.error },
   empty: { paddingVertical: 24, textAlign: 'center' },
   pressed: { opacity: 0.72 },
-  bottomNav: { alignItems: 'center', borderTopWidth: 1, borderColor: colors.border, backgroundColor: '#0B111C', minHeight: 84, paddingTop: 6, paddingBottom: 8 },
-  navItems: { width: '100%', flexDirection: 'row', justifyContent: 'space-around', flex: 1 },
-  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, minHeight: 56 },
-  activeNavItem: {},
-  mapIcon: { width: 28, height: 25, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 2, paddingVertical: 1, borderWidth: 3, borderRadius: 3, transform: [{ skewX: '-8deg' }] },
-  mapPanel: { width: 5, borderLeftWidth: 2, borderRightWidth: 2 },
-  mapPanelLeft: { transform: [{ skewY: '-16deg' }] },
-  mapPanelMiddle: { transform: [{ skewY: '16deg' }] },
-  mapPanelRight: { transform: [{ skewY: '-16deg' }] },
-  shieldIcon: { width: 25, height: 27, borderWidth: 3, borderRadius: 10, transform: [{ rotate: '45deg' }, { scaleY: 0.9 }] },
-  checkCircle: { width: 26, height: 26, borderWidth: 3, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  checkMark: { fontSize: 18, lineHeight: 19, fontWeight: '700' },
-  bellIcon: { width: 25, height: 22, borderWidth: 3, borderTopLeftRadius: 12, borderTopRightRadius: 12, borderBottomWidth: 0, marginTop: 2 },
-  bellClapper: { position: 'absolute', width: 7, height: 3, borderRadius: 2, bottom: -5, left: 4 },
-  chipIcon: { width: 27, height: 27, borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
-  chipCore: { width: 12, height: 12, borderWidth: 2 },
-  chipPin: { position: 'absolute', width: 3, height: 5 },
-  chipPinTop: { top: -7, left: 7 },
-  chipPinBottom: { bottom: -7, left: 7 },
-  chipPinLeft: { left: -7, top: 7, width: 5, height: 3 },
-  chipPinRight: { right: -7, top: 7, width: 5, height: 3 },
-  navLabel: { color: colors.muted, fontFamily: monoFont, fontSize: 9, letterSpacing: 0.4 },
-  activeNavText: { color: colors.cyan },
-  homeIndicator: { width: 150, height: 6, borderRadius: 4, backgroundColor: colors.muted, opacity: 0.9, marginTop: 4 },
 });

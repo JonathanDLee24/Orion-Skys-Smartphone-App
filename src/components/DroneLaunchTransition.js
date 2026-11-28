@@ -6,20 +6,22 @@ import { colors } from '../theme';
 
 // react-native-web has no native animated module, so fall back to the JS driver there.
 const USE_NATIVE_DRIVER = Platform.OS !== 'web';
-const FLY_DURATION = 1000;
+// A slower flight gives the sign-in splash enough time to read as a deliberate
+// transition instead of a quick flash.
+export const FLY_DURATION = 1800;
 
 // The drone icon "splits" into this fleet, each one drifting off in its own direction.
 const FLEET = [
   { angle: -104, distance: 1.05, size: 34, spin: -28, color: colors.accent },
-  { angle: -72, distance: 1.18, size: 24, spin: 22, color: colors.cyan },
+  { angle: -72, distance: 1.18, size: 24, spin: 22, color: colors.accent },
   { angle: -38, distance: 0.94, size: 30, spin: 34, color: colors.accent },
-  { angle: -140, distance: 0.98, size: 20, spin: -40, color: colors.cyan },
+  { angle: -140, distance: 0.98, size: 20, spin: -40, color: colors.accent },
   { angle: 4, distance: 1.08, size: 28, spin: 18, color: colors.accent },
-  { angle: 44, distance: 1.12, size: 22, spin: -26, color: colors.cyan },
+  { angle: 44, distance: 1.12, size: 22, spin: -26, color: colors.accent },
   { angle: 130, distance: 1.02, size: 26, spin: 30, color: colors.accent },
-  { angle: -172, distance: 0.88, size: 18, spin: -18, color: colors.cyan },
+  { angle: -172, distance: 0.88, size: 18, spin: -18, color: colors.accent },
   { angle: 74, distance: 1.16, size: 32, spin: -34, color: colors.accent },
-  { angle: 158, distance: 0.92, size: 20, spin: 24, color: colors.cyan },
+  { angle: 158, distance: 0.92, size: 20, spin: 24, color: colors.accent },
 ];
 
 const DroneLaunchContext = createContext({ launch: () => {} });

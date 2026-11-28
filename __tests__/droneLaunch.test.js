@@ -1,9 +1,10 @@
 import React from 'react';
 import { act, create } from 'react-test-renderer';
 import { Pressable, Text, TextInput } from 'react-native';
-import { DroneLaunchProvider, useDroneLaunch } from '../src/components/DroneLaunchTransition';
+import { DroneLaunchProvider, FLY_DURATION, useDroneLaunch } from '../src/components/DroneLaunchTransition';
 import DroneGlyph from '../src/components/DroneGlyph';
 import EmployeeLoginScreen from '../src/screens/EmployeeLoginScreen';
+import { colors } from '../src/theme';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -24,6 +25,10 @@ function Launcher() {
 
 const overlays = (tree) => tree.root.findAllByProps({ testID: 'drone-launch-overlay' });
 
+test('the splash flight lasts longer than the original one-second pass', () => {
+  expect(FLY_DURATION).toBeGreaterThan(1000);
+});
+
 test('launching the transition covers the screen with the drone and its fleet', async () => {
   let tree;
   await act(async () => {
@@ -39,7 +44,9 @@ test('launching the transition covers the screen with the drone and its fleet', 
 
   const overlay = overlays(tree)[0];
   expect(overlay.props.pointerEvents).toBe('none');
-  expect(overlay.findAllByType(DroneGlyph).length).toBeGreaterThan(1);
+  const glyphs = overlay.findAllByType(DroneGlyph);
+  expect(glyphs.length).toBeGreaterThan(1);
+  expect(glyphs.some((glyph) => glyph.props.color === colors.cyan)).toBe(false);
   await act(async () => tree.unmount());
 });
 
