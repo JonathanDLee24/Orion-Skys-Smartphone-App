@@ -175,7 +175,7 @@ On tablet and desktop the screen uses the same treatment as the review and recei
 
 ### Employee dashboard and events
 
-- Dashboard greets “Welcome back, Kenneth”, shows **scheduled shows** / **in review** counts, a **+ Schedule a show** button, the next chronological show (reference, status, date, venue, manage link), a “Review your show brief” action, and a help row. Both counts start at `00`: a pending request raises **IN REVIEW**, while confirmed upcoming shows raise **SCHEDULED SHOWS**. The events feed seeds its demo schedule on first visit. On desktop (1200+ px) the portal uses two columns — stats, schedule action, next action and help on the left; the next show on the right — so it fits one page at 1366×700 and larger. iPad/tablet and phone keep the previous centered single column (max 720 px).
+- Dashboard greets “Welcome back, Kenneth”, shows **scheduled shows** / **in review** counts, a **+ Schedule a show** button, a **Manage drone fleet** button in the same filled style (opens `DroneManifest`), the next chronological show (reference, status, date, venue, manage link), a “Review your show brief” action, and a help row. Both counts start at `00`: a pending request raises **IN REVIEW**, while confirmed upcoming shows raise **SCHEDULED SHOWS**. The events feed seeds its demo schedule on first visit. On desktop (1200+ px) the portal uses two columns — stats, schedule action, next action and help on the left; the next show on the right — so it fits one page at 1366×700 and larger. iPad/tablet and phone keep the previous centered single column (max 720 px).
 - The bottom navigation is shared (`EmployeeBottomNav`): HOME, SCHEDULE, EVENTS, ACCOUNT.
 - **Your events** (`EmployeeEventsScreen`) is the schedule feed:
   - Header path `CLIENT SCHEDULE // 2026`, title **Your events**, a **Credits** button (to the dedicated `Credits` workspace) and the EVENTS tab lit.
@@ -212,7 +212,7 @@ My Account links to the personal **Employee QR Code** (`EmployeeQRCode`, encodin
 
 ### Admin fleet manifest
 
-`SerializedDroneManifestScreen` is a static sample of six airframes with an airframe/RFID search, status badges, battery telemetry and a five-tab fleet bottom bar. Cyan (`colors.cyan`) is still used here for the standby badge; the drone launch animation now uses lime like the rest of the app. The header is hard-coded to `TOTAL: 120 UNITS` while only six rows are mocked.
+`SerializedDroneManifestScreen` lists six sample airframes from the session fleet ledger with an airframe/RFID/state search, availability badges, battery telemetry, a readiness line (`LAUNCH-READY: 5 UNITS · MAINTENANCE: 1 · GROUNDED: 0`) and a five-tab fleet bottom bar. The bar follows the app's lime accent (`colors.accent`) on the card surface, and cyan is only used for the STANDBY status badge. Every row shows a **FLAG / SERVICE** action and opens the downtime child flow (`DroneDowntime`) for that airframe. The header reports the live fleet size (`TOTAL: 6 UNITS`).
 
 ### Client account and settings
 
@@ -463,3 +463,15 @@ Pushing more commits updates an open PR automatically. After a PR merges, fast-f
 git checkout main
 git pull --ff-only
 ```
+
+## Drone downtime prototype
+
+The fleet manifest opens a session-only maintenance and follow-up ledger (`src/services/droneDowntimeService.js`). Records, timestamps, and audit events reset when the app reloads. Staff names are self-entered and no server-side authorization, durable audit log, shared inventory, or actual launch control exists. Do not use this prototype for operational flight safety decisions.
+
+Select a drone (**FLAG / SERVICE**) in the manifest. The child screen shows the airframe’s current state, whether it is launch-ready, and any open follow-up. Enter the issue, work performed (or "None yet"), the responsible staff member, and optionally a future local service time in `YYYY-MM-DDTHH:mm` format, then choose one of the three operational states:
+
+- **Available** — the work was finished on the spot. The record is logged closed with the staff member and timestamp and the drone stays launch-ready (**Log on-the-spot maintenance**).
+- **Maintenance** — scheduled or ongoing service. Creates an open follow-up and removes the drone from launch-ready inventory immediately, even if service is booked for later (**Flag drone for service**).
+- **Grounded/Downtime** — the drone is out of service. Also creates an open follow-up and is excluded from launch-ready inventory.
+
+While a follow-up is open the screen offers **Save follow-up** (log more work, keep it parked) and **Close follow-up with selected state**. Only closing with **Available** returns the drone to launch-ready inventory; closing with Maintenance or Grounded keeps it excluded. Every change appends an audit entry with timestamp, staff member, resulting state and work performed. The manifest readiness line and the admin dashboard’s **FLEET READINESS** strip both read the same ledger. Scheduling is a recorded timestamp only: it does not create a calendar event or send notifications.
