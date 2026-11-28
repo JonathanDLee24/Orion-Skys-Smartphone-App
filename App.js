@@ -19,7 +19,9 @@ import AdminLoginScreen from './src/screens/AdminLoginScreen';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import DocumentDossierScreen from './src/screens/DocumentDossierScreen';
+import PaymentReceiptScreen from './src/screens/PaymentReceiptScreen';
 import DossierDeliveryScreen, { DossierSentLogScreen } from './src/screens/DossierDeliveryScreen';
+import DispatchOverrideScreen from './src/screens/DispatchOverrideScreen';
 import DossierShowSelectScreen, { AdminContractsScreen } from './src/screens/DossierShowSelectScreen';
 import EmployeeDashboard from './src/screens/EmployeeDashboard';
 import EmployeeEventsScreen, { AdminScheduleScreen } from './src/screens/EmployeeEventsScreen';
@@ -166,7 +168,9 @@ function AppShell() {
             <Stack.Screen name="AccessibilitySettings" component={AccessibilitySettingsScreen} />
             <Stack.Screen name="DossierShowSelect" component={DossierShowSelectScreen} />
             <Stack.Screen name="DocumentDossier" component={DocumentDossierScreen} />
+            <Stack.Screen name="PaymentReceipt" component={PaymentReceiptScreen} />
             <Stack.Screen name="DossierDelivery" component={DossierDeliveryScreen} />
+            <Stack.Screen name="DispatchOverride" component={DispatchOverrideScreen} />
             <Stack.Screen name="DossierSentLog" component={DossierSentLogScreen} />
             <Stack.Screen name="ClientSignOff" component={ClientSignOffScreen} />
           </Stack.Navigator>
